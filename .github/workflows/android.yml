@@ -137,6 +137,7 @@ jobs:
       - name: Publish preview build
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
           TAG: preview-latest
           VERSION_NAME: ${{ needs.build.outputs.version_name }}
           VERSION_CODE: ${{ needs.build.outputs.version_code }}
