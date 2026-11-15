@@ -122,6 +122,7 @@ fun ImportSyncScreen(
     var anchorMs by remember { mutableStateOf<Long?>(null) }
     var playing by remember { mutableStateOf(false) }
     var previewing by remember { mutableStateOf(false) }
+    var playbackSpeed by remember { mutableStateOf(1f) }
     var saving by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var confirmCancel by remember { mutableStateOf(false) }
@@ -211,29 +212,42 @@ fun ImportSyncScreen(
         }
         sourceFile = file
         val probe = withContext(Dispatchers.IO) { probeClip(file) }
-        durationMs = probe.durationMs
+        // A clip must cover at least one lap plus the lead-in; fall back to that
+        // so the controls stay usable when the platform cannot report a duration.
+        val floor = loaded.lapTimeMs + loaded.leadInMs.toLong()
+        durationMs = maxOf(probe.durationMs, floor)
         frameStepMs = probe.frameMs
         frameDurationUs = probe.frameDurationUs
-        player.setMediaItem(MediaItem.fromUri(Uri.fromFile(file)))
-        player.prepare()
+        withContext(Dispatchers.Main) {
+            player.setMediaItem(MediaItem.fromUri(Uri.fromFile(file)))
+            player.prepare()
+        }
     }
 
     LaunchedEffect(player, lap) {
         if (lap == null || started) return@LaunchedEffect
-        while (player.duration <= 0) delay(50)
-        durationMs = maxOf(durationMs, player.duration)
-        val last = lastFrameMs(player.duration, frameStepMs)
+        var reported = 0L
+        while (reported <= 0) {
+            reported = withContext(Dispatchers.Main) { player.duration }
+            if (reported <= 0) delay(50)
+        }
+        durationMs = maxOf(durationMs, reported)
+        lap?.let { l ->
+            durationMs = maxOf(durationMs, l.lapTimeMs + l.leadInMs.toLong())
+        }
+        val last = lastFrameMs(durationMs, frameStepMs)
         anchorMs = last
         anchorSuggested = true
-        seekTo(last)
+        withContext(Dispatchers.Main) { seekTo(last) }
         started = true
     }
 
     LaunchedEffect(player) {
         while (true) {
-            if (player.duration > 0) durationMs = maxOf(durationMs, player.duration)
-            // Paused seeks keep the exact position we set; polling would race the frame steps.
-            if (player.isPlaying) positionMs = player.currentPosition
+            withContext(Dispatchers.Main) {
+                if (player.duration > 0) durationMs = maxOf(durationMs, player.duration)
+                if (player.isPlaying) positionMs = player.currentPosition
+            }
             delay(50)
         }
     }
@@ -243,12 +257,19 @@ fun ImportSyncScreen(
         if (!previewing || range == null) {
             return@LaunchedEffect
         }
-        player.seekTo(range.startMs)
-        player.play()
+        withContext(Dispatchers.Main) {
+            player.seekTo(range.startMs)
+            player.play()
+        }
         while (previewing) {
-            if (player.currentPosition >= range.endMs) player.seekTo(range.startMs)
+            withContext(Dispatchers.Main) {
+                if (player.currentPosition >= range.endMs) player.seekTo(range.startMs)
+            }
             delay(50)
         }
+    }
+    LaunchedEffect(player, playbackSpeed) {
+        withContext(Dispatchers.Main) { player.setPlaybackSpeed(playbackSpeed) }
     }
 
     val currentLap = lap
@@ -276,9 +297,31 @@ fun ImportSyncScreen(
     }
 
     fun stepFrames(frames: Int) {
-        seekTo(frameStepTargetMs(displayedUs, frames, frameDurationUs).coerceIn(0, durationMs))
+        val target = frameStepTargetMs(displayedUs, frames, frameDurationUs)
+            .coerceIn(0L, durationMs.coerceAtLeast(0L))
+        scrubTargetMs = target
+        scrubSeeker.submit(target)
     }
     val sync = if (currentLap != null && anchor != null) ClipSync(anchor, currentLap.lapTimeMs) else null
+    val lapWindow = currentLap?.let { samples.lapWindow(it) } ?: emptyList()
+    val events = remember(lapWindow, currentLap) {
+        currentLap?.let { lapEvents(lapWindow, it) } ?: emptyList()
+    }
+    val brakeTimes = remember(events) {
+        events.filter { it.type == LapEventType.Brake }.map { it.timeMs }
+    }
+    fun seekBrake(direction: Int) {
+        val s = sync ?: return
+        val target = if (direction > 0) {
+            brakeTimes.firstOrNull { it > (s.telemetryMsAt(displayedMs)) + 200 }
+        } else {
+            brakeTimes.lastOrNull { it < (s.telemetryMsAt(displayedMs)) - 200 }
+        }
+        if (target != null) seekTo(s.videoMsAt(target))
+    }
+    val rulerEvents = remember(events, sync) {
+        sync?.let { s -> events.map { LapEvent(it.type, s.videoMsAt(it.timeMs).toInt()) } } ?: events
+    }
     val range = sync?.let { TrimPlan.forSync(it, durationMs) }
     val estimateMs = range?.let { (it.endMs - it.startMs).coerceAtLeast(1) }
         ?: currentLap?.lapTimeMs?.toLong()
@@ -306,351 +349,317 @@ fun ImportSyncScreen(
         null
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
+    Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader(
             title = "Sync clip",
             subtitle = currentLap?.let { "Lap ${it.index} · ${lapTimeLabel(it.lapTimeMs)}" } ?: "Replay",
             onBack = { confirmCancel = true },
         )
-
-        val outerPlayer = player
-        AndroidView(
-            factory = { viewContext ->
-                PlayerView(viewContext).apply {
-                    setPlayer(outerPlayer)
-                    useController = false
-                }
-            },
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(16f / 9f)
-                .clip(RoundedCornerShape(18.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant),
-        )
-
-        Text(
-            buildString {
-                append(formatMillis(displayedMs))
-                if (trackPercent != null) append(" · %.1f%% lap".format(trackPercent))
-                if (nearestSpeed != null) append(" · %.0f km/h".format(nearestSpeed * 3.6f))
-            },
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Text(
-            "Anchor: the finish-line frame that ends the lap",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-
-        Slider(
-            value = positionMs.coerceIn(0, durationMs).toFloat(),
-            onValueChange = { seekTo(it.roundToLong()) },
-            valueRange = 0f..durationMs.coerceAtLeast(1).toFloat(),
-            enabled = durationMs > 0,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                "0:00.000",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            val outerPlayer = player
+            AndroidView(
+                factory = { viewContext ->
+                    PlayerView(viewContext).apply {
+                        setPlayer(outerPlayer)
+                        useController = false
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(16f / 9f)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
             )
-            Spacer(Modifier.weight(1f))
+
             Text(
-                formatMillis(durationMs),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                buildString {
+                    append(formatMillis(displayedMs))
+                    if (trackPercent != null) append(" · %.1f%% lap".format(trackPercent))
+                    if (nearestSpeed != null) append(" · %.0f km/h".format(nearestSpeed * 3.6f))
+                },
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.fillMaxWidth(),
             )
-        }
-
-        range?.let {
-            TrimBar(startMs = it.startMs, endMs = it.endMs, durationMs = durationMs)
             Text(
-                "Shaded range = the lap that will be saved",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-
-        FrameRuler(
-            valueMs = displayedMs,
-            startMs = 0,
-            endMs = durationMs,
-            frameStepMs = frameStepMs,
-            enabled = durationMs > 0,
-            onScrubStart = {
-                scrubBaseUs = displayedUs
-                scrubTargetMs = null
-                scrubbing = true
-            },
-            onScrub = { frames ->
-                val target = frameStepTargetMs(scrubBaseUs, frames, frameDurationUs)
-                    .coerceIn(0, durationMs)
-                scrubTargetMs = target
-                scrubSeeker.submit(target)
-            },
-            onScrubEnd = { scrubbing = false },
-            hapticsEnabled = hapticsEnabled,
-        )
-        Text(
-            "Frame ruler · drag to step one frame",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-
-        TransportRow(
-            playing = playing,
-            enabled = durationMs > 0,
-            onRewind = { seekTo(positionMs - TRANSPORT_MS) },
-            onPlayPause = {
-                if (player.isPlaying) {
-                    player.pause()
-                    positionMs = player.currentPosition
-                } else {
-                    previewing = false
-                    player.play()
-                }
-            },
-            onForward = { seekTo(positionMs + TRANSPORT_MS) },
-        )
-        FrameStepRow(
-            enabled = durationMs > 0,
-            onStep = { frames -> stepFrames(frames) },
-        )
-
-        currentLap?.let { activeLap ->
-            SectionCard(title = "Anchor") {
-                Text(
-                    "The finish line that ends this lap",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Text(
-                    "The clip is trimmed to exactly one lap (${lapTimeLabel(activeLap.lapTimeMs)}) " +
-                        "backwards from this frame. Get this frame right and the clip is right.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                MetricLine("Anchor", anchor?.let(::formatMillis) ?: "Not set")
-                if (anchorSuggested) {
-                    Text(
-                        "Suggested at the clip's end — verify the front bumper is on the line, " +
-                            "or rewind and set it again.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
-                TextButton(onClick = { tipsOpen = !tipsOpen }) {
-                    Text(if (tipsOpen) "Hide tips" else "How to find the finish frame")
-                }
-                if (tipsOpen) {
-                    AnchorTip(
-                        "Pause when the HUD lap timer freezes on " +
-                            "${lapTimeLabel(activeLap.lapTimeMs)} — the next lap starts just after.",
-                    )
-                    AnchorTip("No lap timer? Frame-step until the front bumper touches the start/finish line.")
-                    AnchorTip("Record a few seconds before the start line: the whole lap must fit before the anchor.")
-                    AnchorTip("The playhead starts at the clip's end, so rewind instead of fast-forwarding.")
-                }
-                PrimaryPill(
-                    text = "Set anchor at this frame",
-                    onClick = {
-                        anchorMs = displayedMs
-                        anchorSuggested = false
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = durationMs > 0,
-                )
-            }
-        }
-
-        SectionCard(title = "Trim") {
-            if (sync == null) {
-                Text(
-                    "Set an anchor to see the clip range.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            } else {
-                MetricLine("Clip in", formatMillis(sync.trimInMs))
-                MetricLine("Clip out", formatMillis(sync.trimOutMs))
-                MetricLine("Lap", lapTimeLabel(sync.lapTimeMs))
-                range?.let { MetricLine("Start frame", formatMillis(it.startMs)) }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    GhostPill("Check start frame", {
-                        range?.let {
-                            seekTo(it.startMs)
-                        }
-                    }, Modifier.weight(1f))
-                    GhostPill(
-                        if (previewing) "Stop preview" else "Preview lap",
-                        {
-                            if (previewing) {
-                                previewing = false
-                                player.pause()
-                            } else if (range != null) {
-                                previewing = true
-                            }
-                        },
-                        Modifier.weight(1f),
-                    )
-                }
-                Text(
-                    "Start and anchor are the same point on the track, one lap apart.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                when (val result = check) {
-                    is SyncCheck.ClipTooShort -> Text(
-                        "The clip is %.1f s short of a full lap from this anchor — record more lead-in before the line."
-                            .format(result.missingMs / 1_000.0),
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                    is SyncCheck.StartNotAtLine -> Text(
-                        "Computed start is %.1f%% around the lap. Re-anchor at the line.".format(result.trackPercent),
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                    else -> Text(
-                        "Check that the start frame shows the line, then save.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-            error?.let {
-                Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-            }
-        }
-
-        SectionCard(title = "Replay quality") {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        when {
-                            estimateMs <= 0 -> "—"
-                            !effectiveProfile.transcode -> "No re-encode"
-                            else -> "≈ ${formatBytes(estimatedBytes)}"
-                        },
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    Text(
-                        when {
-                            estimateMs <= 0 -> "Set an anchor to estimate the stored size."
-                            !effectiveProfile.transcode -> "Stored as-is at the original size."
-                            savedPercent > 0 ->
-                                "about $savedPercent% smaller than the ≈ ${formatBytes(originalBytes)} clip"
-                            else -> "Estimated stored size."
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                GhostPill(
-                    text = if (qualityExpanded) "Hide" else "Change",
-                    onClick = { qualityExpanded = !qualityExpanded },
-                )
-            }
-            if (qualityExpanded) {
-                ReplayCompressionControls(
-                    preset = replayPreset,
-                    keyframes = replayKeyframes,
-                    audio = replayAudio,
-                    resolution = replayResolution,
-                    codec = replayCodec,
-                    highlightChanges = false,
-                    onPresetChange = { replayPreset = it },
-                    onResolutionChange = { replayResolution = it },
-                    onCodecChange = { replayCodec = it },
-                    onKeyframesChange = { replayKeyframes = it },
-                    onAudioChange = { replayAudio = it },
-                )
-            }
-        }
-
-        if (hadClip) {
-            Text(
-                "Saving replaces the current replay. Discard keeps it.",
+                "Anchor: the finish-line frame that ends the lap",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            GhostPill("Discard", { confirmCancel = true }, Modifier.weight(1f))
-            PrimaryPill(
-                text = when {
-                    !saving -> "Save clip"
-                    effectiveProfile.transcode -> "Compacting…"
-                    else -> "Saving…"
-                },
-                onClick = {
-                    val trimRange = range
-                    val source = sourceFile
-                    if (trimRange != null && source != null && !saving) {
-                        saving = true
-                        scope.launch {
-                            val result = withContext(Dispatchers.IO) {
-                                val output = File(
-                                    store.sessionDir(sessionId),
-                                    "laps/lap-%03d.mp4".format(lapIndex),
-                                )
-                                val trimmed = trimmer.trim(source, output, trimRange)
-                                    ?: return@withContext null
-                                val profile = effectiveProfile
-                                var compactFailed = false
-                                if (profile.transcode) {
-                                    val compact = File(output.absolutePath + ".compact.mp4")
-                                    if (transcoder.transcode(output, compact, profile)) {
-                                        if (output.delete() && compact.renameTo(output)) {
-                                            // Keep the compacted file; fall through to attach.
+
+            range?.let {
+                TrimBar(startMs = it.startMs, endMs = it.endMs, durationMs = durationMs)
+                Text(
+                    "Shaded range = the lap that will be saved",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            currentLap?.let { activeLap ->
+                SectionCard(title = "Anchor") {
+                    Text(
+                        "The finish line that ends this lap",
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Text(
+                        "The clip is trimmed to exactly one lap (${lapTimeLabel(activeLap.lapTimeMs)}) " +
+                            "backwards from this frame. Get this frame right and the clip is right.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    MetricLine("Anchor", anchor?.let(::formatMillis) ?: "Not set")
+                    if (anchorSuggested) {
+                        Text(
+                            "Suggested at the clip's end — verify the front bumper is on the line, " +
+                                "or rewind and set it again.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                    TextButton(onClick = { tipsOpen = !tipsOpen }) {
+                        Text(if (tipsOpen) "Hide tips" else "How to find the finish frame")
+                    }
+                    if (tipsOpen) {
+                        AnchorTip(
+                            "Pause when the HUD lap timer freezes on " +
+                                "${lapTimeLabel(activeLap.lapTimeMs)} — the next lap starts just after.",
+                        )
+                        AnchorTip("No lap timer? Frame-step until the front bumper touches the start/finish line.")
+                        AnchorTip("Record a few seconds before the start line: the whole lap must fit before the anchor.")
+                        AnchorTip("The playhead starts at the clip's end, so rewind instead of fast-forwarding.")
+                    }
+                    PrimaryPill(
+                        text = "Set anchor at this frame",
+                        onClick = {
+                            anchorMs = displayedMs
+                            anchorSuggested = false
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = durationMs > 0,
+                    )
+                }
+            }
+
+            SectionCard(title = "Trim") {
+                if (sync == null) {
+                    Text(
+                        "Set an anchor to see the clip range.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                } else {
+                    MetricLine("Clip in", formatMillis(sync.trimInMs))
+                    MetricLine("Clip out", formatMillis(sync.trimOutMs))
+                    MetricLine("Lap", lapTimeLabel(sync.lapTimeMs))
+                    range?.let { MetricLine("Start frame", formatMillis(it.startMs)) }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        GhostPill("Check start frame", {
+                            range?.let {
+                                seekTo(it.startMs)
+                            }
+                        }, Modifier.weight(1f))
+                    }
+                    Text(
+                        "Start and anchor are the same point on the track, one lap apart.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    when (val result = check) {
+                        is SyncCheck.ClipTooShort -> Text(
+                            "The clip is %.1f s short of a full lap from this anchor — record more lead-in before the line."
+                                .format(result.missingMs / 1_000.0),
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                        is SyncCheck.StartNotAtLine -> Text(
+                            "Computed start is %.1f%% around the lap. Re-anchor at the line.".format(result.trackPercent),
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                        else -> Text(
+                            "Check that the start frame shows the line, then save.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                error?.let {
+                    Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                }
+            }
+
+            SectionCard(title = "Replay quality") {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            when {
+                                estimateMs <= 0 -> "—"
+                                !effectiveProfile.transcode -> "No re-encode"
+                                else -> "≈ ${formatBytes(estimatedBytes)}"
+                            },
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        Text(
+                            when {
+                                estimateMs <= 0 -> "Set an anchor to estimate the stored size."
+                                !effectiveProfile.transcode -> "Stored as-is at the original size."
+                                savedPercent > 0 ->
+                                    "about $savedPercent% smaller than the ≈ ${formatBytes(originalBytes)} clip"
+                                else -> "Estimated stored size."
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    GhostPill(
+                        text = if (qualityExpanded) "Hide" else "Change",
+                        onClick = { qualityExpanded = !qualityExpanded },
+                    )
+                }
+                if (qualityExpanded) {
+                    ReplayCompressionControls(
+                        preset = replayPreset,
+                        keyframes = replayKeyframes,
+                        audio = replayAudio,
+                        resolution = replayResolution,
+                        codec = replayCodec,
+                        highlightChanges = false,
+                        onPresetChange = { replayPreset = it },
+                        onResolutionChange = { replayResolution = it },
+                        onCodecChange = { replayCodec = it },
+                        onKeyframesChange = { replayKeyframes = it },
+                        onAudioChange = { replayAudio = it },
+                    )
+                }
+            }
+
+            if (hadClip) {
+                Text(
+                    "Saving replaces the current replay. Discard keeps it.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                GhostPill("Discard", { confirmCancel = true }, Modifier.weight(1f))
+                PrimaryPill(
+                    text = when {
+                        !saving -> "Save clip"
+                        effectiveProfile.transcode -> "Compacting…"
+                        else -> "Saving…"
+                    },
+                    onClick = {
+                        val trimRange = range
+                        val source = sourceFile
+                        if (trimRange != null && source != null && !saving) {
+                            saving = true
+                            scope.launch {
+                                val result = withContext(Dispatchers.IO) {
+                                    val output = File(
+                                        store.sessionDir(sessionId),
+                                        "laps/lap-%03d.mp4".format(lapIndex),
+                                    )
+                                    val trimmed = trimmer.trim(source, output, trimRange)
+                                        ?: return@withContext null
+                                    val profile = effectiveProfile
+                                    var compactFailed = false
+                                    if (profile.transcode) {
+                                        val compact = File(output.absolutePath + ".compact.mp4")
+                                        if (transcoder.transcode(output, compact, profile)) {
+                                            if (output.delete() && compact.renameTo(output)) {
+                                                // Keep the compacted file; fall through to attach.
+                                            } else {
+                                                compact.delete()
+                                                compactFailed = true
+                                            }
                                         } else {
-                                            compact.delete()
                                             compactFailed = true
                                         }
-                                    } else {
-                                        compactFailed = true
                                     }
+                                    store.attachClip(
+                                        sessionId = sessionId,
+                                        lapIndex = lapIndex,
+                                        videoFile = "laps/lap-%03d.mp4".format(lapIndex),
+                                        leadInMs = trimmed.startOffsetMs,
+                                    )
+                                    trimmed to compactFailed
                                 }
-                                store.attachClip(
-                                    sessionId = sessionId,
-                                    lapIndex = lapIndex,
-                                    videoFile = "laps/lap-%03d.mp4".format(lapIndex),
-                                    leadInMs = trimmed.startOffsetMs,
-                                )
-                                trimmed to compactFailed
-                            }
-                            saving = false
-                            if (result == null) {
-                                error = if (hadClip) {
-                                    "Trim failed. The current replay is unchanged; try again."
+                                saving = false
+                                if (result == null) {
+                                    error = if (hadClip) {
+                                        "Trim failed. The current replay is unchanged; try again."
+                                    } else {
+                                        "Trim failed. The replay stays attached; try again."
+                                    }
                                 } else {
-                                    "Trim failed. The replay stays attached; try again."
+                                    if (result.second) {
+                                        Toast.makeText(
+                                            context,
+                                            "Compaction failed; kept the uncompressed clip.",
+                                            Toast.LENGTH_SHORT,
+                                        ).show()
+                                    }
+                                    onDone()
                                 }
-                            } else {
-                                if (result.second) {
-                                    Toast.makeText(
-                                        context,
-                                        "Compaction failed; kept the uncompressed clip.",
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
-                                }
-                                onDone()
                             }
                         }
+                    },
+                    modifier = Modifier.weight(1f),
+                    enabled = check == SyncCheck.Ok && !saving,
+                )
+            }
+        }
+        if (durationMs > 0) {
+            PlaybackFooter(
+                cursorMs = displayedMs.toInt(),
+                lapTimeMs = durationMs.toInt(),
+                frameStepMs = frameStepMs,
+                enabled = durationMs > 0,
+                playing = playing,
+                looping = previewing,
+                speed = playbackSpeed,
+                events = rulerEvents,
+                hapticsEnabled = hapticsEnabled,
+                onScrubStart = {
+                    scrubBaseUs = displayedUs
+                    scrubTargetMs = null
+                    scrubbing = true
+                },
+                onScrub = { frames ->
+                    val target = frameStepTargetMs(scrubBaseUs, frames, frameDurationUs)
+                        .coerceIn(0, durationMs)
+                    scrubTargetMs = target
+                    scrubSeeker.submit(target)
+                },
+                onScrubEnd = { scrubbing = false },
+                onSeekFraction = { fraction ->
+                    seekTo((fraction * durationMs).roundToLong())
+                },
+                onRewind = { seekBrake(-1) },
+                onPlayPause = {
+                    if (player.isPlaying) {
+                        player.pause()
+                        positionMs = player.currentPosition
+                    } else {
+                        previewing = false
+                        player.play()
                     }
                 },
-                modifier = Modifier.weight(1f),
-                enabled = check == SyncCheck.Ok && !saving,
+                onForward = { seekBrake(1) },
+                onToggleLoop = { previewing = !previewing },
+                onSpeedChange = { playbackSpeed = it },
+                onStep = { frames -> stepFrames(frames) },
+                compact = true,
             )
         }
     }
+
 
     if (confirmCancel) {
         AlertDialog(
