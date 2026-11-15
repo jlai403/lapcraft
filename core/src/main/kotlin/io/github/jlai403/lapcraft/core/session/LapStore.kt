@@ -8,7 +8,7 @@ import kotlinx.serialization.json.Json
 import java.io.File
 import java.time.Instant
 
-class LapStore(
+open class LapStore(
     private val rootDir: File,
     private val carName: (Int) -> String? = { null },
 ) {
