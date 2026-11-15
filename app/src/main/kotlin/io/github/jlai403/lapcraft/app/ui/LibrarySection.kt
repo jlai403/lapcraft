@@ -23,7 +23,7 @@ import io.github.jlai403.lapcraft.core.profile.DriverProfile
 import io.github.jlai403.lapcraft.app.share.LibraryTransfer
 import io.github.jlai403.lapcraft.core.session.ExportReport
 import io.github.jlai403.lapcraft.core.session.ImportReport
-import io.github.jlai403.lapcraft.core.session.LapRef
+import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LapSummary
 import io.github.jlai403.lapcraft.core.session.LapStore
 import java.time.LocalDate
@@ -44,7 +44,7 @@ internal fun LibrarySection() {
     val root = context.filesDir
     val store = remember { LapStore(root) }
     var laps by remember { mutableStateOf<List<LapSummary>>(store.summaries()) }
-    var pending by remember { mutableStateOf<List<LapRef>>(emptyList()) }
+    var pending by remember { mutableStateOf<List<LapId>>(emptyList()) }
     var sheet by remember { mutableStateOf(false) }
     var transfer by remember { mutableStateOf<Transfer>(Transfer.Idle) }
 
@@ -53,7 +53,7 @@ internal fun LibrarySection() {
             val refs = pending
             val profileStore = DriverProfileStore(context)
             val profiles = refs.mapNotNull { ref ->
-                laps.firstOrNull { it.sessionId == ref.sessionId && it.lapIndex == ref.lapIndex }
+                laps.firstOrNull { it.sessionId == ref.value }
                     ?.driverPsnId
                     ?.let { psn -> profileStore.profile(psn) ?: DriverProfile(psn, psn, null) }
             }.distinctBy { it.psnId }

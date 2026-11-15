@@ -23,7 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import io.github.jlai403.lapcraft.core.session.LapRef
+import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LapSummary
 
 /** Picks which laps go into a library archive. Everything is selected by default. */
@@ -32,12 +32,12 @@ import io.github.jlai403.lapcraft.core.session.LapSummary
 internal fun ExportLapsSheet(
     laps: List<LapSummary>,
     onDismiss: () -> Unit,
-    onExport: (List<LapRef>) -> Unit,
+    onExport: (List<LapId>) -> Unit,
 ) {
     var selected by remember(laps) {
-        mutableStateOf(laps.map { LapRef(it.sessionId, it.lapIndex) }.toSet())
+        mutableStateOf(laps.map { LapId(it.sessionId) }.toSet())
     }
-    val selectedLaps = laps.filter { LapRef(it.sessionId, it.lapIndex) in selected }
+    val selectedLaps = laps.filter { LapId(it.sessionId) in selected }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
@@ -59,7 +59,7 @@ internal fun ExportLapsSheet(
                         selected = if (selected.size == laps.size) {
                             emptySet()
                         } else {
-                            laps.map { LapRef(it.sessionId, it.lapIndex) }.toSet()
+                            laps.map { LapId(it.sessionId) }.toSet()
                         }
                     },
                     modifier = Modifier.testTag("export-laps-select-all"),
@@ -73,7 +73,7 @@ internal fun ExportLapsSheet(
             )
             LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 360.dp)) {
                 items(laps, key = { "${it.sessionId}-${it.lapIndex}" }) { lap ->
-                    val ref = LapRef(lap.sessionId, lap.lapIndex)
+                    val ref = LapId(lap.sessionId)
                     val checked = ref in selected
                     Row(
                         modifier = Modifier
@@ -112,7 +112,7 @@ internal fun ExportLapsSheet(
                 } else {
                     "Export ${selected.size} lap${if (selected.size == 1) "" else "s"}"
                 },
-                onClick = { onExport(selectedLaps.map { LapRef(it.sessionId, it.lapIndex) }) },
+                onClick = { onExport(selectedLaps.map { LapId(it.sessionId) }) },
                 modifier = Modifier.fillMaxWidth().testTag("export-laps-button"),
                 enabled = selected.isNotEmpty(),
             )

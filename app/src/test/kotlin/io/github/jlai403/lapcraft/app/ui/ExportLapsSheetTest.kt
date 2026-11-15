@@ -7,7 +7,7 @@ import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import io.github.jlai403.lapcraft.core.session.LapRef
+import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LapSummary
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -81,7 +81,7 @@ class ExportLapsSheetTest {
 
     @Test
     fun `export passes the selected refs`() {
-        var exported: List<LapRef>? = null
+        var exported: List<LapId>? = null
         compose.setContent {
             LapCraftTheme {
                 ExportLapsSheet(laps = laps, onDismiss = {}, onExport = { exported = it })
@@ -91,7 +91,7 @@ class ExportLapsSheetTest {
         compose.onNodeWithTag("export-lap-session-1-1").performClick()
         compose.onNodeWithTag("export-laps-button").performClick()
 
-        assertEquals(listOf(LapRef("session-2", 1)), exported)
+        assertEquals(listOf(LapId("session-2")), exported)
     }
 
     @Test

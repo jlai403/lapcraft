@@ -19,6 +19,9 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
+import io.github.jlai403.lapcraft.core.session.LapId
+import io.github.jlai403.lapcraft.core.session.LapRecord
+
 class LibraryArchiveTest {
     @TempDir
     lateinit var temp: File
@@ -30,22 +33,21 @@ class LibraryArchiveTest {
         writeSession("s1", laps = listOf(1))
         val out = ByteArrayOutputStream()
 
-        val report = LibraryArchive.export(temp, listOf(LapRef("s1", 1)), emptyList(), out)
+        val report = LibraryArchive.export(temp, listOf(LapId("s1")), emptyList(), out)
 
         assertEquals(1, report.laps)
         val names = entryNames(out)
         assertTrue("library.json" in names)
-        assertTrue("library/s1/session.json" in names)
         assertTrue("library/s1/lap.json" in names)
-        assertTrue("library/s1/laps/lap-001.gt7lap" in names)
-        assertTrue("library/s1/laps/lap-001.mp4" in names)
+        assertTrue("library/s1/lap.gt7lap" in names)
+        assertTrue("library/s1/replay.mp4" in names)
         assertFalse(names.any { it.contains(".preview") || it.endsWith(".tmp") })
 
         val manifest = json.decodeFromString<LibraryManifest>(readEntry(out, "library.json"))
         assertEquals(LibraryArchive.FORMAT, manifest.format)
         assertEquals(1, manifest.laps)
         assertTrue(manifest.bytes > 0)
-        assertEquals(1, SessionJsonCodec.decodeSession(readEntry(out, "library/s1/session.json")).laps.size)
+        assertTrue(json.decodeFromString<LapRecord>(readEntry(out, "library/s1/lap.json")).lapTimeMs > 0)
     }
 
     @Test
@@ -53,7 +55,7 @@ class LibraryArchiveTest {
         writeSession("s1", laps = listOf(1))
         val profiles = listOf(DriverProfile("psn-one", "One", "GB"))
         val zip = File(temp, "library.zip")
-        LibraryArchive.export(temp, listOf(LapRef("s1", 1)), profiles, zip.outputStream())
+        LibraryArchive.export(temp, listOf(LapId("s1")), profiles, zip.outputStream())
 
         val target = File(temp, "target").apply { mkdirs() }
         val report = LibraryArchive.import(target, zip.inputStream())
@@ -67,7 +69,7 @@ class LibraryArchiveTest {
 
         val report = LibraryArchive.export(
             temp,
-            listOf(LapRef("s1", 9), LapRef("nope", 1)),
+            listOf(LapId("s9"), LapId("nope")),
             emptyList(),
             ByteArrayOutputStream(),
         )
@@ -80,13 +82,12 @@ class LibraryArchiveTest {
         writeSession("s1", laps = listOf(1, 2))
         val out = ByteArrayOutputStream()
 
-        LibraryArchive.export(temp, listOf(LapRef("s1", 2)), emptyList(), out)
+        LibraryArchive.export(temp, listOf(LapId("s1-l2")), emptyList(), out)
 
         val names = entryNames(out)
-        assertTrue("library/s1-l002/session.json" in names)
-        assertTrue("library/s1-l002/laps/lap-002.gt7lap" in names)
+        assertTrue("library/s1-l2/lap.json" in names)
+        assertTrue("library/s1-l2/lap.gt7lap" in names)
         assertFalse(names.any { it.contains("lap-001") })
-        assertEquals(2, SessionJsonCodec.decodeLap(readEntry(out, "library/s1-l002/lap.json")).index)
     }
 
     @Test
@@ -96,11 +97,11 @@ class LibraryArchiveTest {
         writeSession("s1", laps = listOf(1), videoBytes = ByteArray(256 * 1024) { 7 })
         writeSessionFile("s1", "laps/lap-001.gt7lap", ByteArray(256 * 1024) { 1 })
         val file = File(temp, "library.zip")
-        LibraryArchive.export(temp, listOf(LapRef("s1", 1)), emptyList(), file.outputStream())
+        LibraryArchive.export(temp, listOf(LapId("s1")), emptyList(), file.outputStream())
 
         ZipFile(file).use { zip ->
-            val clip = zip.getEntry("library/s1/laps/lap-001.mp4")
-            val telemetry = zip.getEntry("library/s1/laps/lap-001.gt7lap")
+            val clip = zip.getEntry("library/s1/replay.mp4")
+            val telemetry = zip.getEntry("library/s1/lap.gt7lap")
             assertEquals(ZipEntry.DEFLATED, clip.method)
             assertTrue(clip.compressedSize >= clip.size)
             assertTrue(telemetry.compressedSize < telemetry.size / 2)
@@ -112,32 +113,31 @@ class LibraryArchiveTest {
         writeSession("s1", laps = listOf(1), videoBytes = ByteArray(1024) { 3 })
         writeSessionFile("s1", "laps/lap-001.gt7lap", byteArrayOf(9, 9, 9))
         val zip = File(temp, "library.zip")
-        LibraryArchive.export(temp, listOf(LapRef("s1", 1)), emptyList(), zip.outputStream())
+        LibraryArchive.export(temp, listOf(LapId("s1")), emptyList(), zip.outputStream())
 
         val target = File(temp, "target").apply { mkdirs() }
         val report = LibraryArchive.import(target, zip.inputStream())
 
         assertEquals(ImportReport(laps = 1, skipped = 0, failed = 0), report)
-        val restored = File(target, "sessions/s1")
-        assertTrue(File(restored, "session.json").isFile)
-        assertTrue(File(restored, "laps/lap-001.json").isFile)
-        assertArrayEquals(byteArrayOf(9, 9, 9), File(restored, "laps/lap-001.gt7lap").readBytes())
-        assertArrayEquals(ByteArray(1024) { 3 }, File(restored, "laps/lap-001.mp4").readBytes())
-        assertEquals(1, SessionStore(target).summaries().size)
+        val restored = File(target, "laps/s1")
+        assertTrue(File(restored, "lap.json").isFile)
+        assertArrayEquals(byteArrayOf(9, 9, 9), File(restored, "lap.gt7lap").readBytes())
+        assertArrayEquals(ByteArray(1024) { 3 }, File(restored, "replay.mp4").readBytes())
+        assertEquals(1, LapStore(target).summaries().size)
     }
 
     @Test
     fun `importing twice skips existing sessions`() {
         writeSession("s1", laps = listOf(1))
         val zip = File(temp, "library.zip")
-        LibraryArchive.export(temp, listOf(LapRef("s1", 1)), emptyList(), zip.outputStream())
+        LibraryArchive.export(temp, listOf(LapId("s1")), emptyList(), zip.outputStream())
         val target = File(temp, "target").apply { mkdirs() }
 
         LibraryArchive.import(target, zip.inputStream())
         val second = LibraryArchive.import(target, zip.inputStream())
 
         assertEquals(ImportReport(laps = 0, skipped = 1, failed = 0), second)
-        assertEquals(1, SessionStore(target).summaries().size)
+        assertEquals(1, LapStore(target).summaries().size)
     }
 
     @Test
@@ -175,7 +175,7 @@ class LibraryArchiveTest {
         val report = LibraryArchive.import(target, zip.inputStream())
 
         assertEquals(ImportReport(laps = 1, skipped = 0, failed = 0), report)
-        assertEquals("", SessionStore(target).lap("s9", 1)!!.videoFile)
+        assertFalse(File(target, "laps/s9/replay.mp4").exists())
     }
 
     @Test
@@ -196,21 +196,21 @@ class LibraryArchiveTest {
 
         assertTrue(error.message!!.contains("unsafe"))
         assertFalse(File(temp, "evil").exists())
-        assertFalse(File(target, "sessions/evil").exists())
-        assertTrue(File(target, "sessions").listFiles()!!.none { it.name.startsWith(".import-") })
+        assertFalse(File(target, "laps/evil").exists())
+        assertTrue(File(target, "laps").listFiles()!!.none { it.name.startsWith(".import-") })
     }
 
     @Test
     fun `rejects an unknown format`() {
         val zip = File(temp, "v2.zip")
-        writeZip(zip, mapOf("library.json" to json.encodeToString(LibraryManifest(2, "x", 0, 0)).toByteArray()))
+        writeZip(zip, mapOf("library.json" to json.encodeToString(LibraryManifest(99, "x", 0, 0)).toByteArray()))
         val target = File(temp, "target").apply { mkdirs() }
 
         val error = assertThrows(IllegalArgumentException::class.java) {
             LibraryArchive.import(target, zip.inputStream())
         }
 
-        assertTrue(error.message!!.contains("Unsupported library format 2"))
+        assertTrue(error.message!!.contains("Unsupported library format 99"))
     }
 
     @Test
@@ -287,10 +287,10 @@ class LibraryArchiveTest {
         val target = File(temp, "target").apply { mkdirs() }
         LibraryArchive.import(target, zip.inputStream())
 
-        val stored = SessionStore(target).lap("s9", 1)!!
-        assertEquals("", stored.videoFile)
-        assertNull(stored.sourceFile)
-        assertTrue(File(target, "sessions/s9/session.json").isFile)
+        val stored = LapStore(target).load(LapId("s9"))!!
+        assertTrue(File(target, "laps/s9/lap.json").isFile)
+        assertFalse(File(target, "laps/s9/replay.mp4").exists())
+        assertFalse(File(target, "laps/s9/source.mp4").exists())
     }
 
     @Test
@@ -327,7 +327,7 @@ class LibraryArchiveTest {
         val report = LibraryArchive.import(target, zip.inputStream())
 
         assertEquals(ImportReport(laps = 0, skipped = 0, failed = 1), report)
-        assertFalse(File(target, "sessions/s8").exists())
+        assertFalse(File(target, "laps/s8").exists())
     }
 
     @Test
@@ -365,12 +365,12 @@ class LibraryArchiveTest {
         val report = LibraryArchive.import(target, zip.inputStream())
 
         assertEquals(ImportReport(laps = 0, skipped = 0, failed = 1), report)
-        assertFalse(File(target, "sessions/.import-evil").exists())
+        assertFalse(File(target, "laps/.import-evil").exists())
     }
 
     @Test
     fun `stale staging directories are swept before import`() {
-        val stale = File(temp, "target/sessions/.import-stale").apply { mkdirs() }
+        val stale = File(temp, "target/laps/.import-stale").apply { mkdirs() }
         File(stale, "junk.txt").writeText("x")
         val zip = File(temp, "empty.zip")
         writeZip(zip, mapOf("library.json" to json.encodeToString(LibraryManifest(1, "x", 0, 0)).toByteArray()))

@@ -7,7 +7,7 @@ import io.github.jlai403.lapcraft.app.profile.GridStatsProfileClient
 import io.github.jlai403.lapcraft.core.profile.DriverProfile
 import io.github.jlai403.lapcraft.core.session.ExportReport
 import io.github.jlai403.lapcraft.core.session.ImportReport
-import io.github.jlai403.lapcraft.core.session.LapRef
+import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LibraryArchive
 import io.github.jlai403.lapcraft.core.session.LapStore
 import java.io.File
@@ -20,7 +20,7 @@ object LibraryTransfer {
         context: Context,
         uri: Uri,
         rootDir: File,
-        laps: List<LapRef>,
+        laps: List<LapId>,
         profiles: List<DriverProfile>,
         onProgress: (Long, Long) -> Unit,
     ): ExportReport = withContext(Dispatchers.IO) {
