@@ -413,13 +413,15 @@ fun SettingsScreen(
             ) {
                 Text(
                     "GT GridStats ↗",
-                    modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
                 )
                 Text(
                     "Driver profiles, DR/SR, daily races, time trials, and car names.",
+                    modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
                 )
             }
         }
