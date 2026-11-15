@@ -32,8 +32,7 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
 - The frame ruler only scrubs: a tap does nothing (no seek, no pause), and a horizontal drag past
   the touch slop steps frames from the playhead the drag started on. There is no jump-to-place.
 - Library is a flat feed: no cards/radii, `Hairline` dividers, `RowPressed` for pressed rows.
-- `DESIGN.md` is the visual/behaviour reference; `docs/specs/2026-11-10-pocket-sim-engineer.md` is the functional spec.
-
+- `DESIGN.md` is the visual/behaviour reference; `docs/specs/2026-11-10-pocket-sim-engineer.md` is the functional spec. The domain model lives in `docs/adr/` (ADRs) and `docs/domain-model-review.md` (living review log); `GLOSSARY.md` is the vocabulary.
 ## Replay storage
 
 - New imports are trimmed, then compacted with the Settings replay profile before `attachClip`.

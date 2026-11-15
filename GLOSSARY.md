@@ -5,16 +5,26 @@ Android app for Gran Turismo 7 that captures one lap of telemetry and pairs it w
 ## Lap capture
 
 **Lap**:
-One measured GT7 lap: its telemetry, lap time, and optional replay.
-_Avoid_: run, stint, entry
+One measured GT7 lap: its telemetry, lap time, optional replay, and the driver and event assigned to it. It is the unit the app stores, exports and deletes.
+_Avoid_: run, stint, entry, session
+
+**Lap id**:
+The name of a lap's own directory, and the only way the app refers to a lap.
+_Avoid_: session id, lap key, lap reference
 
 **Capture**:
 Recording a lap's telemetry, saved at the next start/finish crossing.
 _Avoid_: record, log
 
-**Session**:
-The capture run that owns one or more laps and their telemetry.
-_Avoid_: recording, track day
+## Telemetry
+
+**Sample**:
+One 60 Hz telemetry reading, holding position, speed, pedals, gear, engine and tyre values.
+_Avoid_: frame, tick, datum
+
+**Steering angle**:
+The wheel input GT7 reports for some packets, normalised to -1..1 with positive to the left. A lap either recorded it or did not, and a missing angle is not a straight wheel.
+_Avoid_: steering value, wheel angle, input
 
 ## Library
 
@@ -35,6 +45,10 @@ _Avoid_: video, file
 **Replay**:
 The single-lap video attached to a lap.
 _Avoid_: video, clip once attached
+
+**Pending replay**:
+An imported clip waiting to be synced to its lap; the lap has video work outstanding until it is trimmed and attached.
+_Avoid_: source, raw clip, unprocessed video
 
 **Import**:
 Copying a clip into app storage.
@@ -64,6 +78,28 @@ _Avoid_: cut, crop
 Saving a trimmed clip as the lap's replay.
 _Avoid_: add, link
 
+## Track
+
+**Track**:
+The circuit a lap was driven on.
+_Avoid_: circuit, course, map
+
+**Track id**:
+The identity of a track, taken from the signature it matched, or empty when the app could not identify it.
+_Avoid_: track key, circuit id, slug
+
+**Track label**:
+The user-facing track name; editable, and never an identity.
+_Avoid_: track name, display name
+
+**Track progress**:
+Cumulative distance along the racing line, normalised to 0-100 % of the lap; the charts' x axis.
+_Avoid_: position, lap percentage, distance axis
+
+**Place alignment**:
+Matching two laps by position along lap 1's driven path instead of by distance covered, so a corner is compared with the same corner when the lines differ.
+_Avoid_: distance alignment, track position, sync
+
 ## Review
 
 **Playhead**:
@@ -75,26 +111,15 @@ Elapsed time from the clip's first frame.
 _Avoid_: video time
 
 **Lap time**:
-Elapsed time from the start frame to the anchor; the telemetry timeline.
-_Avoid_: race time
+Elapsed time from one start/finish crossing to the next; the telemetry timeline. GT7 reports it at the crossing, and when that report is missing or implausible the app measures the sample span.
+_Avoid_: race time, lap duration
 
 **Telemetry cursor**:
 The lap-time position drawn on the charts and track map.
 _Avoid_: playhead, marker
 
-**Track progress**:
-Cumulative distance along the racing line, normalised to 0–100 % of the lap; the
-charts' x axis.
-_Avoid_: position, lap percentage, distance axis
-
-**Place alignment**:
-Matching two laps by position along lap 1's driven path instead of by distance
-covered, so a corner is compared with the same corner when the lines differ.
-_Avoid_: distance alignment, track position, sync
-
 **Ghost**:
-The fastest lap on the same track, drawn as a dashed grey line on the track map and
-summarised in the expanded header.
+The fastest lap on the same track, drawn as a dashed grey line on the track map and summarised in the expanded header.
 _Avoid_: reference lap, compare
 
 **Primary lap**:
@@ -102,8 +127,7 @@ The first lap opened or picked for a comparison; it owns the clock and the curso
 _Avoid_: main lap, base lap
 
 **Reference lap**:
-The second lap in a comparison. It is seeked to the primary's track progress, frame
-exactly, and never plays.
+The second lap in a comparison. It is seeked to the primary's track progress, frame exactly, and never plays.
 _Avoid_: ghost, comparison lap, secondary lap
 
 **Compare**:
