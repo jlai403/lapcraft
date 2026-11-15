@@ -47,9 +47,9 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
   On failure the trimmed original is kept and the save shows a "Compaction failed" toast.
 - `LapSummary` carries `videoBytes`, `telemetryBytes`, and `pendingBytes`, computed in
   `SessionStore.summaries()`. `EditLapSheet` shows them under a `Data` section.
-- The lap player and the sync screen both use `SeekParameters.EXACT`. `ScrubSeeker` waits for a
-  rendered frame (`SCRUB_EXACT_WAIT_MS` 120 ms while scrubbing, `EXACT_FRAME_WAIT_MS` 400 ms while
-  anchoring) and keeps at most one seek in flight.
+- The lap player, compare screen, and sync screen all use `SeekParameters.EXACT`. `ScrubSeeker`
+  waits for a rendered frame (`SCRUB_EXACT_WAIT_MS` 120 ms while scrubbing, `EXACT_FRAME_WAIT_MS`
+  400 ms while anchoring) and keeps at most one seek in flight.
 - The lap player uses a `TextureView`-backed `PlayerView` (`res/layout/view_lap_player.xml`) so the
   telemetry HUD can draw over the video; a `SurfaceView` hides Compose overlays.
 - There is no scrub thumbnail cache; the ruler seeks the clip directly. `SettingsStore.developerTools`
@@ -117,9 +117,11 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
 - The compare `Speed`/`Gear` row shows lap 1 / reference values plus a signed delta: speed delta
   is mint when lap 1 is faster and red when slower; gear delta is mint in a higher gear and red in
   a lower one (muted when equal).
-- `PlaybackFooter(compact = true)` is the compare footer: one 48 dp row with the frame steps beside
-  Play, a 40 dp ruler, a `1×` rate cycle, and a loop icon. The single-lap player keeps the taller
-  layout (time/speed row, ruler, transport); `FrameStepRow` remains only on the sync screen.
+- `PlaybackFooter(compact = true)` is the shared footer for the compare and sync screens: one 48 dp
+  row with the frame steps beside Play, a 40 dp ruler, a `1×` rate cycle, and a loop icon. The
+  single-lap player keeps the taller layout. All three screens step via `ScrubSeeker` +
+  `scrubTargetMs`. `StepButton` reads its callback through `rememberUpdatedState`, since the
+  pointer-input gesture coroutine is only restarted when its keys or handler class change.
 - Library compare mode lives in `LibraryScreen`: header pill, row checkboxes, the first pick labelled
   `Primary`, same-track picks only, and a third pick replaces the reference.
 - Entry points are `Screen.Compare(...)`; the player's `Compare` pill and the library's compare action

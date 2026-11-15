@@ -120,31 +120,6 @@ internal class FrameSteps(private var pxPerFrame: Float) {
 }
 
 @Composable
-internal fun TransportRow(
-    playing: Boolean,
-    enabled: Boolean,
-    onRewind: () -> Unit,
-    onPlayPause: () -> Unit,
-    onForward: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(28.dp, Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        TransportButton(TransportIcons.Rewind, "Rewind 10 seconds", enabled, onRewind)
-        TransportButton(
-            icon = if (playing) TransportIcons.Pause else Icons.Filled.PlayArrow,
-            description = if (playing) "Pause" else "Play",
-            enabled = enabled,
-            onClick = onPlayPause,
-            primary = true,
-        )
-        TransportButton(TransportIcons.Forward, "Forward 10 seconds", enabled, onForward)
-    }
-}
-
-@Composable
 private fun TransportButton(
     icon: ImageVector,
     description: String,
@@ -453,6 +428,11 @@ internal fun StepButton(
 ) {
     val haptics = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
+    // pointerInput is only restarted when its keys change or the handler's class changes;
+    // the handler is a fixed class, so the gesture coroutine would otherwise keep calling
+    // the first captured onClick forever. Read through rememberUpdatedState to stay live.
+    val currentOnClick by rememberUpdatedState(onClick)
+    val currentHapticsEnabled by rememberUpdatedState(hapticsEnabled)
     OutlinedButton(
         onClick = {},
         enabled = enabled,
@@ -461,7 +441,7 @@ internal fun StepButton(
             .semantics {
                 contentDescription = description
                 onClick(label = description) {
-                    onClick()
+                    currentOnClick()
                     true
                 }
             }
@@ -469,15 +449,15 @@ internal fun StepButton(
                 if (!enabled) return@pointerInput
                 awaitEachGesture {
                     val down = awaitFirstDown(requireUnconsumed = false)
-                    onClick()
-                    if (hapticsEnabled) {
+                    currentOnClick()
+                    if (currentHapticsEnabled) {
                         haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     }
                     val repeat = scope.launch {
                         delay(400)
                         while (isActive) {
-                            onClick()
-                            if (hapticsEnabled) {
+                            currentOnClick()
+                            if (currentHapticsEnabled) {
                                 haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                             }
                             delay(80)
@@ -503,21 +483,6 @@ internal fun StepButton(
     }
 }
 
-@Composable
-internal fun FrameStepRow(
-    enabled: Boolean,
-    onStep: (Int) -> Unit,
-    hapticsEnabled: Boolean = true,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        StepButton("−1 frame", { onStep(-1) }, Modifier.weight(1f), enabled, hapticsEnabled)
-        StepButton("+1 frame", { onStep(1) }, Modifier.weight(1f), enabled, hapticsEnabled)
-    }
-}
 
 /**
  * A fixed needle over a horizontally scrolling ruler. Each 6 dp of travel is one
