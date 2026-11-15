@@ -39,6 +39,7 @@ import io.github.jlai403.lapcraft.app.profile.DriverProfileLinks
 import io.github.jlai403.lapcraft.app.profile.GridStatsProfileClient
 import io.github.jlai403.lapcraft.app.events.EventCache
 import io.github.jlai403.lapcraft.app.events.EventRefresh
+import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
 import io.github.jlai403.lapcraft.app.updater.UpdateManager
 import io.github.jlai403.lapcraft.core.network.Ipv4
@@ -327,9 +328,17 @@ fun SettingsScreen(
                         eventStatus = null
                         scope.launch {
                             try {
-                                EventRefresh.refresh(context)
+                                val result = EventRefresh.refresh(context, force = true)
                                 val cache = EventCache(context)
-                                eventStatus = "Updated · ${cache.events().size} events"
+                                val msg = mutableListOf<String>()
+                                msg += "CDN ${result.polyphonyCount}"
+                                if (DriverProfileStore(context).apiKey?.isNotBlank() == true) {
+                                    msg += "GridStats ${result.gridStatsCount}"
+                                }
+                                eventStatus = "Updated · ${cache.events().size} events (${msg.joinToString(", ")})"
+                                if (result.errors.isNotEmpty()) {
+                                    eventStatus = (eventStatus ?: "") + " · " + result.errors.joinToString("; ")
+                                }
                             } catch (e: Exception) {
                                 eventStatus = e.message ?: "Refresh failed."
                             } finally {

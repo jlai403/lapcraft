@@ -72,6 +72,9 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
 - Build: `org.gradle.caching` and configuration cache are on; app unit tests run with 2 forks and a
   1 GB heap (`app/build.gradle.kts`). Inner loop is `:app:assembleDebug` (~3 s) plus targeted
   `--tests`; `:app:lintDebug` (~25 s) is CI/pre-merge only. TrackMap's root carries `testTag("track-map")`.
+- Device tests live in `app/src/androidTest` (Espresso + Compose, `AndroidJUnitRunner`). They are
+  device-gated (no emulator/`/dev/kvm` in this environment): run with
+  `:app:connectedDebugAndroidTest` or a Gradle managed device once `/dev/kvm` is exposed.
 
 ## Library transfer
 

@@ -66,6 +66,8 @@ import io.github.jlai403.lapcraft.app.replay.probeClip
 import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
 import io.github.jlai403.lapcraft.app.profile.countryFlagEmoji
 import io.github.jlai403.lapcraft.app.share.Sharing
+import io.github.jlai403.lapcraft.app.events.EventCache
+import io.github.jlai403.lapcraft.app.events.EventRefresh
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
 import io.github.jlai403.lapcraft.app.track.TrackCatalog
 import io.github.jlai403.lapcraft.app.track.TrackNamer
@@ -114,6 +116,14 @@ fun LapPlayerScreen(
     }
 
     var sessionReload by remember { mutableIntStateOf(0) }
+    var cachedEvents by remember { mutableStateOf(EventCache(context).events()) }
+    LaunchedEffect(Unit) {
+        val cache = EventCache(context)
+        if (cache.isPolyphonyStale() || cache.isGridstatsStale()) {
+            runCatching { EventRefresh.refresh(context) }
+            cachedEvents = EventCache(context).events()
+        }
+    }
     val session by produceState<SessionMetadata?>(null, sessionId, sessionReload) {
         value = withContext(Dispatchers.IO) { store.load(sessionId) }
     }
@@ -745,6 +755,15 @@ fun LapPlayerScreen(
                             reencodeResult = reencoded
                             sessionReload++
                         }
+                    }
+                },
+                events = cachedEvents,
+                onAssignEvent = { tag ->
+                    scope.launch {
+                        withContext(Dispatchers.IO) {
+                            runCatching { store.setLapEvent(sessionId, lapIndex, tag) }
+                        }
+                        sessionReload++
                     }
                 },
             )

@@ -56,6 +56,7 @@ import io.github.jlai403.lapcraft.core.session.LapSummary
 import io.github.jlai403.lapcraft.core.session.SessionStore
 import io.github.jlai403.lapcraft.app.catalog.sessionStore
 import io.github.jlai403.lapcraft.app.events.EventCache
+import io.github.jlai403.lapcraft.app.events.EventRefresh
 import io.github.jlai403.lapcraft.core.events.CachedEvent
 import io.github.jlai403.lapcraft.core.session.applyFilter
 import io.github.jlai403.lapcraft.core.session.applySort
@@ -92,7 +93,7 @@ fun LibraryScreen(
     var filter by remember { mutableStateOf(LapFilter()) }
     var sort by remember { mutableStateOf(LapSort.Newest) }
     var eventMenu by remember { mutableStateOf(false) }
-    val cachedEvents = remember { EventCache(context).events() }
+    var cachedEvents by remember { mutableStateOf(EventCache(context).events()) }
     var previewEmpty by remember { mutableStateOf(settings.previewEmptyLibrary) }
     var editing by remember { mutableStateOf<LapSummary?>(null) }
     var candidates by remember { mutableStateOf<List<TrackCandidate>?>(null) }
@@ -135,6 +136,11 @@ fun LibraryScreen(
         if (settings.trackIdentificationVersion < TrackNamer.VERSION) {
             runCatching { namer.identifyUnknownLaps() }
             settings.trackIdentificationVersion = TrackNamer.VERSION
+        }
+        val cache = EventCache(context)
+        if (cache.isPolyphonyStale() || cache.isGridstatsStale()) {
+            runCatching { EventRefresh.refresh(context) }
+            cachedEvents = EventCache(context).events()
         }
         laps = withContext(Dispatchers.IO) { store.summaries() }
         refreshing = false
