@@ -64,6 +64,7 @@ import io.github.jlai403.lapcraft.core.clip.TrimPlan
 import io.github.jlai403.lapcraft.core.model.Sample
 import io.github.jlai403.lapcraft.core.session.LapMetadata
 import io.github.jlai403.lapcraft.core.session.SessionStore
+import io.github.jlai403.lapcraft.app.catalog.sessionStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -83,7 +84,7 @@ fun ImportSyncScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val store = remember { SessionStore(context.filesDir) }
+    val store = remember { sessionStore(context) }
     val trimmer = remember { ClipTrimmer() }
     val transcoder = remember { VideoTranscoder(context) }
     val settings = remember { SettingsStore(context) }

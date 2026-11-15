@@ -114,7 +114,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 - One lap per record; video is optional and attached later.
 - One frame anchor at the lap end; GT7 lap time is the ruler.
 - Track name inferred from coordinates; manual rename overrides.
-- Local-first: no accounts, cloud, ads, or tracking. The optional profile lookup sends only the PSN ID to gt-gridstats.com; manual driver entry stays offline.
+- Local-first: no accounts, cloud, ads, or tracking. The optional profile lookup sends only the PSN ID to gt-gridstats.com (plus a Bearer API key you paste in Settings when you want DR/SR and car names); manual driver entry stays offline. Car names come from a bundled catalogue generated from GT GridStats. Optional event tags use the same key plus the public GT championship schedule.
 - License: GPLv3 + contributor CLA.
 
 ## Target

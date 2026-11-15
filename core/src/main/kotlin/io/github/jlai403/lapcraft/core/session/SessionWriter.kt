@@ -32,6 +32,7 @@ class SessionWriter(
         videoFile: String,
         leadInMs: Int,
         driverPsnId: String? = null,
+        event: io.github.jlai403.lapcraft.core.events.EventTag? = null,
     ): LapMetadata {
         val preRollNanos = 2_000_000_000L
         val postRollNanos = 1_000_000_000L
@@ -50,6 +51,7 @@ class SessionWriter(
             leadInMs = leadInMs,
             syncOffsetMs = metadata.syncOffsetMs,
             driverPsnId = driverPsnId?.trim()?.takeIf { it.isNotEmpty() },
+            event = event,
         )
 
         val lapsDir = File(rootDir, "laps").apply { mkdirs() }

@@ -5,6 +5,8 @@ import java.nio.charset.StandardCharsets
 
 /** Public profile pages; the app only opens these in the browser. */
 object DriverProfileLinks {
+    val gridStatsHome: String = "https://gt-gridstats.com"
+
     fun gridStats(psnId: String): String = "https://gt-gridstats.com/player/${encode(psnId)}"
 
     fun gtshRank(psnId: String): String = "https://gtsh-rank.com/profile/?id=${encode(psnId)}"

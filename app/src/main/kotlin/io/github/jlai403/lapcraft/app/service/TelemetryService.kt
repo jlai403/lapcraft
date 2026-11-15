@@ -18,6 +18,9 @@ import io.github.jlai403.lapcraft.app.MainActivity
 import io.github.jlai403.lapcraft.app.capture.LapSaver
 import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
 import io.github.jlai403.lapcraft.app.recording.StreamNotificationText
+import io.github.jlai403.lapcraft.app.catalog.CarCatalog
+import io.github.jlai403.lapcraft.app.events.EventRefresh
+import io.github.jlai403.lapcraft.app.events.EventTagger
 import io.github.jlai403.lapcraft.app.track.TrackCatalog
 import io.github.jlai403.lapcraft.app.Diagnostics
 import io.github.jlai403.lapcraft.core.capture.CaptureState
@@ -147,11 +150,14 @@ class TelemetryService : Service() {
                             sessionsDir = File(filesDir, "sessions"),
                             trackName = TrackCatalog(this)::identify,
                             driverPsnId = { driverProfiles.owner()?.psnId },
+                            carName = CarCatalog(this)::name,
+                            eventTag = EventTagger(this)::tag,
                         ),
                     )
                     serviceScope.launch {
                         coordinator.state.collect { capture.value = it }
                     }
+                    serviceScope.launch { EventRefresh.refresh(this@TelemetryService) }
                 } else {
                     coordinator.onDisconnect()
                 }

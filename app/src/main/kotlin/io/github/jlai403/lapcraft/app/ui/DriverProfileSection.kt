@@ -8,6 +8,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,16 +26,20 @@ import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
 import io.github.jlai403.lapcraft.app.profile.GridStatsProfileClient
 import io.github.jlai403.lapcraft.app.profile.countryFlagEmoji
 import io.github.jlai403.lapcraft.core.session.SessionStore
+import io.github.jlai403.lapcraft.app.catalog.sessionStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 @Composable
 internal fun DriverProfileSection(
-    lookupProfile: suspend (String) -> DriverProfile = { GridStatsProfileClient().fetch(it) },
+    lookupProfile: (suspend (String) -> DriverProfile)? = null,
 ) {
     val context = LocalContext.current
     val store = remember { DriverProfileStore(context) }
-    val sessionStore = remember { SessionStore(context.filesDir) }
+    val settings = remember { io.github.jlai403.lapcraft.app.settings.SettingsStore(context) }
+    val sessionStore = remember { sessionStore(context) }
+    val resolvedLookup: suspend (String) -> DriverProfile =
+        lookupProfile ?: { GridStatsProfileClient { store.apiKey }.fetch(it) }
     val scope = rememberCoroutineScope()
     var profile by remember { mutableStateOf(store.owner()) }
     var psnId by remember { mutableStateOf(profile?.psnId.orEmpty()) }
@@ -45,6 +51,8 @@ internal fun DriverProfileSection(
     var fetchingMissing by remember { mutableStateOf(false) }
     var missingProgress by remember { mutableStateOf("") }
     var missingError by remember { mutableStateOf<String?>(null) }
+    var apiKey by remember { mutableStateOf(store.apiKey.orEmpty()) }
+    var keyStatus by remember { mutableStateOf<String?>(null) }
 
     fun refreshMissing() {
         missingCount = sessionStore.summaries()
@@ -70,7 +78,7 @@ internal fun DriverProfileSection(
             for (psn in targets) {
                 missingProgress = "${done + 1} of ${targets.size}"
                 try {
-                    val fetched = lookupProfile(psn)
+                    val fetched = resolvedLookup(psn)
                     store.save(fetched)
                     done++
                 } catch (e: kotlinx.coroutines.CancellationException) {
@@ -96,7 +104,7 @@ internal fun DriverProfileSection(
         error = null
         scope.launch {
             try {
-                val fetched = lookupProfile(target)
+                val fetched = resolvedLookup(target)
                 profile = fetched
                 psnId = fetched.psnId
                 store.setOwner(fetched)
@@ -168,6 +176,17 @@ internal fun DriverProfileSection(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                    val drSr = listOfNotNull(
+                        loaded.dr?.let { "DR $it" },
+                        loaded.sr?.let { "SR $it" },
+                    ).joinToString(" · ")
+                    if (drSr.isNotEmpty()) {
+                        Text(
+                            drSr,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
             Text(
@@ -208,6 +227,52 @@ internal fun DriverProfileSection(
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+        Text(
+            "GT GridStats API key (optional)",
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Text(
+            "Enables DR/SR and car names. Get one at gt-gridstats.com; stored only on this device.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        OutlinedTextField(
+            value = apiKey,
+            onValueChange = {
+                apiKey = it
+                keyStatus = null
+            },
+            label = { Text("API key") },
+            singleLine = true,
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth().testTag("settings-gridstats-key"),
+            shape = RoundedCornerShape(14.dp),
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            GhostPill(
+                text = "Save key",
+                onClick = {
+                    store.apiKey = apiKey
+                    keyStatus = if (apiKey.isBlank()) "Cleared" else "Saved"
+                },
+                modifier = Modifier.testTag("settings-gridstats-key-save"),
+            )
+            if (store.apiKey != null) {
+                GhostPill(
+                    text = "Clear",
+                    onClick = {
+                        store.apiKey = null
+                        apiKey = ""
+                        keyStatus = "Cleared"
+                    },
+                    contentColor = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.testTag("settings-gridstats-key-clear"),
+                )
+            }
+        }
+        keyStatus?.let {
+            Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Text(
             "Fetching sends only your PSN ID to gt-gridstats.com.",

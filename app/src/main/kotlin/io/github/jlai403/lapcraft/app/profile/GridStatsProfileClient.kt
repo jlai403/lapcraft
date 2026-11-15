@@ -4,21 +4,61 @@ import io.github.jlai403.lapcraft.core.profile.DriverProfile
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 class ProfileNotFoundException : IOException("No GT GridStats profile found for that PSN ID.")
 
 /**
- * Reads the public GT GridStats player page once per user request. It deliberately
- * does not crawl: no pagination, no retries, no background refresh.
+ * Reads a GT GridStats driver profile. With an API key it uses the JSON API
+ * (DR/SR included); without one it falls back to the public HTML page.
  */
-class GridStatsProfileClient {
+class GridStatsProfileClient(
+    private val apiKey: () -> String? = { null },
+) {
     suspend fun fetch(psnId: String): DriverProfile = withContext(Dispatchers.IO) {
         val trimmed = psnId.trim()
         require(trimmed.isNotEmpty()) { "Enter a PSN ID." }
-        val connection = (URL(DriverProfileLinks.gridStats(trimmed)).openConnection() as HttpURLConnection)
+        val key = apiKey()
+        if (key.isNullOrBlank()) fetchHtml(trimmed) else fetchApi(trimmed, key)
+    }
+
+    private fun fetchApi(psnId: String, key: String): DriverProfile {
+        val encoded = URLEncoder.encode(psnId, StandardCharsets.UTF_8.toString()).replace("+", "%20")
+        val connection = (URL("https://gt-gridstats.com/api/racers/$encoded").openConnection() as HttpURLConnection)
+            .apply {
+                connectTimeout = TIMEOUT_MS
+                readTimeout = TIMEOUT_MS
+                requestMethod = "GET"
+                setRequestProperty("Accept", "application/json")
+                setRequestProperty("Authorization", "Bearer $key")
+                setRequestProperty("User-Agent", USER_AGENT)
+            }
+        return try {
+            when (val status = connection.responseCode) {
+                HttpURLConnection.HTTP_OK -> {
+                    val body = connection.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+                    parseApiProfile(body, psnId)
+                }
+                HttpURLConnection.HTTP_NOT_FOUND -> throw ProfileNotFoundException()
+                401 -> throw IOException("GT GridStats API key was rejected.")
+                429 -> throw IOException("GT GridStats rate limit hit; try again in a minute.")
+                422 -> throw IOException("GT GridStats rejected the request.")
+                else -> throw IOException("GT GridStats returned HTTP $status.")
+            }
+        } finally {
+            connection.disconnect()
+        }
+    }
+
+    private fun fetchHtml(psnId: String): DriverProfile {
+        val connection = (URL(DriverProfileLinks.gridStats(psnId)).openConnection() as HttpURLConnection)
             .apply {
                 connectTimeout = TIMEOUT_MS
                 readTimeout = TIMEOUT_MS
@@ -26,11 +66,11 @@ class GridStatsProfileClient {
                 setRequestProperty("Accept", "text/html")
                 setRequestProperty("User-Agent", USER_AGENT)
             }
-        try {
+        return try {
             when (val status = connection.responseCode) {
                 HttpURLConnection.HTTP_OK -> {
                     val html = connection.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
-                    parseGridStatsProfile(html, trimmed)
+                    parseGridStatsProfile(html, psnId)
                 }
                 HttpURLConnection.HTTP_NOT_FOUND -> throw ProfileNotFoundException()
                 else -> throw IOException("GT GridStats returned HTTP $status.")
@@ -42,9 +82,38 @@ class GridStatsProfileClient {
 
     private companion object {
         const val TIMEOUT_MS = 15_000
-        const val USER_AGENT =
-            "LapCraft/0.1 (+https://github.com/jlai403/lapcraft)"
+        const val USER_AGENT = "LapCraft/0.1 (+https://github.com/jlai403/lapcraft)"
     }
+}
+
+@Serializable
+private data class RacersResponse(
+    val drivers: List<RacerDto> = emptyList(),
+    @SerialName("not_found") val notFound: List<String> = emptyList(),
+)
+
+@Serializable
+private data class RacerDto(
+    @SerialName("PSN_ID") val psnId: String = "",
+    @SerialName("Nickname") val nickname: String = "",
+    @SerialName("DR") val dr: String? = null,
+    @SerialName("SR") val sr: String? = null,
+    @SerialName("country_code") val countryCode: String? = null,
+)
+
+internal fun parseApiProfile(jsonText: String, psnId: String): DriverProfile {
+    val json = Json { ignoreUnknownKeys = true }
+    val response = json.decodeFromString<RacersResponse>(jsonText)
+    val dto = response.drivers.firstOrNull { it.psnId.equals(psnId.trim(), ignoreCase = true) }
+        ?: throw ProfileNotFoundException()
+    val nickname = dto.nickname.trim().ifEmpty { psnId.trim() }
+    return DriverProfile(
+        psnId = psnId.trim(),
+        nickname = nickname,
+        countryCode = dto.countryCode?.trim()?.uppercase(),
+        dr = dto.dr?.trim()?.uppercase(),
+        sr = dto.sr?.trim()?.uppercase(),
+    )
 }
 
 private val NAME_PATTERN = Regex("<h1[^>]*>(.*?)</h1>", RegexOption.DOT_MATCHES_ALL)

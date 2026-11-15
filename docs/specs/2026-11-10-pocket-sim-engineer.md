@@ -227,11 +227,12 @@ A GT7 player reviewing their own hotlaps on a Pixel-class Android phone. They ca
 
 - One owner profile is the default for new captures: PSN ID, GT nickname, and ISO country code. No avatar.
 - A local profile book keeps the owner and every driver fetched or entered for a lap.
-- Fetch from the public GT GridStats player page only when the user taps **Fetch profile**; one request per tap, no crawling, retries, or background refresh.
+- Fetch from GT GridStats only when the user taps **Fetch profile**; one request per tap, no crawling, retries, or background refresh. With a user-supplied API key (Settings → Driver profile) the JSON API is used and DR/SR are stored; without one the public HTML page is scraped (nickname and country only). The key stays on device.
 - Manual name and 2-letter country entry is available when GT GridStats has no profile or the network fails.
 - Each lap stores `driverPsnId`. New captures use the owner at capture time; existing laps stay unassigned until changed.
 - The lap screen's **Driver** card selects a cached driver, adds one, or clears it. Changing the driver does not touch video or telemetry.
 - Library cards show the lap's driver on every card: flag and nickname, the PSN when the profile is unknown, or `Driver not set`; the header shows the owner and opens GT GridStats or GTSH-Rank. The lap screen's Driver card opens the same links for the assigned driver.
+- Car names: a bundled catalogue (generated from GT GridStats) maps the packet's car code to a name; laps captured or imported resolve through it, falling back to `Car #<code>`.
 - Without an owner, the library shows **Add GT profile**.
 
 ## 9. Data model

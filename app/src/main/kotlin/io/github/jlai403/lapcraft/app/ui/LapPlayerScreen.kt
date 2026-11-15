@@ -75,6 +75,8 @@ import io.github.jlai403.lapcraft.core.playback.PlaybackCursor
 import io.github.jlai403.lapcraft.core.session.LapSummary
 import io.github.jlai403.lapcraft.core.session.SessionMetadata
 import io.github.jlai403.lapcraft.core.session.SessionStore
+import io.github.jlai403.lapcraft.app.catalog.CarCatalog
+import io.github.jlai403.lapcraft.app.catalog.sessionStore
 import io.github.jlai403.lapcraft.core.session.trackKey
 import io.github.jlai403.lapcraft.core.track.TrackCandidate
 import kotlinx.coroutines.Dispatchers
@@ -96,7 +98,7 @@ fun LapPlayerScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val store = remember { SessionStore(context.filesDir) }
+    val store = remember { sessionStore(context) }
     val settings = remember { SettingsStore(context) }
     val profileStore = remember { DriverProfileStore(context) }
     val namer = remember { TrackNamer(store, TrackCatalog(context)) }
@@ -463,7 +465,7 @@ fun LapPlayerScreen(
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 Text(
-                    listOfNotNull(subtitle, session?.carName).joinToString(" · "),
+                    listOfNotNull(subtitle, CarCatalog(context).name(session?.carCode ?: 0) ?: session?.carName, session?.laps?.firstOrNull { it.index == lapIndex }?.event?.label).joinToString(" · "),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

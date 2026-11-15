@@ -21,4 +21,6 @@ data class LapMetadata(
     val sourceFile: String? = null,
     /** PSN ID of the driver for this lap/replay; null for legacy laps. */
     val driverPsnId: String? = null,
+    /** Optional sport-mode event tag. */
+    val event: io.github.jlai403.lapcraft.core.events.EventTag? = null,
 )

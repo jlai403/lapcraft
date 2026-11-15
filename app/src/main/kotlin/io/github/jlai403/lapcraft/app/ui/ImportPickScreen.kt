@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import io.github.jlai403.lapcraft.core.session.LapSort
 import io.github.jlai403.lapcraft.core.session.LapSummary
 import io.github.jlai403.lapcraft.core.session.SessionStore
+import io.github.jlai403.lapcraft.app.catalog.sessionStore
 import io.github.jlai403.lapcraft.core.session.applySort
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -40,7 +41,7 @@ fun ImportPickScreen(
     onClose: () -> Unit,
 ) {
     val context = LocalContext.current
-    val store = remember { SessionStore(context.filesDir) }
+    val store = remember { sessionStore(context) }
     var laps by remember { mutableStateOf<List<LapSummary>?>(null) }
 
     LaunchedEffect(uri) {

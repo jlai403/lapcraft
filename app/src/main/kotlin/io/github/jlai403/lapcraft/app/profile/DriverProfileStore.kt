@@ -56,6 +56,18 @@ class DriverProfileStore(context: Context) {
         }
     }
 
+    /** Optional GT GridStats API key, stored locally and never exported. */
+    var apiKey: String?
+        get() = prefs.getString(KEY_API_KEY, null)?.takeIf { it.isNotBlank() }
+        set(value) {
+            val trimmed = value?.trim().orEmpty()
+            if (trimmed.isEmpty()) {
+                prefs.edit().remove(KEY_API_KEY).apply()
+            } else {
+                prefs.edit().putString(KEY_API_KEY, trimmed).apply()
+            }
+        }
+
     fun clear() {
         prefs.edit().clear().apply()
     }
@@ -67,7 +79,9 @@ class DriverProfileStore(context: Context) {
             ?.trim()
             ?.uppercase()
             ?.takeIf { it.length == 2 && it.all { char -> char in 'A'..'Z' } }
-        return DriverProfile(psnId, nickname, countryCode)
+        val dr = profile.dr?.trim()?.uppercase()?.takeIf { it.isNotEmpty() && it.length <= 3 }
+        val sr = profile.sr?.trim()?.uppercase()?.takeIf { it.isNotEmpty() && it.length <= 3 }
+        return DriverProfile(psnId, nickname, countryCode, dr, sr)
     }
 
     private fun ownerPsnId(): String? {
@@ -108,5 +122,6 @@ class DriverProfileStore(context: Context) {
         const val KEY_LEGACY_PSN = "psn_id"
         const val KEY_LEGACY_NICKNAME = "nickname"
         const val KEY_LEGACY_COUNTRY = "country_code"
+        const val KEY_API_KEY = "gridstats_api_key"
     }
 }

@@ -12,10 +12,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import io.github.jlai403.lapcraft.core.profile.DriverProfile
@@ -50,13 +53,19 @@ internal fun EditLapSheet(
     reencoding: Boolean = false,
     reencodeResult: Boolean? = null,
     onReencode: () -> Unit = {},
+    events: List<io.github.jlai403.lapcraft.core.events.CachedEvent> = emptyList(),
+    onAssignEvent: (io.github.jlai403.lapcraft.core.events.EventTag?) -> Unit = {},
 ) {
+    val context = LocalContext.current
     var track by remember(lap.trackLabel) {
         mutableStateOf(lap.trackLabel.takeUnless { it == TrackNamer.UNKNOWN }.orEmpty())
     }
     var driverPsnId by remember(lap.driverPsnId) { mutableStateOf(lap.driverPsnId) }
     var localProfiles by remember(profiles) { mutableStateOf(profiles) }
     var addingDriver by remember { mutableStateOf(false) }
+    var eventPickerOpen by remember { mutableStateOf(false) }
+    var manualChamp by remember { mutableStateOf("") }
+    var manualOpen by remember { mutableStateOf(false) }
     val selectedDriver = localProfiles.firstOrNull { it.psnId.equals(driverPsnId, true) }
         ?: driver?.takeIf { it.psnId.equals(driverPsnId, true) }
         ?: owner?.takeIf { it.psnId.equals(driverPsnId, true) }
@@ -106,6 +115,27 @@ internal fun EditLapSheet(
                             style = MaterialTheme.typography.bodyMedium,
                         )
                     }
+                }
+            }
+
+            SectionLabel("Event")
+            Text(
+                lap.event?.label ?: "Untagged",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                GhostPill(
+                    text = "Tag event",
+                    onClick = { eventPickerOpen = true },
+                    modifier = Modifier.testTag("edit-event"),
+                )
+                if (lap.event != null) {
+                    GhostPill(
+                        text = "Clear",
+                        onClick = { onAssignEvent(null) },
+                        contentColor = MaterialTheme.colorScheme.error,
+                    )
                 }
             }
 
@@ -209,9 +239,85 @@ internal fun EditLapSheet(
             )
         }
     }
+    if (eventPickerOpen) {
+        AlertDialog(
+            onDismissRequest = { eventPickerOpen = false },
+            title = { Text("Tag event") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    events.forEach { ev ->
+                        Text(
+                            ev.label,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onAssignEvent(
+                                        io.github.jlai403.lapcraft.core.events.EventTag(
+                                            id = ev.id,
+                                            kind = ev.kind,
+                                            label = ev.label,
+                                            series = ev.series,
+                                            round = ev.round,
+                                            carClass = ev.carClass,
+                                            auto = false,
+                                        )
+                                    )
+                                    eventPickerOpen = false
+                                }
+                                .padding(vertical = 6.dp),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                    if (events.isEmpty()) {
+                        Text("No cached events. Refresh in Settings.", style = MaterialTheme.typography.bodySmall)
+                    }
+                    TextButton(onClick = { manualOpen = true; eventPickerOpen = false }) {
+                        Text("Championship…")
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { eventPickerOpen = false }) { Text("Close") }
+            },
+        )
+    }
+    if (manualOpen) {
+        AlertDialog(
+            onDismissRequest = { manualOpen = false },
+            title = { Text("Championship tag") },
+            text = {
+                OutlinedTextField(
+                    value = manualChamp,
+                    onValueChange = { manualChamp = it },
+                    label = { Text("Label (e.g. World Series · R3)") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (manualChamp.isNotBlank()) {
+                        onAssignEvent(
+                            io.github.jlai403.lapcraft.core.events.EventTag(
+                                id = "manual-${System.currentTimeMillis()}",
+                                kind = "championship",
+                                label = manualChamp.trim(),
+                                auto = false,
+                            )
+                        )
+                    }
+                    manualOpen = false
+                    manualChamp = ""
+                }) { Text("Save") }
+            },
+            dismissButton = {
+                TextButton(onClick = { manualOpen = false; manualChamp = "" }) { Text("Cancel") }
+            },
+        )
+    }
     if (addingDriver) {
         AddDriverDialog(
-            lookupProfile = { GridStatsProfileClient().fetch(it) },
+            lookupProfile = { GridStatsProfileClient { io.github.jlai403.lapcraft.app.profile.DriverProfileStore(context).apiKey }.fetch(it) },
             onSave = {
                 addingDriver = false
                 assign(it)

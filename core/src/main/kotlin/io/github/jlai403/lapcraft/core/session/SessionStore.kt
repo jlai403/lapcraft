@@ -5,7 +5,10 @@ import io.github.jlai403.lapcraft.core.model.Sample
 import java.io.File
 import java.time.Instant
 
-class SessionStore(private val rootDir: File) {
+class SessionStore(
+    private val rootDir: File,
+    private val carName: (Int) -> String? = { null },
+) {
     private val sessionsDir: File get() = File(rootDir, "sessions")
 
     fun list(): List<SessionMetadata> =
@@ -93,10 +96,11 @@ class SessionStore(private val rootDir: File) {
                 lapTimeMs = lap.lapTimeMs,
                 createdAt = session.createdAt,
                 trackLabel = session.trackLabel,
-                carName = session.carName,
+                carName = carName(session.carCode) ?: session.carName,
                 hasReplay = replayFile != null,
                 replayPending = !lap.sourceFile.isNullOrBlank(),
                 driverPsnId = lap.driverPsnId,
+                event = lap.event,
                 videoBytes = replayFile?.length() ?: 0,
                 telemetryBytes = telemetryFile?.length() ?: 0,
                 pendingBytes = pendingFile?.length() ?: 0,
@@ -118,6 +122,11 @@ class SessionStore(private val rootDir: File) {
             sessionId,
             lap.copy(driverPsnId = psnId?.trim()?.takeIf { it.isNotEmpty() }),
         )
+    }
+
+    fun setLapEvent(sessionId: String, lapIndex: Int, event: io.github.jlai403.lapcraft.core.events.EventTag?): SessionMetadata? {
+        val lap = lap(sessionId, lapIndex) ?: return null
+        return updateLap(sessionId, lap.copy(event = event))
     }
 
     fun attachClip(

@@ -229,6 +229,25 @@ internal fun LapCard(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
+                    lap.event?.label?.let { label ->
+                        Text(
+                            label,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    driver?.let { d ->
+                        val drSr = listOfNotNull(d.dr?.let { "DR $it" }, d.sr?.let { "SR $it" }).joinToString(" · ")
+                        if (drSr.isNotEmpty()) {
+                            Text(
+                                drSr,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         NumericText(
                             lapTimeLabel(lap.lapTimeMs),

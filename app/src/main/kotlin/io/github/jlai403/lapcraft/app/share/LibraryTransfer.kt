@@ -44,7 +44,7 @@ object LibraryTransfer {
         val psns = SessionStore(rootDir).summaries().mapNotNull { it.driverPsnId }.distinct()
         for (psn in psns) {
             if (store.profile(psn) != null) continue
-            runCatching { GridStatsProfileClient().fetch(psn) }.getOrNull()?.let { store.save(it) }
+            runCatching { GridStatsProfileClient { DriverProfileStore(context).apiKey }.fetch(psn) }.getOrNull()?.let { store.save(it) }
         }
         report
     }

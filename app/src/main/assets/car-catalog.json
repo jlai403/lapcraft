@@ -1,0 +1,3486 @@
+{
+  "source": "gt-gridstats.com",
+  "fetched_at": "2026-11-15T08:26:54Z",
+  "cars": [
+    {
+      "code": 24,
+      "name": "Nissan 180SX Type X '96",
+      "class": "Gr.N",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 31,
+      "name": "Chevrolet Camaro Z28 '69",
+      "class": "Gr.N",
+      "manufacturer": "Chevrolet"
+    },
+    {
+      "code": 36,
+      "name": "Chevrolet Chevelle SS 454 Sport Coupé '70",
+      "class": "Gr.N",
+      "manufacturer": "Chevrolet"
+    },
+    {
+      "code": 37,
+      "name": "Honda Civic SiR･II (EG) '93",
+      "class": "Gr.N",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 41,
+      "name": "Chevrolet Corvette Stingray L46 350 (C3) '69",
+      "class": "Gr.N",
+      "manufacturer": "Chevrolet"
+    },
+    {
+      "code": 48,
+      "name": "Nissan Fairlady 240ZG (HS30) '71",
+      "class": "Gr.N",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 51,
+      "name": "Mitsubishi FTO GP Version R '97",
+      "class": "Gr.N",
+      "manufacturer": "Mitsubishi"
+    },
+    {
+      "code": 63,
+      "name": "Toyota Corolla Levin 3door 1600GT APEX (AE86) '83",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 78,
+      "name": "Nissan Silvia K's Aero (S14) '96",
+      "class": "Gr.N",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 82,
+      "name": "Toyota Supra RZ '97",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 102,
+      "name": "Nissan Skyline GTS-R (R31) '87",
+      "class": "Gr.N",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 104,
+      "name": "Nissan Sileighty '98",
+      "class": "Gr.N",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 105,
+      "name": "Peugeot 205 Turbo 16 Evolution 2 '86",
+      "class": "Gr.B",
+      "manufacturer": "Peugeot"
+    },
+    {
+      "code": 116,
+      "name": "Toyota GT-One (TS020) '99",
+      "class": "Gr.2",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 135,
+      "name": "Honda S800 '66",
+      "class": "Gr.N",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 137,
+      "name": "Honda Beat '91",
+      "class": "Gr.N",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 140,
+      "name": "Honda NSX GT500 '00",
+      "class": "Gr.3",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 145,
+      "name": "Daihatsu Copen Active Top '02",
+      "class": "Gr.N",
+      "manufacturer": "Daihatsu"
+    },
+    {
+      "code": 173,
+      "name": "Renault R5 Turbo '80",
+      "class": "Gr.N",
+      "manufacturer": "Renault"
+    },
+    {
+      "code": 187,
+      "name": "TVR Tuscan Speed 6 '00",
+      "class": "Gr.N",
+      "manufacturer": "TVR"
+    },
+    {
+      "code": 201,
+      "name": "Mazda Eunos Roadster (NA Special Package) '89",
+      "class": "Gr.N",
+      "manufacturer": "Mazda"
+    },
+    {
+      "code": 203,
+      "name": "Honda Integra Type R (DC2) '98",
+      "class": "Gr.N",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 204,
+      "name": "Honda Civic Type R (EK) '98",
+      "class": "Gr.N",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 205,
+      "name": "Mazda RX-7 Spirit R Type A (FD) '02",
+      "class": "Gr.N",
+      "manufacturer": "Mazda"
+    },
+    {
+      "code": 207,
+      "name": "Toyota MR2 GT-S '97",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 210,
+      "name": "Nissan Skyline GT-R V･spec II Nür (R34) '02",
+      "class": "Gr.N",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 211,
+      "name": "Mitsubishi Lancer Evolution V GSR '98",
+      "class": "Gr.N",
+      "manufacturer": "Mitsubishi"
+    },
+    {
+      "code": 216,
+      "name": "BMW McLaren F1 GTR Race Car '97",
+      "class": "Gr.2",
+      "manufacturer": "BMW"
+    },
+    {
+      "code": 293,
+      "name": "Honda NSX Type R '92",
+      "class": "Gr.N",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 296,
+      "name": "Mazda 787B '91",
+      "class": "Gr.1",
+      "manufacturer": "Mazda"
+    },
+    {
+      "code": 301,
+      "name": "Mitsubishi Lancer Evolution IV GSR '96",
+      "class": "Gr.N",
+      "manufacturer": "Mitsubishi"
+    },
+    {
+      "code": 315,
+      "name": "Shelby Cobra 427 '66",
+      "class": "Gr.N",
+      "manufacturer": "Shelby"
+    },
+    {
+      "code": 334,
+      "name": "Renault Sport Clio V6 24V '00",
+      "class": "Gr.N",
+      "manufacturer": "Renault"
+    },
+    {
+      "code": 345,
+      "name": "Toyota Trueno 3door 1600GT APEX (AE86 Shuichi Shigeno Version)",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 365,
+      "name": "Alfa Romeo 155 2.5 V6 TI '93",
+      "class": "Gr.4",
+      "manufacturer": "Alfa Romeo"
+    },
+    {
+      "code": 374,
+      "name": "Mazda RX-7 GT-X (FC) '90",
+      "class": "Gr.N",
+      "manufacturer": "Mazda"
+    },
+    {
+      "code": 379,
+      "name": "Subaru Impreza Coupe WRX Type R STi Version VI '99",
+      "class": "Gr.N",
+      "manufacturer": "Subaru"
+    },
+    {
+      "code": 387,
+      "name": "Mercedes-Benz 300 SL Coupé '54",
+      "class": "Gr.N",
+      "manufacturer": "Mercedes-Benz"
+    },
+    {
+      "code": 396,
+      "name": "Honda NSX Type R '02",
+      "class": "Gr.N",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 451,
+      "name": "Subaru Impreza 22B-STi Version '98",
+      "class": "Gr.N",
+      "manufacturer": "Subaru"
+    },
+    {
+      "code": 485,
+      "name": "Nissan GT-R GT500 '99",
+      "class": "Gr.3",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 489,
+      "name": "Nissan Skyline GT-R V･spec (R33) '97",
+      "class": "Gr.N",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 514,
+      "name": "Honda S2000 '99",
+      "class": "Gr.N",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 533,
+      "name": "Lancia Stratos '73",
+      "class": "Gr.N",
+      "manufacturer": "Lancia"
+    },
+    {
+      "code": 543,
+      "name": "Jaguar XJ220 '92",
+      "class": "Gr.N",
+      "manufacturer": "Jaguar"
+    },
+    {
+      "code": 575,
+      "name": "Mercedes-Benz 190 E 2.5-16 Evolution II '91",
+      "class": "Gr.N",
+      "manufacturer": "Mercedes-Benz"
+    },
+    {
+      "code": 604,
+      "name": "Toyota 2000GT '67",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 655,
+      "name": "BMW Z4 3.0i '03",
+      "class": "Gr.N",
+      "manufacturer": "BMW"
+    },
+    {
+      "code": 665,
+      "name": "Plymouth Superbird '70",
+      "class": "Gr.N",
+      "manufacturer": "Plymouth"
+    },
+    {
+      "code": 683,
+      "name": "Honda Civic Si Group A version '87",
+      "class": "Gr.X",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 688,
+      "name": "Honda Integra Type R (DC2) '95",
+      "class": "Gr.N",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 709,
+      "name": "Nissan Fairlady Z 300ZX TwinTurbo 2seater (Z32) '89",
+      "class": "Gr.N",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 729,
+      "name": "Renault Avantime 3.0 V6 24V '02",
+      "class": "Gr.N",
+      "manufacturer": "Renault"
+    },
+    {
+      "code": 761,
+      "name": "Lancia Delta HF Integrale Rally Car '92",
+      "class": "Gr.B",
+      "manufacturer": "Lancia"
+    },
+    {
+      "code": 773,
+      "name": "Nissan Skyline GT-R V･spec II (R32) '94",
+      "class": "Gr.N",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 779,
+      "name": "Suzuki Cappuccino (EA11R) '91",
+      "class": "Gr.N",
+      "manufacturer": "Suzuki"
+    },
+    {
+      "code": 781,
+      "name": "Toyota Celica GT-FOUR Rally Car (ST205) '95",
+      "class": "Gr.B",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 799,
+      "name": "Mitsubishi Lancer Evolution VIII MR GSR '04",
+      "class": "Gr.N",
+      "manufacturer": "Mitsubishi"
+    },
+    {
+      "code": 808,
+      "name": "Suzuki V6 Escudo Pikes Peak Special '98",
+      "class": "Gr.X",
+      "manufacturer": "Suzuki"
+    },
+    {
+      "code": 810,
+      "name": "Toyota Sprinter Trueno 3door 1600GT APEX (AE86) '83",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 818,
+      "name": "Chevrolet Corvette Sting Ray Sport Coupe (C2) '63",
+      "class": "Gr.N",
+      "manufacturer": "Chevrolet"
+    },
+    {
+      "code": 821,
+      "name": "Honda Civic Type R (EK) '97",
+      "class": "Gr.N",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 829,
+      "name": "Lancia Delta HF Integrale Evoluzione '91",
+      "class": "Gr.N",
+      "manufacturer": "Lancia"
+    },
+    {
+      "code": 836,
+      "name": "Nissan Skyline 2000GT-R (KPGC110) '73",
+      "class": "Gr.N",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 837,
+      "name": "Nissan Skyline Hard Top 2000GT-R (KPGC10) '70",
+      "class": "Gr.N",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 843,
+      "name": "Toyota Supra 3.0GT Turbo A '88",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 919,
+      "name": "Nissan Silvia Q's (S13) '88",
+      "class": "Gr.N",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 931,
+      "name": "Mitsubishi Lancer Evolution III GSR '95",
+      "class": "Gr.N",
+      "manufacturer": "Mitsubishi"
+    },
+    {
+      "code": 942,
+      "name": "Chevrolet Corvette ZR-1 (C4) '89",
+      "class": "Gr.N",
+      "manufacturer": "Chevrolet"
+    },
+    {
+      "code": 954,
+      "name": "Nissan R92CP '92",
+      "class": "Gr.1",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 959,
+      "name": "Audi TT Coupé 3.2 quattro '03",
+      "class": "Gr.N",
+      "manufacturer": "Audi"
+    },
+    {
+      "code": 967,
+      "name": "Mazda ɛ̃fini RX-7 Type R (FD) '91",
+      "class": "Gr.N",
+      "manufacturer": "Mazda"
+    },
+    {
+      "code": 998,
+      "name": "Sauber Mercedes C9 '89",
+      "class": "Gr.1",
+      "manufacturer": "Mercedes-Benz"
+    },
+    {
+      "code": 1027,
+      "name": "DMC DeLorean S2 '04",
+      "class": "Gr.N",
+      "manufacturer": "DMC"
+    },
+    {
+      "code": 1040,
+      "name": "Ford GT LM Race Car Spec II",
+      "class": "Gr.3",
+      "manufacturer": "Ford"
+    },
+    {
+      "code": 1044,
+      "name": "Toyota Sports 800 '65",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 1067,
+      "name": "Jaguar XJR-9 '88",
+      "class": "Gr.1",
+      "manufacturer": "Jaguar"
+    },
+    {
+      "code": 1069,
+      "name": "Chaparral 2J '70",
+      "class": "Gr.X",
+      "manufacturer": "Chaparral"
+    },
+    {
+      "code": 1365,
+      "name": "Audi R8 4.2 FSI R tronic '07",
+      "class": "Gr.N",
+      "manufacturer": "Audi"
+    },
+    {
+      "code": 1370,
+      "name": "MINI Cooper S '05",
+      "class": "Gr.N",
+      "manufacturer": "MINI"
+    },
+    {
+      "code": 1373,
+      "name": "Dodge Viper GTS '02",
+      "class": "Gr.N",
+      "manufacturer": "Dodge"
+    },
+    {
+      "code": 1378,
+      "name": "Ferrari F430 '06",
+      "class": "Gr.N",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 1384,
+      "name": "Nissan Fairlady Z Version S (Z33) '07",
+      "class": "Gr.N",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 1385,
+      "name": "Suzuki Swift Sport '07",
+      "class": "Gr.N",
+      "manufacturer": "Suzuki"
+    },
+    {
+      "code": 1399,
+      "name": "BMW M3 Coupé '07",
+      "class": "Gr.N",
+      "manufacturer": "BMW"
+    },
+    {
+      "code": 1402,
+      "name": "Dodge Viper SRT10 Coupe '06",
+      "class": "Gr.N",
+      "manufacturer": "Dodge"
+    },
+    {
+      "code": 1409,
+      "name": "Ferrari F40 '92",
+      "class": "Gr.N",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 1410,
+      "name": "Ferrari 512 BB '76",
+      "class": "Gr.N",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 1425,
+      "name": "Ford GT LM Spec II Test Car",
+      "class": "Gr.3",
+      "manufacturer": "Ford"
+    },
+    {
+      "code": 1426,
+      "name": "Ford GT '06",
+      "class": "Gr.N",
+      "manufacturer": "Ford"
+    },
+    {
+      "code": 1427,
+      "name": "Mine's BNR34 GT-R N1 base",
+      "class": "Gr.N",
+      "manufacturer": "Mine's"
+    },
+    {
+      "code": 1431,
+      "name": "RE Amemiya FD3S RX-7",
+      "class": "Gr.N",
+      "manufacturer": "RE Amemiya"
+    },
+    {
+      "code": 1433,
+      "name": "Amuse S2000 GT1 Turbo",
+      "class": "Gr.N",
+      "manufacturer": "Amuse"
+    },
+    {
+      "code": 1448,
+      "name": "Nissan Silvia spec-R Aero (S15) '02",
+      "class": "Gr.N",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 1458,
+      "name": "Nissan Fairlady Z (Z34) '08",
+      "class": "Gr.N",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 1461,
+      "name": "Nissan Silvia K's Dia Selection (S13) '90",
+      "class": "Gr.N",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 1466,
+      "name": "Nissan GT-R GT500 '08",
+      "class": "Gr.2",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 1470,
+      "name": "Toyota Supra GT500 '97",
+      "class": "Gr.3",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 1474,
+      "name": "Enzo Ferrari '02",
+      "class": "Gr.N",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 1480,
+      "name": "Chevrolet Corvette ZR1 (C6) '09",
+      "class": "Gr.N",
+      "manufacturer": "Chevrolet"
+    },
+    {
+      "code": 1481,
+      "name": "Lamborghini Countach 25th Anniversary '88",
+      "class": "Gr.N",
+      "manufacturer": "Lamborghini"
+    },
+    {
+      "code": 1484,
+      "name": "Lamborghini Countach LP400 '74",
+      "class": "Gr.N",
+      "manufacturer": "Lamborghini"
+    },
+    {
+      "code": 1504,
+      "name": "Ferrari 458 Italia '09",
+      "class": "Gr.N",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 1506,
+      "name": "Lamborghini Gallardo LP 560-4 '08",
+      "class": "Gr.N",
+      "manufacturer": "Lamborghini"
+    },
+    {
+      "code": 1507,
+      "name": "Mercedes-Benz SLS AMG '10",
+      "class": "Gr.N",
+      "manufacturer": "AMG"
+    },
+    {
+      "code": 1508,
+      "name": "Mitsubishi Lancer Evolution VI GSR T.M. EDITION Special Color Package '99",
+      "class": "Gr.N",
+      "manufacturer": "Mitsubishi"
+    },
+    {
+      "code": 1510,
+      "name": "Honda NSX GT500 '08",
+      "class": "Gr.2",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 1516,
+      "name": "Lexus SC430 GT500 '08",
+      "class": "Gr.2",
+      "manufacturer": "Lexus"
+    },
+    {
+      "code": 1523,
+      "name": "FIAT 500 F '68",
+      "class": "Gr.N",
+      "manufacturer": "FIAT"
+    },
+    {
+      "code": 1527,
+      "name": "FIAT 500 1.2 8V Lounge SS '08",
+      "class": "Gr.N",
+      "manufacturer": "FIAT"
+    },
+    {
+      "code": 1528,
+      "name": "Mercedes-Benz SLR McLaren '09",
+      "class": "Gr.N",
+      "manufacturer": "Mercedes-Benz"
+    },
+    {
+      "code": 1536,
+      "name": "Pagani Zonda R '09",
+      "class": "Gr.X",
+      "manufacturer": "Pagani"
+    },
+    {
+      "code": 1537,
+      "name": "Toyota Prius G '09",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 1539,
+      "name": "Maserati GranTurismo S '08",
+      "class": "Gr.N",
+      "manufacturer": "Maserati"
+    },
+    {
+      "code": 1540,
+      "name": "McLaren F1 '94",
+      "class": "Gr.N",
+      "manufacturer": "McLaren"
+    },
+    {
+      "code": 1541,
+      "name": "Audi TTS Coupé '09",
+      "class": "Gr.N",
+      "manufacturer": "Audi"
+    },
+    {
+      "code": 1542,
+      "name": "Chevrolet Corvette Stingray Convertible (C3) '69",
+      "class": "Gr.N",
+      "manufacturer": "Chevrolet"
+    },
+    {
+      "code": 1543,
+      "name": "Dodge Challenger R/T '70",
+      "class": "Gr.N",
+      "manufacturer": "Dodge"
+    },
+    {
+      "code": 1544,
+      "name": "Ferrari 430 Scuderia '07",
+      "class": "Gr.N",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 1545,
+      "name": "Lamborghini Murciélago LP 640 '09",
+      "class": "Gr.N",
+      "manufacturer": "Lamborghini"
+    },
+    {
+      "code": 1549,
+      "name": "Amuse NISMO 380RS Super Leggera",
+      "class": "Gr.N",
+      "manufacturer": "Amuse"
+    },
+    {
+      "code": 1551,
+      "name": "Ferrari 330 P4 '67",
+      "class": "Gr.X",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 1553,
+      "name": "Jaguar XJ13 '66",
+      "class": "Gr.X",
+      "manufacturer": "Jaguar"
+    },
+    {
+      "code": 1562,
+      "name": "Lexus LFA '10",
+      "class": "Gr.N",
+      "manufacturer": "Lexus"
+    },
+    {
+      "code": 1563,
+      "name": "Renault Sport Mégane Trophy '11",
+      "class": "Gr.4",
+      "manufacturer": "Renault"
+    },
+    {
+      "code": 1565,
+      "name": "Ford Mark IV Race Car '67",
+      "class": "Gr.X",
+      "manufacturer": "Ford"
+    },
+    {
+      "code": 1578,
+      "name": "Alfa Romeo 8C Competizione '08",
+      "class": "Gr.N",
+      "manufacturer": "Alfa Romeo"
+    },
+    {
+      "code": 1581,
+      "name": "GT by Citroën Road Car",
+      "class": "Gr.N",
+      "manufacturer": "Citroën"
+    },
+    {
+      "code": 1582,
+      "name": "Lamborghini Miura P400 Bertone Prototype '67",
+      "class": "Gr.N",
+      "manufacturer": "Lamborghini"
+    },
+    {
+      "code": 1645,
+      "name": "Alfa Romeo GIULIA TZ2  carrozzata da ZAGATO '65",
+      "class": "Gr.X",
+      "manufacturer": "Alfa Romeo"
+    },
+    {
+      "code": 1646,
+      "name": "Peugeot 908 HDi FAP '10",
+      "class": "Gr.1",
+      "manufacturer": "Peugeot"
+    },
+    {
+      "code": 1671,
+      "name": "Volkswagen Sambabus Typ 2 (T1) '62",
+      "class": "Gr.N",
+      "manufacturer": "Volkswagen"
+    },
+    {
+      "code": 1689,
+      "name": "Honda Civic Type R (EK) Touring Car",
+      "class": "Gr.N",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 1722,
+      "name": "McLaren MP4-12C '10",
+      "class": "Gr.N",
+      "manufacturer": "McLaren"
+    },
+    {
+      "code": 1729,
+      "name": "Ford Mustang Mach 1 '71",
+      "class": "Gr.N",
+      "manufacturer": "Ford"
+    },
+    {
+      "code": 1746,
+      "name": "Mazda Roadster Touring Car",
+      "class": "Gr.N",
+      "manufacturer": "Mazda"
+    },
+    {
+      "code": 1770,
+      "name": "Lamborghini Aventador LP 700-4 '11",
+      "class": "Gr.N",
+      "manufacturer": "Lamborghini"
+    },
+    {
+      "code": 1773,
+      "name": "Volkswagen Scirocco R '10",
+      "class": "Gr.N",
+      "manufacturer": "Volkswagen"
+    },
+    {
+      "code": 1778,
+      "name": "Volkswagen 1200 '66",
+      "class": "Gr.N",
+      "manufacturer": "Volkswagen"
+    },
+    {
+      "code": 1796,
+      "name": "Alpine A110 1600S '72",
+      "class": "Gr.N",
+      "manufacturer": "Alpine"
+    },
+    {
+      "code": 1797,
+      "name": "Mercedes-Benz SLS AMG GT3 '11",
+      "class": "Gr.3",
+      "manufacturer": "AMG"
+    },
+    {
+      "code": 1893,
+      "name": "BMW Z8 '01",
+      "class": "Gr.N",
+      "manufacturer": "BMW"
+    },
+    {
+      "code": 1895,
+      "name": "Ferrari Dino 246 GT '71",
+      "class": "Gr.N",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 1896,
+      "name": "Tesla Model S Signature Performance '12",
+      "class": "Gr.X",
+      "manufacturer": "Tesla "
+    },
+    {
+      "code": 1898,
+      "name": "Aston Martin One-77 '11",
+      "class": "Gr.N",
+      "manufacturer": "Aston Martin"
+    },
+    {
+      "code": 1900,
+      "name": "Plymouth XNR Ghia Roadster '60",
+      "class": "Gr.N",
+      "manufacturer": "Plymouth"
+    },
+    {
+      "code": 1902,
+      "name": "BMW Z4 GT3 '11",
+      "class": "Gr.3",
+      "manufacturer": "BMW"
+    },
+    {
+      "code": 1904,
+      "name": "BMW M3 GT '11",
+      "class": "Gr.3",
+      "manufacturer": "BMW"
+    },
+    {
+      "code": 1905,
+      "name": "Nissan GT-R NISMO GT3 '13",
+      "class": "Gr.3",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 1907,
+      "name": "KTM X-BOW R '12",
+      "class": "Gr.N",
+      "manufacturer": "KTM"
+    },
+    {
+      "code": 1916,
+      "name": "Chevrolet Corvette C7 Stingray '14",
+      "class": "Gr.N",
+      "manufacturer": "Chevrolet"
+    },
+    {
+      "code": 1925,
+      "name": "Shelby G.T.350 '65",
+      "class": "Gr.N",
+      "manufacturer": "Shelby"
+    },
+    {
+      "code": 1926,
+      "name": "Shelby Cobra Daytona Coupe '64",
+      "class": "Gr.X",
+      "manufacturer": "Shelby"
+    },
+    {
+      "code": 1927,
+      "name": "Audi Sport quattro S1 Pikes Peak '87",
+      "class": "Gr.B",
+      "manufacturer": "Audi"
+    },
+    {
+      "code": 1931,
+      "name": "Ferrari 250 GT Berlinetta passo corto '61",
+      "class": "Gr.N",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 1932,
+      "name": "Abarth 1500 Biposto Bertone B.A.T 1 '52",
+      "class": "Gr.N",
+      "manufacturer": "Abarth"
+    },
+    {
+      "code": 1933,
+      "name": "Alfa Romeo MiTo 1.4 T Sport '09",
+      "class": "Gr.N",
+      "manufacturer": "Alfa Romeo"
+    },
+    {
+      "code": 1935,
+      "name": "Ford GT40 Mark I '66",
+      "class": "Gr.N",
+      "manufacturer": "Ford"
+    },
+    {
+      "code": 1956,
+      "name": "Dodge Viper GTS '13",
+      "class": "Gr.N",
+      "manufacturer": "Dodge"
+    },
+    {
+      "code": 1965,
+      "name": "Audi R18 TDI '11",
+      "class": "Gr.1",
+      "manufacturer": "Audi"
+    },
+    {
+      "code": 1973,
+      "name": "Abarth 500 '09",
+      "class": "Gr.N",
+      "manufacturer": "Abarth"
+    },
+    {
+      "code": 1975,
+      "name": "Mazda RX500 '70",
+      "class": "Gr.N",
+      "manufacturer": "Mazda"
+    },
+    {
+      "code": 1984,
+      "name": "McLaren F1 GTR - BMW '95",
+      "class": "Gr.3",
+      "manufacturer": "McLaren"
+    },
+    {
+      "code": 1985,
+      "name": "Pontiac Firebird Trans Am '78",
+      "class": "Gr.N",
+      "manufacturer": "Pontiac"
+    },
+    {
+      "code": 1986,
+      "name": "Renault R8 Gordini '66",
+      "class": "Gr.X",
+      "manufacturer": "Renault"
+    },
+    {
+      "code": 1987,
+      "name": "Renault Sport Mégane R.S. Trophy '11",
+      "class": "Gr.N",
+      "manufacturer": "Renault"
+    },
+    {
+      "code": 1990,
+      "name": "Lamborghini Diablo GT '00",
+      "class": "Gr.N",
+      "manufacturer": "Lamborghini"
+    },
+    {
+      "code": 2010,
+      "name": "Ferrari 250 GTO '62",
+      "class": "Gr.X",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 2011,
+      "name": "Ferrari 500 Mondial Pinin Farina Coupe '54",
+      "class": "Gr.N",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 2017,
+      "name": "Ferrari GTO '84",
+      "class": "Gr.N",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 2018,
+      "name": "Ferrari 365 GTB4 '71",
+      "class": "Gr.N",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 2026,
+      "name": "Toyota Aqua S '11",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 2049,
+      "name": "Bugatti Veyron 16.4 '13",
+      "class": "Gr.N",
+      "manufacturer": "Bugatti"
+    },
+    {
+      "code": 2050,
+      "name": "Pagani Huayra '13",
+      "class": "Gr.N",
+      "manufacturer": "Pagani"
+    },
+    {
+      "code": 2051,
+      "name": "Hyundai Genesis Coupe 3.8 Track '13",
+      "class": "Gr.N",
+      "manufacturer": "Hyundai"
+    },
+    {
+      "code": 2055,
+      "name": "Mercedes-Benz AMG Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "AMG"
+    },
+    {
+      "code": 2059,
+      "name": "Chevrolet Corvette Stingray Racer Concept '59",
+      "class": "Gr.X",
+      "manufacturer": "Chevrolet"
+    },
+    {
+      "code": 2060,
+      "name": "Gran Turismo Racing Kart 125 Shifter",
+      "class": "Gr.X",
+      "manufacturer": "Gran Turismo"
+    },
+    {
+      "code": 2074,
+      "name": "BMW M4 Coupé '14",
+      "class": "Gr.N",
+      "manufacturer": "BMW"
+    },
+    {
+      "code": 2076,
+      "name": "Mercedes-Benz AMG Vision Gran Turismo Racing Series",
+      "class": "Gr.X",
+      "manufacturer": "AMG"
+    },
+    {
+      "code": 2077,
+      "name": "Gran Turismo Red Bull X2014 Standard",
+      "class": "Gr.X",
+      "manufacturer": "Gran Turismo"
+    },
+    {
+      "code": 2078,
+      "name": "Gran Turismo Red Bull X2014 Junior",
+      "class": "Gr.X",
+      "manufacturer": "Gran Turismo"
+    },
+    {
+      "code": 2080,
+      "name": "Toyota FT-1",
+      "class": "Gr.X",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 2087,
+      "name": "BMW Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "BMW"
+    },
+    {
+      "code": 2095,
+      "name": "Mitsubishi Concept XR-PHEV EVOLUTION Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Mitsubishi"
+    },
+    {
+      "code": 2098,
+      "name": "Volkswagen GTI Roadster Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Volkswagen"
+    },
+    {
+      "code": 2099,
+      "name": "SUBARU VIZIV GT Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Subaru"
+    },
+    {
+      "code": 2101,
+      "name": "Toyota TS030 Hybrid '12",
+      "class": "Gr.1",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 2103,
+      "name": "Aston Martin DP-100 Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Aston Martin"
+    },
+    {
+      "code": 2106,
+      "name": "Toyota FT-1 Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 2107,
+      "name": "Chevrolet Chaparral 2X Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Chaparral"
+    },
+    {
+      "code": 2108,
+      "name": "Dodge SRT Tomahawk X Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Dodge"
+    },
+    {
+      "code": 2109,
+      "name": "MINI Clubman Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "MINI"
+    },
+    {
+      "code": 2110,
+      "name": "Dodge SRT Tomahawk GTS-R Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Dodge"
+    },
+    {
+      "code": 2111,
+      "name": "Dodge SRT Tomahawk S Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Dodge"
+    },
+    {
+      "code": 2112,
+      "name": "Alpine Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Alpine"
+    },
+    {
+      "code": 2113,
+      "name": "PEUGEOT Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Peugeot"
+    },
+    {
+      "code": 2116,
+      "name": "Alpine Vision Gran Turismo Race Mode",
+      "class": "Gr.X",
+      "manufacturer": "Alpine"
+    },
+    {
+      "code": 2117,
+      "name": "INFINITI CONCEPT Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Infiniti"
+    },
+    {
+      "code": 2118,
+      "name": "Mazda LM55 Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Mazda"
+    },
+    {
+      "code": 2119,
+      "name": "Italdesign EXENEO Vision Gran Turismo Street Mode",
+      "class": "Gr.X",
+      "manufacturer": "Italdesign"
+    },
+    {
+      "code": 2120,
+      "name": "Italdesign EXENEO Vision Gran Turismo Off-road Mode",
+      "class": "Gr.X",
+      "manufacturer": "Italdesign"
+    },
+    {
+      "code": 2121,
+      "name": "Honda Sports Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 2122,
+      "name": "IsoRivolta Zagato Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Zagato"
+    },
+    {
+      "code": 2123,
+      "name": "LEXUS LF-LC GT \"Vision Gran Turismo\"",
+      "class": "Gr.X",
+      "manufacturer": "Lexus"
+    },
+    {
+      "code": 2124,
+      "name": "Volkswagen GTI Supersport Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Volkswagen"
+    },
+    {
+      "code": 2127,
+      "name": "Nissan GT-R LM NISMO '15",
+      "class": "Gr.1",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 2131,
+      "name": "Aston Martin V12 Vantage GT3 '12",
+      "class": "Gr.3",
+      "manufacturer": "Aston Martin"
+    },
+    {
+      "code": 2134,
+      "name": "Bugatti Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Bugatti"
+    },
+    {
+      "code": 2135,
+      "name": "HYUNDAI N 2025 Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Hyundai"
+    },
+    {
+      "code": 2136,
+      "name": "Alfa Romeo 4C Launch Edition '14",
+      "class": "Gr.N",
+      "manufacturer": "Alfa Romeo"
+    },
+    {
+      "code": 2138,
+      "name": "Ford Mustang GT Premium Fastback '15",
+      "class": "Gr.N",
+      "manufacturer": "Ford"
+    },
+    {
+      "code": 2139,
+      "name": "Lexus RC F '14",
+      "class": "Gr.N",
+      "manufacturer": "Lexus"
+    },
+    {
+      "code": 2141,
+      "name": "Volkswagen Golf VII GTI '14",
+      "class": "Gr.N",
+      "manufacturer": "Volkswagen"
+    },
+    {
+      "code": 2142,
+      "name": "NISSAN CONCEPT 2020 Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 2143,
+      "name": "Audi R8 LMS '15",
+      "class": "Gr.3",
+      "manufacturer": "Audi"
+    },
+    {
+      "code": 2144,
+      "name": "TOYOTA S-FR '15",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 2145,
+      "name": "Ford Focus ST '15",
+      "class": "Gr.N",
+      "manufacturer": "Ford"
+    },
+    {
+      "code": 2146,
+      "name": "Jaguar F-type R Coupé '14",
+      "class": "Gr.N",
+      "manufacturer": "Jaguar"
+    },
+    {
+      "code": 2147,
+      "name": "Lamborghini Veneno '14",
+      "class": "Gr.N",
+      "manufacturer": "Lamborghini"
+    },
+    {
+      "code": 2148,
+      "name": "Mazda Roadster S (ND) '15",
+      "class": "Gr.N",
+      "manufacturer": "Mazda"
+    },
+    {
+      "code": 2149,
+      "name": "Mercedes-AMG GT S '15",
+      "class": "Gr.N",
+      "manufacturer": "AMG"
+    },
+    {
+      "code": 2150,
+      "name": "Mitsubishi Lancer Evolution Final Edition '15",
+      "class": "Gr.N",
+      "manufacturer": "Mitsubishi"
+    },
+    {
+      "code": 2152,
+      "name": "Dodge Charger SRT Hellcat '15",
+      "class": "Gr.N",
+      "manufacturer": "Dodge"
+    },
+    {
+      "code": 2153,
+      "name": "Subaru WRX STI Type S '14",
+      "class": "Gr.N",
+      "manufacturer": "Subaru"
+    },
+    {
+      "code": 2154,
+      "name": "TOYOTA 86 GT '15",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 2155,
+      "name": "Volkswagen Polo GTI '14",
+      "class": "Gr.N",
+      "manufacturer": "Volkswagen"
+    },
+    {
+      "code": 2156,
+      "name": "Honda Project 2&4 powered by RC213V",
+      "class": "Gr.X",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 2157,
+      "name": "Aston Martin Vantage Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "Aston Martin"
+    },
+    {
+      "code": 2158,
+      "name": "Ferrari 458 Italia GT3 '13",
+      "class": "Gr.3",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 2159,
+      "name": "Ford Mustang Gr.3",
+      "class": "Gr.3",
+      "manufacturer": "Ford"
+    },
+    {
+      "code": 2160,
+      "name": "Hyundai Genesis Gr.3",
+      "class": "Gr.3",
+      "manufacturer": "Hyundai"
+    },
+    {
+      "code": 2161,
+      "name": "Nissan GT-R Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 2162,
+      "name": "Ferrari LaFerrari '13",
+      "class": "Gr.N",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 2163,
+      "name": "Hyundai Genesis Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "Hyundai"
+    },
+    {
+      "code": 2164,
+      "name": "Ford Mustang Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "Ford"
+    },
+    {
+      "code": 2166,
+      "name": "Alfa Romeo 4C Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "Alfa Romeo"
+    },
+    {
+      "code": 2167,
+      "name": "Nissan GT-R Premium edition '17",
+      "class": "Gr.N",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 2169,
+      "name": "Audi TTS Coupé '14",
+      "class": "Gr.N",
+      "manufacturer": "Audi"
+    },
+    {
+      "code": 2170,
+      "name": "Mercedes-Benz A 45 AMG 4MATIC '13",
+      "class": "Gr.N",
+      "manufacturer": "AMG"
+    },
+    {
+      "code": 2171,
+      "name": "Lamborghini Huracán LP 610-4 '15",
+      "class": "Gr.N",
+      "manufacturer": "Lamborghini"
+    },
+    {
+      "code": 2172,
+      "name": "DS 3 Racing '11",
+      "class": "Gr.N",
+      "manufacturer": "DS AUTOMOBILES"
+    },
+    {
+      "code": 2173,
+      "name": "Mazda Atenza Sedan XD L Package '15",
+      "class": "Gr.N",
+      "manufacturer": "Mazda"
+    },
+    {
+      "code": 2174,
+      "name": "McLaren 650S Coupe '14",
+      "class": "Gr.N",
+      "manufacturer": "McLaren"
+    },
+    {
+      "code": 2175,
+      "name": "Aston Martin V8 Vantage S '15",
+      "class": "Gr.N",
+      "manufacturer": "Aston Martin"
+    },
+    {
+      "code": 2176,
+      "name": "Peugeot RCZ GT Line '15",
+      "class": "Gr.N",
+      "manufacturer": "Peugeot"
+    },
+    {
+      "code": 2177,
+      "name": "Lamborghini Huracán GT3 '15",
+      "class": "Gr.3",
+      "manufacturer": "Lamborghini"
+    },
+    {
+      "code": 2178,
+      "name": "TOYOTA S-FR Racing Concept '16",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 2179,
+      "name": "Bugatti Vision Gran Turismo (Gr.1)",
+      "class": "Gr.1",
+      "manufacturer": "Bugatti"
+    },
+    {
+      "code": 2180,
+      "name": "HYUNDAI N 2025 Vision Gran Turismo (Gr.1)",
+      "class": "Gr.1",
+      "manufacturer": "Hyundai"
+    },
+    {
+      "code": 2181,
+      "name": "Mazda LM55 Vision Gran Turismo (Gr.1)",
+      "class": "Gr.1",
+      "manufacturer": "Mazda"
+    },
+    {
+      "code": 2182,
+      "name": "McLaren 650S GT3 '15",
+      "class": "Gr.3",
+      "manufacturer": "McLaren"
+    },
+    {
+      "code": 2183,
+      "name": "Chevrolet Corvette C7 Gr.3",
+      "class": "Gr.3",
+      "manufacturer": "Chevrolet"
+    },
+    {
+      "code": 2184,
+      "name": "Jaguar F-type Gr.3",
+      "class": "Gr.3",
+      "manufacturer": "Jaguar"
+    },
+    {
+      "code": 2185,
+      "name": "Mitsubishi Lancer Evolution Final Edition Gr.3",
+      "class": "Gr.3",
+      "manufacturer": "Mitsubishi"
+    },
+    {
+      "code": 2186,
+      "name": "Subaru WRX Gr.3",
+      "class": "Gr.3",
+      "manufacturer": "Subaru"
+    },
+    {
+      "code": 2187,
+      "name": "Toyota FT-1 Vision Gran Turismo (Gr.3)",
+      "class": "Gr.3",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 2188,
+      "name": "Renault Sport R.S.01 GT3 '16",
+      "class": "Gr.3",
+      "manufacturer": "Renault"
+    },
+    {
+      "code": 2190,
+      "name": "GT by Citroën Race Car (Gr.3)",
+      "class": "Gr.3",
+      "manufacturer": "Citroën"
+    },
+    {
+      "code": 2192,
+      "name": "Volkswagen GTI Vision Gran Turismo (Gr.3)",
+      "class": "Gr.3",
+      "manufacturer": "Volkswagen"
+    },
+    {
+      "code": 3183,
+      "name": "PEUGEOT Vision Gran Turismo (Gr.3)",
+      "class": "Gr.3",
+      "manufacturer": "Peugeot"
+    },
+    {
+      "code": 3185,
+      "name": "Alfa Romeo 4C Gr.3",
+      "class": "Gr.3",
+      "manufacturer": "Alfa Romeo"
+    },
+    {
+      "code": 3187,
+      "name": "Alpine Vision Gran Turismo 2017",
+      "class": "Gr.1",
+      "manufacturer": "Alpine"
+    },
+    {
+      "code": 3188,
+      "name": "Dodge SRT Tomahawk Vision Gran Turismo (Gr.1)",
+      "class": "Gr.1",
+      "manufacturer": "Dodge"
+    },
+    {
+      "code": 3192,
+      "name": "Mercedes-Benz SLS AMG Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "AMG"
+    },
+    {
+      "code": 3209,
+      "name": "BMW M4 Safety Car",
+      "class": "Gr.X",
+      "manufacturer": "BMW"
+    },
+    {
+      "code": 3210,
+      "name": "Mercedes-AMG GT Safety Car",
+      "class": "Gr.X",
+      "manufacturer": "AMG"
+    },
+    {
+      "code": 3214,
+      "name": "Honda Civic Type R (FK2) '15",
+      "class": "Gr.N",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 3215,
+      "name": "Peugeot 208 GTi by Peugeot Sport '14",
+      "class": "Gr.N",
+      "manufacturer": "Peugeot"
+    },
+    {
+      "code": 3216,
+      "name": "Renault Sport R.S.01 '16",
+      "class": "Gr.X",
+      "manufacturer": "Renault"
+    },
+    {
+      "code": 3217,
+      "name": "Chevrolet Camaro SS '16",
+      "class": "Gr.N",
+      "manufacturer": "Chevrolet"
+    },
+    {
+      "code": 3218,
+      "name": "BMW M6 GT3 Endurance Model '16",
+      "class": "Gr.3",
+      "manufacturer": "BMW"
+    },
+    {
+      "code": 3219,
+      "name": "Honda NSX '17",
+      "class": "Gr.N",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 3220,
+      "name": "Renault Sport Clio R.S. 220 EDC Trophy '15",
+      "class": "Gr.N",
+      "manufacturer": "Renault"
+    },
+    {
+      "code": 3221,
+      "name": "BMW M6 GT3 Sprint Model '16",
+      "class": "Gr.3",
+      "manufacturer": "BMW"
+    },
+    {
+      "code": 3222,
+      "name": "Toyota 86 GRMN '16",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 3223,
+      "name": "Dodge Viper SRT GT3-R '15",
+      "class": "Gr.3",
+      "manufacturer": "Dodge"
+    },
+    {
+      "code": 3224,
+      "name": "Mercedes-AMG GT3 '16",
+      "class": "Gr.3",
+      "manufacturer": "AMG"
+    },
+    {
+      "code": 3225,
+      "name": "Nissan GT-R Safety Car",
+      "class": "Gr.X",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 3227,
+      "name": "Lexus LC500 '17",
+      "class": "Gr.N",
+      "manufacturer": "Lexus"
+    },
+    {
+      "code": 3228,
+      "name": "Lexus RC F GT3 prototype '16",
+      "class": "Gr.3",
+      "manufacturer": "Lexus"
+    },
+    {
+      "code": 3229,
+      "name": "Ford Mustang Gr.B Rally Car",
+      "class": "Gr.B",
+      "manufacturer": "Ford"
+    },
+    {
+      "code": 3230,
+      "name": "Mitsubishi Lancer Evolution Final Edition Gr.B Rally Car",
+      "class": "Gr.B",
+      "manufacturer": "Mitsubishi"
+    },
+    {
+      "code": 3231,
+      "name": "Volkswagen Scirocco Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "Volkswagen"
+    },
+    {
+      "code": 3232,
+      "name": "Subaru WRX Gr.B Rally Car",
+      "class": "Gr.B",
+      "manufacturer": "Subaru"
+    },
+    {
+      "code": 3234,
+      "name": "Hyundai Genesis Gr.B Rally Car",
+      "class": "Gr.B",
+      "manufacturer": "Hyundai"
+    },
+    {
+      "code": 3235,
+      "name": "Honda NSX Gr.3",
+      "class": "Gr.3",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 3237,
+      "name": "Mazda Atenza Gr.3",
+      "class": "Gr.3",
+      "manufacturer": "Mazda"
+    },
+    {
+      "code": 3238,
+      "name": "Peugeot RCZ Gr.3",
+      "class": "Gr.3",
+      "manufacturer": "Peugeot"
+    },
+    {
+      "code": 3239,
+      "name": "Honda NSX Gr.B Rally Car",
+      "class": "Gr.B",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 3241,
+      "name": "Nissan GT-R Gr.B Rally Car",
+      "class": "Gr.B",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 3242,
+      "name": "Peugeot RCZ Gr.B Rally Car",
+      "class": "Gr.B",
+      "manufacturer": "Peugeot"
+    },
+    {
+      "code": 3245,
+      "name": "BMW M4 Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "BMW"
+    },
+    {
+      "code": 3246,
+      "name": "Bugatti Veyron Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "Bugatti"
+    },
+    {
+      "code": 3247,
+      "name": "Chevrolet Corvette C7 Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "Chevrolet"
+    },
+    {
+      "code": 3248,
+      "name": "GT by Citroën Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "Citroën"
+    },
+    {
+      "code": 3249,
+      "name": "Dodge Viper Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "Dodge"
+    },
+    {
+      "code": 3251,
+      "name": "Honda NSX Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 3252,
+      "name": "Jaguar F-type Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "Jaguar"
+    },
+    {
+      "code": 3253,
+      "name": "Lamborghini Huracán Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "Lamborghini"
+    },
+    {
+      "code": 3254,
+      "name": "Lexus RC F Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "Lexus"
+    },
+    {
+      "code": 3256,
+      "name": "Mazda Atenza Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "Mazda"
+    },
+    {
+      "code": 3257,
+      "name": "McLaren 650S Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "McLaren"
+    },
+    {
+      "code": 3258,
+      "name": "Mitsubishi Lancer Evolution Final Edition Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "Mitsubishi"
+    },
+    {
+      "code": 3259,
+      "name": "Peugeot RCZ Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "Peugeot"
+    },
+    {
+      "code": 3260,
+      "name": "Renault Sport Mégane Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "Renault"
+    },
+    {
+      "code": 3261,
+      "name": "Subaru WRX Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "Subaru"
+    },
+    {
+      "code": 3262,
+      "name": "TOYOTA 86 Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 3263,
+      "name": "Ferrari 458 Italia Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 3264,
+      "name": "Ford Focus Gr.B Rally Car",
+      "class": "Gr.B",
+      "manufacturer": "Ford"
+    },
+    {
+      "code": 3265,
+      "name": "TOYOTA 86 Gr.B Rally Car",
+      "class": "Gr.B",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 3266,
+      "name": "BMW i3 '15",
+      "class": "Gr.X",
+      "manufacturer": "BMW"
+    },
+    {
+      "code": 3267,
+      "name": "Ferrari F12berlinetta '12",
+      "class": "Gr.N",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 3268,
+      "name": "Porsche 911 GT3 RS (991) '16",
+      "class": "Gr.N",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3295,
+      "name": "TOYOTA 86 GT\"Limited\" '16",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 3296,
+      "name": "Chevrolet Corvette C7 Gr.3 Road Car",
+      "class": "Gr.N",
+      "manufacturer": "Chevrolet"
+    },
+    {
+      "code": 3297,
+      "name": "Subaru WRX STI Isle of Man Time Attack Car '16",
+      "class": "Gr.X",
+      "manufacturer": "Subaru"
+    },
+    {
+      "code": 3298,
+      "name": "Audi TT Cup '16",
+      "class": "Gr.4",
+      "manufacturer": "Audi"
+    },
+    {
+      "code": 3299,
+      "name": "Alfa Romeo 4C Gr.3 Road Car",
+      "class": "Gr.N",
+      "manufacturer": "Alfa Romeo"
+    },
+    {
+      "code": 3300,
+      "name": "Ford Mustang Gr.3 Road Car",
+      "class": "Gr.N",
+      "manufacturer": "Ford"
+    },
+    {
+      "code": 3301,
+      "name": "Mitsubishi Lancer Evolution Final Edition Gr.B Road Car",
+      "class": "Gr.N",
+      "manufacturer": "Mitsubishi"
+    },
+    {
+      "code": 3303,
+      "name": "Peugeot RCZ Gr.3 Road Car",
+      "class": "Gr.N",
+      "manufacturer": "Peugeot"
+    },
+    {
+      "code": 3304,
+      "name": "Subaru WRX Gr.B Road Car",
+      "class": "Gr.N",
+      "manufacturer": "Subaru"
+    },
+    {
+      "code": 3305,
+      "name": "Volkswagen Beetle Gr.3",
+      "class": "Gr.3",
+      "manufacturer": "Volkswagen"
+    },
+    {
+      "code": 3306,
+      "name": "Mazda Atenza Gr.3 Road Car",
+      "class": "Gr.N",
+      "manufacturer": "Mazda"
+    },
+    {
+      "code": 3309,
+      "name": "Aston Martin Vulcan '16",
+      "class": "Gr.N",
+      "manufacturer": "Aston Martin"
+    },
+    {
+      "code": 3310,
+      "name": "Porsche Cayman GT4 Clubsport '16",
+      "class": "Gr.4",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3311,
+      "name": "Porsche 911 RSR (991) '17",
+      "class": "Gr.3",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3312,
+      "name": "Toyota TS050 - Hybrid '16",
+      "class": "Gr.1",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 3313,
+      "name": "Porsche 919 Hybrid '16",
+      "class": "Gr.1",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3314,
+      "name": "Audi Vision Gran Turismo",
+      "class": "Gr.1",
+      "manufacturer": "Audi"
+    },
+    {
+      "code": 3315,
+      "name": "McLaren Ultimate Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "McLaren"
+    },
+    {
+      "code": 3316,
+      "name": "DAIHATSU COPEN RJ Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Daihatsu"
+    },
+    {
+      "code": 3332,
+      "name": "Peugeot L500R HYbrid Vision Gran Turismo, 2017",
+      "class": "Gr.X",
+      "manufacturer": "Peugeot"
+    },
+    {
+      "code": 3333,
+      "name": "Peugeot L750R HYbrid Vision Gran Turismo, 2017",
+      "class": "Gr.1",
+      "manufacturer": "Peugeot"
+    },
+    {
+      "code": 3334,
+      "name": "Audi R18 '16",
+      "class": "Gr.1",
+      "manufacturer": "Audi"
+    },
+    {
+      "code": 3335,
+      "name": "McLaren Ultimate Vision Gran Turismo (Gr.1)",
+      "class": "Gr.1",
+      "manufacturer": "McLaren"
+    },
+    {
+      "code": 3336,
+      "name": "Ford F-150 SVT Raptor '11",
+      "class": "Gr.N",
+      "manufacturer": "Ford"
+    },
+    {
+      "code": 3337,
+      "name": "Alpine A110 Première Édition '17",
+      "class": "Gr.N",
+      "manufacturer": "Alpine"
+    },
+    {
+      "code": 3338,
+      "name": "Chris Holstrom Concepts 1967 Chevy Nova",
+      "class": "Gr.N",
+      "manufacturer": "Chris Holstrom Concepts"
+    },
+    {
+      "code": 3339,
+      "name": "Subaru BRZ Drift Car '17",
+      "class": "Gr.X",
+      "manufacturer": "Subaru"
+    },
+    {
+      "code": 3340,
+      "name": "Lexus RC F GT3 '17",
+      "class": "Gr.3",
+      "manufacturer": "Lexus"
+    },
+    {
+      "code": 3341,
+      "name": "De Tomaso Pantera '71",
+      "class": "Gr.N",
+      "manufacturer": "De Tomaso"
+    },
+    {
+      "code": 3342,
+      "name": "Gran Turismo F1500T-A",
+      "class": "Gr.X",
+      "manufacturer": "Gran Turismo"
+    },
+    {
+      "code": 3343,
+      "name": "Aston Martin DB11 '16",
+      "class": "Gr.N",
+      "manufacturer": "Aston Martin"
+    },
+    {
+      "code": 3344,
+      "name": "BMW M3 Sport Evolution '89",
+      "class": "Gr.N",
+      "manufacturer": "BMW"
+    },
+    {
+      "code": 3345,
+      "name": "Nissan GT-R NISMO '17",
+      "class": "Gr.N",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 3346,
+      "name": "Eckert's Rod & Custom Mach Forty",
+      "class": "Gr.N",
+      "manufacturer": "Eckert's Rod & Custom"
+    },
+    {
+      "code": 3348,
+      "name": "Honda NSX CONCEPT-GT '16",
+      "class": "Gr.2",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 3349,
+      "name": "Lexus RC F GT500 '16",
+      "class": "Gr.2",
+      "manufacturer": "Lexus"
+    },
+    {
+      "code": 3350,
+      "name": "Nissan GT-R NISMO GT500 '16",
+      "class": "Gr.2",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 3351,
+      "name": "Audi e-tron Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Audi"
+    },
+    {
+      "code": 3352,
+      "name": "Toyota GR Supra Racing Concept '18",
+      "class": "Gr.3",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 3353,
+      "name": "Renault Sport Clio R.S. 220 EDC Trophy '16",
+      "class": "Gr.N",
+      "manufacturer": "Renault"
+    },
+    {
+      "code": 3354,
+      "name": "Subaru BRZ S '15",
+      "class": "Gr.N",
+      "manufacturer": "Subaru"
+    },
+    {
+      "code": 3356,
+      "name": "Mini-Cooper 'S' '65",
+      "class": "Gr.N",
+      "manufacturer": "MINI"
+    },
+    {
+      "code": 3357,
+      "name": "Honda S660 '15",
+      "class": "Gr.N",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 3358,
+      "name": "Porsche 911 GT3 (996) '01",
+      "class": "Gr.N",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3359,
+      "name": "Porsche 911 GT3 (997) '09",
+      "class": "Gr.N",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3360,
+      "name": "McLaren P1 GTR '16",
+      "class": "Gr.N",
+      "manufacturer": "McLaren"
+    },
+    {
+      "code": 3361,
+      "name": "Jaguar E-type Coupé '61",
+      "class": "Gr.N",
+      "manufacturer": "Jaguar"
+    },
+    {
+      "code": 3362,
+      "name": "Ferrari F50 '95",
+      "class": "Gr.N",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 3363,
+      "name": "Aston Martin DB3S '53",
+      "class": "Gr.X",
+      "manufacturer": "Aston Martin"
+    },
+    {
+      "code": 3364,
+      "name": "GReddy Fugu Z",
+      "class": "Gr.N",
+      "manufacturer": "GReddy"
+    },
+    {
+      "code": 3365,
+      "name": "Porsche 356 A/1500 GS GT Carrera Speedster '56",
+      "class": "Gr.N",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3367,
+      "name": "Toyota GR Supra RZ '19",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 3368,
+      "name": "Toyota Tundra TRD Pro '19",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 3369,
+      "name": "Radical SR3 SL '13",
+      "class": "Gr.N",
+      "manufacturer": "Radical"
+    },
+    {
+      "code": 3370,
+      "name": "Honda Fit Hybrid '14",
+      "class": "Gr.N",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 3371,
+      "name": "Dallara SF19 Super Formula / Toyota '19",
+      "class": "Gr.X",
+      "manufacturer": "Super Formula"
+    },
+    {
+      "code": 3372,
+      "name": "Dallara SF19 Super Formula / Honda '19",
+      "class": "Gr.X",
+      "manufacturer": "Super Formula"
+    },
+    {
+      "code": 3373,
+      "name": "Porsche 962 C '88",
+      "class": "Gr.1",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3374,
+      "name": "Gran Turismo Red Bull X2019 Competition",
+      "class": "Gr.X",
+      "manufacturer": "Gran Turismo"
+    },
+    {
+      "code": 3375,
+      "name": "Porsche 356 A/1500 GS Carrera '56",
+      "class": "Gr.N",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3376,
+      "name": "Jaguar D-type '54",
+      "class": "Gr.X",
+      "manufacturer": "Jaguar"
+    },
+    {
+      "code": 3377,
+      "name": "Dodge Super Bee '70",
+      "class": "Gr.N",
+      "manufacturer": "Dodge"
+    },
+    {
+      "code": 3383,
+      "name": "Mazda Demio XD Touring '15",
+      "class": "Gr.N",
+      "manufacturer": "Mazda"
+    },
+    {
+      "code": 3384,
+      "name": "Mitsubishi GTO Twin Turbo '91",
+      "class": "Gr.N",
+      "manufacturer": "Mitsubishi"
+    },
+    {
+      "code": 3385,
+      "name": "Porsche 911 Turbo (930) '81",
+      "class": "Gr.N",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3387,
+      "name": "Chevrolet Camaro ZL1 1LE Package '18",
+      "class": "Gr.N",
+      "manufacturer": "Chevrolet"
+    },
+    {
+      "code": 3388,
+      "name": "Mercedes-Benz 300 SEL 6.8 AMG '71",
+      "class": "Gr.X",
+      "manufacturer": "AMG"
+    },
+    {
+      "code": 3389,
+      "name": "BMW M3 Coupé '03",
+      "class": "Gr.N",
+      "manufacturer": "BMW"
+    },
+    {
+      "code": 3390,
+      "name": "Porsche Taycan Turbo S '19",
+      "class": "Gr.X",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3391,
+      "name": "Ford Shelby GT350R '16",
+      "class": "Gr.N",
+      "manufacturer": "Ford"
+    },
+    {
+      "code": 3392,
+      "name": "Lamborghini Aventador LP 750-4 Superveloce '15",
+      "class": "Gr.N",
+      "manufacturer": "Lamborghini"
+    },
+    {
+      "code": 3393,
+      "name": "Porsche Carrera GT '04",
+      "class": "Gr.N",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3394,
+      "name": "Aston Martin DBR9 GT1 '10",
+      "class": "Gr.3",
+      "manufacturer": "Aston Martin"
+    },
+    {
+      "code": 3395,
+      "name": "Caterham Seven Superlight R500 '08",
+      "class": "Gr.N",
+      "manufacturer": "Caterham"
+    },
+    {
+      "code": 3396,
+      "name": "Jaguar Vision Gran Turismo Coupé",
+      "class": "Gr.X",
+      "manufacturer": "Jaguar"
+    },
+    {
+      "code": 3397,
+      "name": "Mercedes-Benz CLK-LM '98",
+      "class": "Gr.2",
+      "manufacturer": "Mercedes-Benz"
+    },
+    {
+      "code": 3398,
+      "name": "RUF CTR3 '07",
+      "class": "Gr.N",
+      "manufacturer": "RUF"
+    },
+    {
+      "code": 3399,
+      "name": "Toyota GR Supra Race Car '19",
+      "class": "Gr.4",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 3400,
+      "name": "Porsche 911 GT1 Strassenversion '97",
+      "class": "Gr.N",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3401,
+      "name": "Toyota Crown Athlete G '13",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 3402,
+      "name": "Ford GT '17",
+      "class": "Gr.N",
+      "manufacturer": "Ford"
+    },
+    {
+      "code": 3403,
+      "name": "Volkswagen Golf I GTI '83",
+      "class": "Gr.N",
+      "manufacturer": "Volkswagen"
+    },
+    {
+      "code": 3404,
+      "name": "Porsche 911 Carrera RS Clubsport (993) '95",
+      "class": "Gr.N",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3405,
+      "name": "Audi R8 LMS Evo '19",
+      "class": "Gr.3",
+      "manufacturer": "Audi"
+    },
+    {
+      "code": 3406,
+      "name": "Dodge Charger SRT Hellcat Safety Car",
+      "class": "Gr.X",
+      "manufacturer": "Dodge"
+    },
+    {
+      "code": 3407,
+      "name": "Renault Sport Mégane R.S. Trophy Safety Car",
+      "class": "Gr.X",
+      "manufacturer": "Renault"
+    },
+    {
+      "code": 3408,
+      "name": "Toyota Crown Athlete G Safety Car",
+      "class": "Gr.X",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 3409,
+      "name": "BAC Mono '16",
+      "class": "Gr.N",
+      "manufacturer": "BAC"
+    },
+    {
+      "code": 3410,
+      "name": "Porsche 917K '70",
+      "class": "Gr.X",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3411,
+      "name": "Alfa Romeo Giulia GTAm '20",
+      "class": "Gr.N",
+      "manufacturer": "Alfa Romeo"
+    },
+    {
+      "code": 3412,
+      "name": "Audi R8 Coupé V10 plus '16",
+      "class": "Gr.N",
+      "manufacturer": "Audi"
+    },
+    {
+      "code": 3413,
+      "name": "Subaru BRZ STI Sport '18",
+      "class": "Gr.N",
+      "manufacturer": "Subaru"
+    },
+    {
+      "code": 3414,
+      "name": "Lambo V12 Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Lamborghini"
+    },
+    {
+      "code": 3415,
+      "name": "Alfa Romeo 8C 2900B Touring Berlinetta '38",
+      "class": "Gr.N",
+      "manufacturer": "Alfa Romeo"
+    },
+    {
+      "code": 3416,
+      "name": "Mercedes-AMG GT R '17",
+      "class": "Gr.N",
+      "manufacturer": "AMG"
+    },
+    {
+      "code": 3417,
+      "name": "Jaguar Vision Gran Turismo SV",
+      "class": "Gr.X",
+      "manufacturer": "Jaguar"
+    },
+    {
+      "code": 3418,
+      "name": "Toyota GR Supra RZ '20",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 3419,
+      "name": "MAZDA RX-VISION GT3 CONCEPT",
+      "class": "Gr.3",
+      "manufacturer": "Mazda"
+    },
+    {
+      "code": 3420,
+      "name": "Ford Focus RS '18",
+      "class": "Gr.N",
+      "manufacturer": "Ford"
+    },
+    {
+      "code": 3421,
+      "name": "Maserati Merak SS '80",
+      "class": "Gr.N",
+      "manufacturer": "Maserati"
+    },
+    {
+      "code": 3422,
+      "name": "BMW 3.0 CSL '73",
+      "class": "Gr.N",
+      "manufacturer": "BMW"
+    },
+    {
+      "code": 3423,
+      "name": "Wicked Fabrication GT 51",
+      "class": "Gr.N",
+      "manufacturer": "Wicked Fabrication"
+    },
+    {
+      "code": 3424,
+      "name": "Mitsubishi Lancer Evolution IX MR GSR '06",
+      "class": "Gr.N",
+      "manufacturer": "Mitsubishi"
+    },
+    {
+      "code": 3426,
+      "name": "Roadster Shop Rampage",
+      "class": "Gr.N",
+      "manufacturer": "Roadster Shop"
+    },
+    {
+      "code": 3427,
+      "name": "Mazda RX-8 Spirit R '12",
+      "class": "Gr.N",
+      "manufacturer": "Mazda"
+    },
+    {
+      "code": 3428,
+      "name": "Mercedes-Benz S Barker Tourer '29",
+      "class": "Gr.N",
+      "manufacturer": "Mercedes-Benz"
+    },
+    {
+      "code": 3429,
+      "name": "Nissan Fairlady Z 432 '69",
+      "class": "Gr.N",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 3430,
+      "name": "Jeep Willys MB '45",
+      "class": "Gr.N",
+      "manufacturer": "Jeep"
+    },
+    {
+      "code": 3431,
+      "name": "Porsche 911 Carrera RS (964) '92",
+      "class": "Gr.N",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3432,
+      "name": "Subaru Impreza Sedan WRX STi '04",
+      "class": "Gr.N",
+      "manufacturer": "Subaru"
+    },
+    {
+      "code": 3433,
+      "name": "Ferrari FXX K '14",
+      "class": "Gr.N",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 3434,
+      "name": "Ferrari Testarossa '91",
+      "class": "Gr.N",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 3436,
+      "name": "Ford GT Race Car '18",
+      "class": "Gr.3",
+      "manufacturer": "Ford"
+    },
+    {
+      "code": 3437,
+      "name": "De Tomaso Mangusta '69",
+      "class": "Gr.N",
+      "manufacturer": "De Tomaso"
+    },
+    {
+      "code": 3438,
+      "name": "FIAT Abarth 595 Esseesse '70",
+      "class": "Gr.N",
+      "manufacturer": "Abarth"
+    },
+    {
+      "code": 3439,
+      "name": "Porsche 911 Carrera RS (993) '95",
+      "class": "Gr.N",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3440,
+      "name": "Porsche 911 Turbo S Leichtbau (964) '93",
+      "class": "Gr.N",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3441,
+      "name": "Mercedes-Benz 300 SL (W194) '52",
+      "class": "Gr.X",
+      "manufacturer": "Mercedes-Benz"
+    },
+    {
+      "code": 3442,
+      "name": "Autobianchi A112 Abarth '85",
+      "class": "Gr.N",
+      "manufacturer": "Autobianchi"
+    },
+    {
+      "code": 3443,
+      "name": "Ferrari 308 GTB '75",
+      "class": "Gr.N",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 3444,
+      "name": "1932 Ford Roadster",
+      "class": "Gr.N",
+      "manufacturer": "Ford"
+    },
+    {
+      "code": 3445,
+      "name": "Aston Martin DB5 '64",
+      "class": "Gr.N",
+      "manufacturer": "Aston Martin"
+    },
+    {
+      "code": 3446,
+      "name": "Porsche Spyder type 550/1500RS '55",
+      "class": "Gr.X",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3447,
+      "name": "Aston Martin Vantage '18",
+      "class": "Gr.N",
+      "manufacturer": "Aston Martin"
+    },
+    {
+      "code": 3449,
+      "name": "Chevrolet Corvette C7 ZR1 '19",
+      "class": "Gr.N",
+      "manufacturer": "Chevrolet"
+    },
+    {
+      "code": 3450,
+      "name": "Nissan GT-R NISMO GT3 '18",
+      "class": "Gr.3",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 3451,
+      "name": "Toyota GR Yaris 1st Edition RZ \"High performance\" '20",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 3452,
+      "name": "Porsche 917 LIVING LEGEND",
+      "class": "Gr.X",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3453,
+      "name": "BMW M3 '89",
+      "class": "Gr.N",
+      "manufacturer": "BMW"
+    },
+    {
+      "code": 3454,
+      "name": "BMW 3.0 CSL '71",
+      "class": "Gr.N",
+      "manufacturer": "BMW"
+    },
+    {
+      "code": 3456,
+      "name": "Suzuki Swift Sport '17",
+      "class": "Gr.N",
+      "manufacturer": "Suzuki"
+    },
+    {
+      "code": 3457,
+      "name": "Alpine A220 Race Car '68",
+      "class": "Gr.X",
+      "manufacturer": "Alpine"
+    },
+    {
+      "code": 3458,
+      "name": "Mercedes-AMG C 63 S '15",
+      "class": "Gr.N",
+      "manufacturer": "AMG"
+    },
+    {
+      "code": 3459,
+      "name": "Porsche 918 Spyder '13",
+      "class": "Gr.N",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3462,
+      "name": "Pontiac GTO 'The Judge' '69",
+      "class": "Gr.N",
+      "manufacturer": "Pontiac"
+    },
+    {
+      "code": 3464,
+      "name": "Chevrolet Corvette (C1) '58",
+      "class": "Gr.N",
+      "manufacturer": "Chevrolet"
+    },
+    {
+      "code": 3466,
+      "name": "Ford Sierra RS 500 Cosworth '87",
+      "class": "Gr.N",
+      "manufacturer": "Ford"
+    },
+    {
+      "code": 3467,
+      "name": "Honda Civic Type R Limited Edition (FK8) '20",
+      "class": "Gr.N",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 3468,
+      "name": "RUF RGT 4.2 '16",
+      "class": "Gr.N",
+      "manufacturer": "RUF"
+    },
+    {
+      "code": 3469,
+      "name": "Ferrari F8 Tributo '19",
+      "class": "Gr.N",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 3470,
+      "name": "Ferrari 812 Superfast '17",
+      "class": "Gr.N",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 3471,
+      "name": "Toyota Celica GT-FOUR (ST205) '94",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 3473,
+      "name": "Bugatti Chiron '16",
+      "class": "Gr.N",
+      "manufacturer": "Bugatti"
+    },
+    {
+      "code": 3474,
+      "name": "Subaru BRZ GT300 '21",
+      "class": "Gr.3",
+      "manufacturer": "Subaru"
+    },
+    {
+      "code": 3475,
+      "name": "McLaren MP4/4 '88",
+      "class": "Gr.X",
+      "manufacturer": "McLaren"
+    },
+    {
+      "code": 3476,
+      "name": "SUZUKI Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Suzuki"
+    },
+    {
+      "code": 3477,
+      "name": "Nissan Silvia spec-R Aero (S15) Touring Car",
+      "class": "Gr.4",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 3478,
+      "name": "Porsche Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3479,
+      "name": "Jaguar Vision Gran Turismo Roadster",
+      "class": "Gr.X",
+      "manufacturer": "Jaguar"
+    },
+    {
+      "code": 3480,
+      "name": "Suzuki Swift Sport KATANA Edition Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "Suzuki"
+    },
+    {
+      "code": 3481,
+      "name": "Toyota GR86 RZ '21",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 3482,
+      "name": "Volvo V40 T5 R-Design '13",
+      "class": "Gr.N",
+      "manufacturer": "Volvo"
+    },
+    {
+      "code": 3483,
+      "name": "BMW M2 Competition '18",
+      "class": "Gr.N",
+      "manufacturer": "BMW"
+    },
+    {
+      "code": 3485,
+      "name": "Mercedes-AMG GT Black Series '20",
+      "class": "Gr.N",
+      "manufacturer": "AMG"
+    },
+    {
+      "code": 3486,
+      "name": "Dodge Challenger SRT Demon '18",
+      "class": "Gr.N",
+      "manufacturer": "Dodge"
+    },
+    {
+      "code": 3487,
+      "name": "Ford Mustang Boss 429 '69",
+      "class": "Gr.N",
+      "manufacturer": "Ford"
+    },
+    {
+      "code": 3488,
+      "name": "Porsche Cayman GT4 '16",
+      "class": "Gr.N",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3489,
+      "name": "Maserati A6GCS/53 Spyder '54",
+      "class": "Gr.X",
+      "manufacturer": "Maserati"
+    },
+    {
+      "code": 3490,
+      "name": "Porsche Carrera GTS (904) '64",
+      "class": "Gr.X",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3493,
+      "name": "Nissan Skyline Super Silhouette Group 5 '84",
+      "class": "Gr.3",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 3494,
+      "name": "Toyota Alphard Executive Lounge '18",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 3495,
+      "name": "MAZDA RX-VISION '15",
+      "class": "Gr.N",
+      "manufacturer": "Mazda"
+    },
+    {
+      "code": 3499,
+      "name": "TOYOTA GR010 HYBRID '21",
+      "class": "Gr.1",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 3500,
+      "name": "Genesis G70 3.3T AWD Prestige Package '22",
+      "class": "Gr.N",
+      "manufacturer": "Genesis"
+    },
+    {
+      "code": 3501,
+      "name": "Genesis G70 GR4",
+      "class": "Gr.4",
+      "manufacturer": "Genesis"
+    },
+    {
+      "code": 3502,
+      "name": "Genesis X GR3",
+      "class": "Gr.3",
+      "manufacturer": "Genesis"
+    },
+    {
+      "code": 3504,
+      "name": "Nissan Z Performance '23",
+      "class": "Gr.N",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 3506,
+      "name": "Subaru BRZ S '21",
+      "class": "Gr.N",
+      "manufacturer": "Subaru"
+    },
+    {
+      "code": 3507,
+      "name": "Porsche Vision Gran Turismo Spyder",
+      "class": "Gr.X",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3508,
+      "name": "SUZUKI Vision Gran Turismo (Gr.3 Version)",
+      "class": "Gr.3",
+      "manufacturer": "Suzuki"
+    },
+    {
+      "code": 3509,
+      "name": "Porsche 911 Carrera RS (901) '73",
+      "class": "Gr.N",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3510,
+      "name": "Ferrari Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 3511,
+      "name": "Volkswagen ID.R '19",
+      "class": "Gr.X",
+      "manufacturer": "Volkswagen"
+    },
+    {
+      "code": 3512,
+      "name": "Mazda Roadster NR-A (ND) '22",
+      "class": "Gr.N",
+      "manufacturer": "Mazda"
+    },
+    {
+      "code": 3513,
+      "name": "Nissan Silvia K's Type S (S14) '94",
+      "class": "Gr.N",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 3514,
+      "name": "Citroën DS 21 Pallas '70",
+      "class": "Gr.N",
+      "manufacturer": "Citroën"
+    },
+    {
+      "code": 3518,
+      "name": "Chevrolet Corvette C8 Stingray '20",
+      "class": "Gr.N",
+      "manufacturer": "Chevrolet"
+    },
+    {
+      "code": 3519,
+      "name": "Porsche 959 '87",
+      "class": "Gr.N",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3520,
+      "name": "NISMO 400R '95",
+      "class": "Gr.N",
+      "manufacturer": "Nismo"
+    },
+    {
+      "code": 3521,
+      "name": "MAZDA3 X Burgundy Selection '19",
+      "class": "Gr.N",
+      "manufacturer": "Mazda"
+    },
+    {
+      "code": 3522,
+      "name": "Greening Auto Company Maverick",
+      "class": "Gr.N",
+      "manufacturer": "Greening Auto Company"
+    },
+    {
+      "code": 3523,
+      "name": "Audi RS 5 Turbo DTM '19",
+      "class": "Gr.2",
+      "manufacturer": "Audi"
+    },
+    {
+      "code": 3524,
+      "name": "Nissan GT-R NISMO (R32) '90",
+      "class": "Gr.N",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 3525,
+      "name": "Honda RA272 '65",
+      "class": "Gr.X",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 3526,
+      "name": "Garage RCR Civic",
+      "class": "Gr.N",
+      "manufacturer": "Garage RCR"
+    },
+    {
+      "code": 3528,
+      "name": "Dallara SF23 Super Formula / Honda '23",
+      "class": "Gr.X",
+      "manufacturer": "Super Formula"
+    },
+    {
+      "code": 3529,
+      "name": "Dallara SF23 Super Formula / Toyota '23",
+      "class": "Gr.X",
+      "manufacturer": "Super Formula"
+    },
+    {
+      "code": 3530,
+      "name": "Alfa Romeo Giulia Sprint GT Veloce '67",
+      "class": "Gr.N",
+      "manufacturer": "Alfa Romeo"
+    },
+    {
+      "code": 3531,
+      "name": "Mercedes-AMG GT3 '20",
+      "class": "Gr.3",
+      "manufacturer": "AMG"
+    },
+    {
+      "code": 3532,
+      "name": "Aston Martin Valkyrie '21",
+      "class": "Gr.N",
+      "manufacturer": "Aston Martin"
+    },
+    {
+      "code": 3533,
+      "name": "Maserati MC20 '20",
+      "class": "Gr.N",
+      "manufacturer": "Maserati"
+    },
+    {
+      "code": 3534,
+      "name": "Toyota Ambulance Himedic '21",
+      "class": "Gr.X",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 3535,
+      "name": "Toyota GR Corolla MORIZO Edition '22",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 3536,
+      "name": "Honda Civic Type R (FL5) '22",
+      "class": "Gr.N",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 3537,
+      "name": "MAZDA3 Gr.4",
+      "class": "Gr.4",
+      "manufacturer": "Mazda"
+    },
+    {
+      "code": 3538,
+      "name": "Dodge Charger R/T 426 Hemi '68",
+      "class": "Gr.N",
+      "manufacturer": "Dodge"
+    },
+    {
+      "code": 3539,
+      "name": "Porsche 911 GT3 RS (992) '22",
+      "class": "Gr.N",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3540,
+      "name": "Tesla Model 3 Performance '23",
+      "class": "Gr.X",
+      "manufacturer": "Tesla "
+    },
+    {
+      "code": 3541,
+      "name": "BVLGARI Aluminium Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "BVLGARI"
+    },
+    {
+      "code": 3542,
+      "name": "Škoda Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Škoda"
+    },
+    {
+      "code": 3543,
+      "name": "Genesis X Gran Berlinetta Vision Gran Turismo Concept",
+      "class": "Gr.X",
+      "manufacturer": "Genesis"
+    },
+    {
+      "code": 3544,
+      "name": "Genesis X Gran Racer Vision Gran Turismo Concept",
+      "class": "Gr.1",
+      "manufacturer": "Genesis"
+    },
+    {
+      "code": 3545,
+      "name": "Suzuki Jimny XC '18",
+      "class": "Gr.N",
+      "manufacturer": "Suzuki"
+    },
+    {
+      "code": 3546,
+      "name": "AFEELA Prototype 2024",
+      "class": "Gr.X",
+      "manufacturer": "AFEELA"
+    },
+    {
+      "code": 3547,
+      "name": "Renault R4 GTL '85",
+      "class": "Gr.N",
+      "manufacturer": "Renault"
+    },
+    {
+      "code": 3548,
+      "name": "Lamborghini Urus '18",
+      "class": "Gr.N",
+      "manufacturer": "Lamborghini"
+    },
+    {
+      "code": 3549,
+      "name": "Volvo 240 SE Estate '93",
+      "class": "Gr.N",
+      "manufacturer": "Volvo"
+    },
+    {
+      "code": 3550,
+      "name": "Subaru Impreza Rally Car '98",
+      "class": "Gr.B",
+      "manufacturer": "Subaru"
+    },
+    {
+      "code": 3551,
+      "name": "BMW M3 '97",
+      "class": "Gr.N",
+      "manufacturer": "BMW"
+    },
+    {
+      "code": 3553,
+      "name": "Nissan GT-R Premium edition T-spec '24",
+      "class": "Gr.N",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 3554,
+      "name": "Toyota Hiace Van DX '16",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 3555,
+      "name": "Ford Escort RS Cosworth '92",
+      "class": "Gr.N",
+      "manufacturer": "Ford"
+    },
+    {
+      "code": 3556,
+      "name": "Mercedes-Benz Unimog Type 411 '62",
+      "class": "Gr.N",
+      "manufacturer": "Mercedes-Benz"
+    },
+    {
+      "code": 3557,
+      "name": "Mercedes-Benz W 196 R '55",
+      "class": "Gr.X",
+      "manufacturer": "Mercedes-Benz"
+    },
+    {
+      "code": 3558,
+      "name": "Porsche 911 Turbo S (992) '20",
+      "class": "Gr.N",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3559,
+      "name": "Suzuki Jimny Sierra JC '18",
+      "class": "Gr.N",
+      "manufacturer": "Suzuki"
+    },
+    {
+      "code": 3560,
+      "name": "Porsche Mission X '23",
+      "class": "Gr.X",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3561,
+      "name": "Hyundai IONIQ 5 N '24",
+      "class": "Gr.N",
+      "manufacturer": "Hyundai"
+    },
+    {
+      "code": 3562,
+      "name": "Gran Turismo F3500-A",
+      "class": "Gr.X",
+      "manufacturer": "Gran Turismo"
+    },
+    {
+      "code": 3563,
+      "name": "Honda Civic Si Extra (EF) '87",
+      "class": "Gr.N",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 3564,
+      "name": "Peugeot 205 GTI '88",
+      "class": "Gr.N",
+      "manufacturer": "Peugeot"
+    },
+    {
+      "code": 3565,
+      "name": "Toyota C-HR S '18",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 3566,
+      "name": "Mazda CX-30 X Smart Edition '21",
+      "class": "Gr.N",
+      "manufacturer": "Mazda"
+    },
+    {
+      "code": 3567,
+      "name": "Renault Kangoo 1.4 '01",
+      "class": "Gr.N",
+      "manufacturer": "Renault"
+    },
+    {
+      "code": 3568,
+      "name": "Nissan Qashqai Tekna 190 2wd e-Power '22",
+      "class": "Gr.N",
+      "manufacturer": "Nissan"
+    },
+    {
+      "code": 3569,
+      "name": "NISMO R34 GT-R Z-tune '05",
+      "class": "Gr.N",
+      "manufacturer": "Nismo"
+    },
+    {
+      "code": 3570,
+      "name": "Chevrolet Corvette Z06 (C5) '01",
+      "class": "Gr.N",
+      "manufacturer": "Chevrolet"
+    },
+    {
+      "code": 3571,
+      "name": "Suzuki Carry KC '12",
+      "class": "Gr.N",
+      "manufacturer": "Suzuki"
+    },
+    {
+      "code": 3572,
+      "name": "Honda CR-V e:HEV EX・Black Edition '21",
+      "class": "Gr.N",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 3573,
+      "name": "Citroën BX 19 TRS '87",
+      "class": "Gr.N",
+      "manufacturer": "Citroën"
+    },
+    {
+      "code": 3574,
+      "name": "Peugeot SUV 2008 Allure '21",
+      "class": "Gr.N",
+      "manufacturer": "Peugeot"
+    },
+    {
+      "code": 3575,
+      "name": "FIAT Panda 30 CL '85",
+      "class": "Gr.N",
+      "manufacturer": "FIAT"
+    },
+    {
+      "code": 3576,
+      "name": "Honda N-ONE RS '22",
+      "class": "Gr.N",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 3577,
+      "name": "Opel Corsa GSE Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Opel"
+    },
+    {
+      "code": 3578,
+      "name": "MAZDA SPIRIT RACING ROADSTER 12R '25",
+      "class": "Gr.N",
+      "manufacturer": "Mazda"
+    },
+    {
+      "code": 3579,
+      "name": "AFEELA 1 '26",
+      "class": "Gr.X",
+      "manufacturer": "AFEELA"
+    },
+    {
+      "code": 3581,
+      "name": "Chevrolet Corvette CX Concept '25",
+      "class": "Gr.X",
+      "manufacturer": "Chevrolet"
+    },
+    {
+      "code": 3582,
+      "name": "Chevrolet Corvette CX.R Vision Gran Turismo Concept",
+      "class": "Gr.X",
+      "manufacturer": "Chevrolet"
+    },
+    {
+      "code": 3583,
+      "name": "Toyota RAV4 Adventure '20",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 3584,
+      "name": "Toyota Land Cruiser FJ40V '74",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 3585,
+      "name": "Hyundai ELANTRA N '23",
+      "class": "Gr.N",
+      "manufacturer": "Hyundai"
+    },
+    {
+      "code": 3586,
+      "name": "Polestar 5 Performance '26",
+      "class": "Gr.X",
+      "manufacturer": "Polestar"
+    },
+    {
+      "code": 3587,
+      "name": "Ferrari 296 GTB '22",
+      "class": "Gr.N",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 3588,
+      "name": "Ferrari 296 GT3 '23",
+      "class": "Gr.3",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 3589,
+      "name": "Gran Turismo F3500-B",
+      "class": "Gr.X",
+      "manufacturer": "Gran Turismo"
+    },
+    {
+      "code": 3590,
+      "name": "Hyundai ELANTRA N TC '24",
+      "class": "Gr.4",
+      "manufacturer": "Hyundai"
+    },
+    {
+      "code": 3591,
+      "name": "Renault Espace F1 '95",
+      "class": "Gr.X",
+      "manufacturer": "Renault"
+    },
+    {
+      "code": 3592,
+      "name": "Chevrolet Camaro 1969 Race-Mod",
+      "class": "Gr.N",
+      "manufacturer": "Chevrolet"
+    },
+    {
+      "code": 3599,
+      "name": "Xiaomi SU7 Ultra '25",
+      "class": "Gr.X",
+      "manufacturer": "Xiaomi"
+    },
+    {
+      "code": 3600,
+      "name": "Porsche 911 GT3 R (992) '22",
+      "class": "Gr.3",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3601,
+      "name": "Renault Captur S Edition TCe 140 '21",
+      "class": "Gr.N",
+      "manufacturer": "Renault"
+    },
+    {
+      "code": 3602,
+      "name": "Yangwang U9 '24",
+      "class": "Gr.X",
+      "manufacturer": "Yangwang"
+    },
+    {
+      "code": 3603,
+      "name": "Renault Twingo '93",
+      "class": "Gr.N",
+      "manufacturer": "Renault"
+    },
+    {
+      "code": 3604,
+      "name": "BMW M Hybrid V8 '25",
+      "class": "Gr.1",
+      "manufacturer": "BMW"
+    },
+    {
+      "code": 3605,
+      "name": "Ferrari 499P '23",
+      "class": "Gr.1",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 3606,
+      "name": "Peugeot 9X8 '25",
+      "class": "Gr.1",
+      "manufacturer": "Peugeot"
+    },
+    {
+      "code": 3607,
+      "name": "Porsche 963 '24",
+      "class": "Gr.1",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3608,
+      "name": "Porsche 911 Turbo S Safety Car (992)",
+      "class": "Gr.X",
+      "manufacturer": "Porsche"
+    },
+    {
+      "code": 3609,
+      "name": "MAZDA RX-VISION GT3 EVO '26",
+      "class": "Gr.3",
+      "manufacturer": "Mazda"
+    },
+    {
+      "code": 3610,
+      "name": "Hyundai IONIQ 6 N '25",
+      "class": "Gr.N",
+      "manufacturer": "Hyundai"
+    },
+    {
+      "code": 3611,
+      "name": "Toyota Mark II Tourer V '97",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 3612,
+      "name": "Toyota Chaser Tourer V '97",
+      "class": "Gr.N",
+      "manufacturer": "Toyota"
+    },
+    {
+      "code": 3653,
+      "name": "Citroën 2 CV 6 Charleston '86",
+      "class": "Gr.N",
+      "manufacturer": "Citroën"
+    },
+    {
+      "code": 3654,
+      "name": "Ferrari F355 Berlinetta '94",
+      "class": "Gr.N",
+      "manufacturer": "Ferrari"
+    },
+    {
+      "code": 3655,
+      "name": "Honda Step WGN Spada Premium Line '23",
+      "class": "Gr.N",
+      "manufacturer": "Honda"
+    },
+    {
+      "code": 3656,
+      "name": "Xiaomi Vision Gran Turismo",
+      "class": "Gr.X",
+      "manufacturer": "Xiaomi"
+    }
+  ]
+}

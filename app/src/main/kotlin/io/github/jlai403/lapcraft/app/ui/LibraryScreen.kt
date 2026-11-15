@@ -54,6 +54,9 @@ import io.github.jlai403.lapcraft.core.session.LapFilter
 import io.github.jlai403.lapcraft.core.session.LapSort
 import io.github.jlai403.lapcraft.core.session.LapSummary
 import io.github.jlai403.lapcraft.core.session.SessionStore
+import io.github.jlai403.lapcraft.app.catalog.sessionStore
+import io.github.jlai403.lapcraft.app.events.EventCache
+import io.github.jlai403.lapcraft.core.events.CachedEvent
 import io.github.jlai403.lapcraft.core.session.applyFilter
 import io.github.jlai403.lapcraft.core.session.applySort
 import io.github.jlai403.lapcraft.core.session.fastestPerTrack
@@ -75,7 +78,7 @@ fun LibraryScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val store = remember { SessionStore(context.filesDir) }
+    val store = remember { sessionStore(context) }
     val settings = remember { SettingsStore(context) }
     val profileStore = remember { DriverProfileStore(context) }
     val namer = remember { TrackNamer(store, TrackCatalog(context)) }
@@ -88,6 +91,8 @@ fun LibraryScreen(
     var reload by remember { mutableIntStateOf(0) }
     var filter by remember { mutableStateOf(LapFilter()) }
     var sort by remember { mutableStateOf(LapSort.Newest) }
+    var eventMenu by remember { mutableStateOf(false) }
+    val cachedEvents = remember { EventCache(context).events() }
     var previewEmpty by remember { mutableStateOf(settings.previewEmptyLibrary) }
     var editing by remember { mutableStateOf<LapSummary?>(null) }
     var candidates by remember { mutableStateOf<List<TrackCandidate>?>(null) }
@@ -306,6 +311,51 @@ fun LibraryScreen(
                 }
                 Box {
                     GhostPill(
+                        text = eventFilterLabel(filter, cachedEvents),
+                        onClick = { eventMenu = true },
+                        trailingIcon = Icons.Filled.KeyboardArrowDown,
+                    )
+                    DropdownMenu(expanded = eventMenu, onDismissRequest = { eventMenu = false }) {
+                        DropdownMenuItem(
+                            text = { Text("All events") },
+                            onClick = {
+                                filter = filter.copy(eventKind = null, eventId = null)
+                                eventMenu = false
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Untagged") },
+                            onClick = {
+                                filter = filter.copy(eventKind = "none", eventId = null)
+                                eventMenu = false
+                            },
+                        )
+                        listOf("daily", "time-trial", "championship").forEach { kind ->
+                            DropdownMenuItem(
+                                text = { Text(kind.replaceFirstChar { it.uppercase() }.replace("-", " ")) },
+                                onClick = {
+                                    filter = filter.copy(eventKind = kind, eventId = null)
+                                    eventMenu = false
+                                },
+                            )
+                        }
+                        if (cachedEvents.isNotEmpty()) {
+                            HorizontalDivider()
+                            cachedEvents.map { it.label }.distinct().sorted().forEach { label ->
+                                val ev = cachedEvents.first { it.label == label }
+                                DropdownMenuItem(
+                                    text = { Text(label) },
+                                    onClick = {
+                                        filter = filter.copy(eventKind = null, eventId = ev.id)
+                                        eventMenu = false
+                                    },
+                                )
+                            }
+                        }
+                    }
+                }
+                Box {
+                    GhostPill(
                         text = sort.label,
                         onClick = { sortMenu = true },
                         trailingIcon = Icons.Filled.KeyboardArrowDown,
@@ -512,6 +562,15 @@ fun LibraryScreen(
                 saveTrack(lap, name)
             },
             onAssignDriver = { profile -> assignDriver(lap, profile) },
+            events = cachedEvents,
+            onAssignEvent = { tag ->
+                scope.launch {
+                    withContext(Dispatchers.IO) {
+                        store.setLapEvent(lap.sessionId, lap.lapIndex, tag)
+                    }
+                    reload++
+                }
+            },
             onAddReplay = {
                 syncTarget = lap
                 picker.launch(arrayOf("video/*"))
@@ -656,4 +715,15 @@ private val LapSort.label: String
         LapSort.Newest -> "Newest"
         LapSort.Fastest -> "Fastest"
         LapSort.Track -> "Track"
+        LapSort.Event -> "Event"
     }
+
+private fun eventFilterLabel(filter: LapFilter, events: List<CachedEvent>): String {
+    val kind = filter.eventKind
+    return when {
+        filter.eventId != null -> events.firstOrNull { it.id == filter.eventId }?.label ?: "Event"
+        kind == "none" -> "Untagged"
+        kind != null -> kind.replaceFirstChar { it.uppercase() }.replace("-", " ")
+        else -> "All events"
+    }
+}

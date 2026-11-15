@@ -5,6 +5,10 @@ import org.junit.Test
 
 class DriverProfileLinksTest {
     @Test
+    fun `grid stats home link`() {
+        assertEquals("https://gt-gridstats.com", DriverProfileLinks.gridStatsHome)
+    }
+    @Test
     fun `grid stats link uses the player path`() {
         assertEquals(
             "https://gt-gridstats.com/player/skino2024",

@@ -86,7 +86,13 @@ internal fun DriverPickerRow(
                     }
                 }
                 Text(
-                    profile?.psnId ?: driverPsnId ?: "Defaults to your profile when set",
+                    buildString {
+                        append(profile?.psnId ?: driverPsnId ?: "Defaults to your profile when set")
+                        profile?.let { p ->
+                            val drSr = listOfNotNull(p.dr?.let { "DR $it" }, p.sr?.let { "SR $it" }).joinToString(" · ")
+                            if (drSr.isNotEmpty()) append(" · $drSr")
+                        }
+                    },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

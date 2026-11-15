@@ -23,15 +23,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import io.github.jlai403.lapcraft.BuildConfig
 import io.github.jlai403.lapcraft.core.profile.DriverProfile
+import io.github.jlai403.lapcraft.app.profile.DriverProfileLinks
 import io.github.jlai403.lapcraft.app.profile.GridStatsProfileClient
+import io.github.jlai403.lapcraft.app.events.EventCache
+import io.github.jlai403.lapcraft.app.events.EventRefresh
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
 import io.github.jlai403.lapcraft.app.updater.UpdateManager
 import io.github.jlai403.lapcraft.core.network.Ipv4
@@ -42,10 +49,13 @@ fun SettingsScreen(
     onCheckUpdate: () -> Unit = {},
     onDownloadUpdate: () -> Unit = {},
     onInstallUpdate: () -> Unit = {},
-    lookupProfile: suspend (String) -> DriverProfile = { GridStatsProfileClient().fetch(it) },
+    lookupProfile: (suspend (String) -> DriverProfile)? = null,
 ) {
     val context = LocalContext.current
     val settings = remember { SettingsStore(context) }
+    val scope = rememberCoroutineScope()
+    val resolvedLookup: suspend (String) -> DriverProfile =
+        lookupProfile ?: { GridStatsProfileClient { io.github.jlai403.lapcraft.app.profile.DriverProfileStore(context).apiKey }.fetch(it) }
     var ip by remember { mutableStateOf(settings.ps5Ip) }
     var savedIp by remember { mutableStateOf<String?>(null) }
     var ipError by remember { mutableStateOf(false) }
@@ -70,6 +80,9 @@ fun SettingsScreen(
     var chartWindowMenu by remember { mutableStateOf(false) }
     var previewEmpty by remember { mutableStateOf(settings.previewEmptyLibrary) }
     var developerTools by remember { mutableStateOf(settings.developerTools) }
+    var eventTags by remember { mutableStateOf(settings.eventTags) }
+    var refreshingEvents by remember { mutableStateOf(false) }
+    var eventStatus by remember { mutableStateOf<String?>(null) }
     var replayPreset by remember { mutableStateOf(settings.replayPreset) }
     var replayKeyframes by remember { mutableStateOf(settings.replayKeyframes) }
     var replayAudio by remember { mutableStateOf(settings.replayAudio) }
@@ -88,7 +101,7 @@ fun SettingsScreen(
             subtitle = "Console, profile, units, and updates",
         )
 
-        DriverProfileSection(lookupProfile = lookupProfile)
+        DriverProfileSection(lookupProfile = resolvedLookup)
 
         LibrarySection()
 
@@ -291,6 +304,54 @@ fun SettingsScreen(
             }
         }
 
+        SectionCard(title = "Event tags") {
+            SettingToggle(
+                label = "Event tags",
+                checked = eventTags,
+                modifier = Modifier.testTag("event-tags"),
+            ) {
+                eventTags = it
+                settings.eventTags = it
+            }
+            Text(
+                "Tag laps with Daily Races, Time Trials, and World Series rounds. Uses your GT GridStats key and the official GT championship schedule.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                GhostPill(
+                    text = if (refreshingEvents) "Refreshing…" else "Refresh events",
+                    onClick = {
+                        if (refreshingEvents) return@GhostPill
+                        refreshingEvents = true
+                        eventStatus = null
+                        scope.launch {
+                            try {
+                                EventRefresh.refresh(context)
+                                val cache = EventCache(context)
+                                eventStatus = "Updated · ${cache.events().size} events"
+                            } catch (e: Exception) {
+                                eventStatus = e.message ?: "Refresh failed."
+                            } finally {
+                                refreshingEvents = false
+                            }
+                        }
+                    },
+                    enabled = !refreshingEvents,
+                    modifier = Modifier.testTag("refresh-events"),
+                )
+                eventStatus?.let {
+                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            val cache = remember { EventCache(context) }
+            Text(
+                "Last updated: ${cache.load().gridstatsFetchedAtMs.takeIf { it > 0 }?.let { java.text.DateFormat.getDateTimeInstance().format(java.util.Date(it)) } ?: "never"}",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
         SectionCard(title = "Updates") {
             Text(
                 updateSummary(update),
@@ -335,6 +396,32 @@ fun SettingsScreen(
             BuildRow("Update channel", BuildConfig.UPDATE_CHANNEL)
             BuildRow("Build number", BuildConfig.BUILD_NUMBER)
             BuildRow("Commit", BuildConfig.GIT_SHA)
+        }
+
+        SectionCard(title = "Acknowledgements") {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(DriverProfileLinks.gridStatsHome))
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        runCatching { context.startActivity(intent) }
+                    }
+                    .testTag("ack-gridstats"),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    "GT GridStats ↗",
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    "Driver profiles, DR/SR, daily races, time trials, and car names.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }

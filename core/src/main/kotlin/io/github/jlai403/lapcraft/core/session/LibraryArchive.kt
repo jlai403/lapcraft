@@ -45,7 +45,7 @@ object LibraryArchive {
     private const val BUFFER = 64 * 1024
     private val ID_PATTERN = Regex("[A-Za-z0-9][A-Za-z0-9._-]{0,63}")
     private val CLIP_PATH = Regex("[A-Za-z0-9][A-Za-z0-9._/-]{0,127}")
-    private val json = Json { encodeDefaults = true }
+    private val json = Json { encodeDefaults = true; ignoreUnknownKeys = true }
 
     fun export(
         rootDir: File,

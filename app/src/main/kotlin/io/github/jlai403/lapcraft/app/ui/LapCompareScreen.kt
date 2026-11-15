@@ -70,6 +70,7 @@ import io.github.jlai403.lapcraft.core.model.Sample
 import io.github.jlai403.lapcraft.core.playback.PlaybackCursor
 import io.github.jlai403.lapcraft.core.session.LapMetadata
 import io.github.jlai403.lapcraft.core.session.SessionStore
+import io.github.jlai403.lapcraft.app.catalog.sessionStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -105,7 +106,7 @@ fun LapCompareScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val store = remember { SessionStore(context.filesDir) }
+    val store = remember { sessionStore(context) }
     val settings = remember { SettingsStore(context) }
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 

@@ -16,17 +16,21 @@ class LapSaver(
     private val clock: () -> Instant = { Instant.now() },
     private val trackName: (List<Sample>) -> String? = { null },
     private val driverPsnId: () -> String? = { null },
+    private val carName: (Int) -> String? = { null },
+    private val eventTag: (Int, String, Long, Int) -> io.github.jlai403.lapcraft.core.events.EventTag? = { _, _, _, _ -> null },
 ) : LapSink {
     override fun save(boundary: LapBoundary, samples: List<Sample>): SessionMetadata {
         val id = idFactory()
+        val now = clock()
         val carCode = samples.lastOrNull()?.carCode ?: 0
         val lapSamples = samples.filter { it.timeNanos in boundary.startNanos..boundary.endNanos }
+        val resolvedTrack = trackName(lapSamples) ?: "Unknown"
         val metadata = SessionMetadata(
             sessionId = id,
-            createdAt = clock().toString(),
-            trackLabel = trackName(lapSamples) ?: "Unknown",
+            createdAt = now.toString(),
+            trackLabel = resolvedTrack,
             carCode = carCode,
-            carName = "Car #$carCode",
+            carName = carName(carCode) ?: "Car #$carCode",
             rawFile = "",
             rawDeleted = true,
         )
@@ -37,6 +41,9 @@ class LapSaver(
             videoFile = "",
             leadInMs = 0,
             driverPsnId = driverPsnId(),
+            event = runCatching {
+                eventTag(carCode, resolvedTrack, now.toEpochMilli(), boundary.lapTimeMs)
+            }.getOrNull(),
         )
         writer.finalize(rawDeleted = true)
         return writer.metadata()

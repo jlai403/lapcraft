@@ -30,6 +30,7 @@ import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
 import io.github.jlai403.lapcraft.app.profile.GridStatsProfileClient
 import io.github.jlai403.lapcraft.app.profile.countryFlagEmoji
 import io.github.jlai403.lapcraft.core.session.SessionStore
+import io.github.jlai403.lapcraft.app.catalog.sessionStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -41,12 +42,14 @@ internal fun DriverSection(
     lapIndex: Int,
     driverPsnId: String?,
     onChanged: () -> Unit,
-    lookupProfile: suspend (String) -> DriverProfile = { GridStatsProfileClient().fetch(it) },
+    lookupProfile: (suspend (String) -> DriverProfile)? = null,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val sessionStore = remember { SessionStore(context.filesDir) }
+    val sessionStore = remember { sessionStore(context) }
     val profileStore = remember { DriverProfileStore(context) }
+    val resolvedLookup: suspend (String) -> DriverProfile =
+        lookupProfile ?: { GridStatsProfileClient { profileStore.apiKey }.fetch(it) }
     val owner = remember { profileStore.owner() }
     var profiles by remember { mutableStateOf(profileStore.profiles()) }
     var adding by remember { mutableStateOf(false) }
@@ -100,7 +103,7 @@ internal fun DriverSection(
 
     if (adding) {
         AddDriverDialog(
-            lookupProfile = lookupProfile,
+            lookupProfile = resolvedLookup,
             onSave = {
                 adding = false
                 assign(it)
