@@ -12,7 +12,8 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ApplicationProvider
 import io.github.jlai403.lapcraft.core.profile.DriverProfile
 import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
-import io.github.jlai403.lapcraft.core.session.SessionStore
+import io.github.jlai403.lapcraft.core.session.LapId
+import io.github.jlai403.lapcraft.core.session.LapStore
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -164,7 +165,7 @@ class DriverSectionTest {
     }
 
     private fun lapDriver(): String? =
-        SessionStore(context.filesDir).lap("session-1", 1)?.driverPsnId
+        LapStore(context.filesDir).load(LapId("session-1"))?.driverPsnId
 
     private companion object {
         const val TIMEOUT = 10_000L

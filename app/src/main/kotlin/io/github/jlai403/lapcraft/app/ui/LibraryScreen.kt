@@ -53,7 +53,8 @@ import io.github.jlai403.lapcraft.app.track.TrackNamer
 import io.github.jlai403.lapcraft.core.session.LapFilter
 import io.github.jlai403.lapcraft.core.session.LapSort
 import io.github.jlai403.lapcraft.core.session.LapSummary
-import io.github.jlai403.lapcraft.core.session.SessionStore
+import io.github.jlai403.lapcraft.core.session.LapId
+import io.github.jlai403.lapcraft.core.session.LapStore
 import io.github.jlai403.lapcraft.app.catalog.sessionStore
 import io.github.jlai403.lapcraft.app.events.EventCache
 import io.github.jlai403.lapcraft.app.events.EventRefresh
@@ -161,7 +162,7 @@ fun LibraryScreen(
         if (lap.trackLabel == TrackNamer.UNKNOWN) {
             scope.launch {
                 val found = withContext(Dispatchers.IO) {
-                    runCatching { namer.candidates(lap.sessionId, lap.lapIndex) }.getOrDefault(emptyList())
+                    runCatching { namer.candidates(LapId(lap.sessionId)) }.getOrDefault(emptyList())
                 }
                 if (editing?.sameLap(lap) == true) candidates = found
             }
@@ -171,7 +172,7 @@ fun LibraryScreen(
     fun saveTrack(lap: LapSummary, name: String) {
         scope.launch {
             val renamed = withContext(Dispatchers.IO) {
-                runCatching { store.rename(lap.sessionId, name) }.getOrNull()
+                runCatching { store.renameTrack(LapId(lap.sessionId), name) }.getOrNull()
             }
             if (renamed == null) message = "Track name could not be saved."
             reload++
@@ -181,7 +182,7 @@ fun LibraryScreen(
     fun assignDriver(lap: LapSummary, profile: DriverProfile?) {
         scope.launch {
             val updated = withContext(Dispatchers.IO) {
-                runCatching { store.setLapDriver(lap.sessionId, lap.lapIndex, profile?.psnId) }.getOrNull()
+                runCatching { store.setDriver(LapId(lap.sessionId), profile?.psnId) }.getOrNull()
             }
             if (updated == null) {
                 message = "Driver could not be saved."
@@ -201,7 +202,7 @@ fun LibraryScreen(
         reencodeResult = null
         scope.launch {
             val reencoded = runCatching {
-                LapReencoder(store, VideoTranscoder(context)).reencode(lap.sessionId, lap.lapIndex)
+                LapReencoder(store, VideoTranscoder(context)).reencode(LapId(lap.sessionId))
             }.getOrDefault(false)
             reencoding = false
             reencodeResult = reencoded
@@ -572,7 +573,7 @@ fun LibraryScreen(
             onAssignEvent = { tag ->
                 scope.launch {
                     withContext(Dispatchers.IO) {
-                        store.setLapEvent(lap.sessionId, lap.lapIndex, tag)
+                        store.setEvent(LapId(lap.sessionId), tag)
                     }
                     reload++
                 }
@@ -603,7 +604,7 @@ fun LibraryScreen(
                     deleting = null
                     scope.launch {
                         val deleted = withContext(Dispatchers.IO) {
-                            store.deleteLap(target.sessionId, target.lapIndex)
+                            store.delete(LapId(target.sessionId))
                         }
                         if (!deleted) message = "Lap could not be deleted."
                         reload++

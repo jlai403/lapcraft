@@ -17,7 +17,7 @@ class ReplayStoreTest {
     @Test
     fun `source file lives beside the lap clip`() {
         val dir = File("/tmp/session")
-        assertTrue(ReplayStore.sourceFile(dir, 7).path.endsWith("laps/lap-007-source.mp4"))
+        assertTrue(ReplayStore.sourceFile(dir, 7).path.endsWith("source.mp4"))
     }
 
     @Test

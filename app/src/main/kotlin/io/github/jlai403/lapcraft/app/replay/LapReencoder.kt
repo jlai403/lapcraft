@@ -10,7 +10,8 @@ import androidx.media3.common.util.UnstableApi
 import io.github.jlai403.lapcraft.app.settings.ReplayAudio
 import io.github.jlai403.lapcraft.app.settings.ReplayKeyframes
 import io.github.jlai403.lapcraft.app.settings.ReplayProfile
-import io.github.jlai403.lapcraft.core.session.SessionStore
+import io.github.jlai403.lapcraft.core.session.LapId
+import io.github.jlai403.lapcraft.core.session.LapStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -25,14 +26,13 @@ private const val TAG = "LapReencode"
  */
 @OptIn(UnstableApi::class)
 class LapReencoder(
-    private val store: SessionStore,
+    private val store: LapStore,
     private val transcoder: VideoTranscoder,
 ) {
-    suspend fun reencode(sessionId: String, lapIndex: Int): Boolean {
-        val lap = withContext(Dispatchers.IO) { store.lap(sessionId, lapIndex) } ?: return false
-        if (lap.videoFile.isBlank()) return false
-        val dir = store.sessionDir(sessionId)
-        val clip = File(dir, lap.videoFile).takeIf { it.isFile } ?: return false
+    suspend fun reencode(id: LapId): Boolean {
+        val record = withContext(Dispatchers.IO) { store.load(id) } ?: return false
+        val dir = store.lapDir(id)
+        val clip = File(dir, "replay.mp4").takeIf { it.isFile } ?: return false
         val durationMs = withContext(Dispatchers.IO) { probeClip(clip).durationMs }
         val profile = withContext(Dispatchers.IO) { scrubProfile(clip, durationMs) }
         val output = File(clip.absolutePath + ".reencode.mp4")
@@ -41,17 +41,17 @@ class LapReencoder(
         val transcoded = transcoder.transcode(clip, output, profile)
         if (!transcoded || !output.isFile || output.length() == 0L) {
             output.delete()
-            Log.w(TAG, "re-encode failed for ${lap.videoFile}")
+            Log.w(TAG, "re-encode failed for ${clip.name}")
             return false
         }
         Log.i(
             TAG,
-            "re-encoded ${lap.videoFile}: ${syncSamples(output)} keyframes, " +
+            "re-encoded ${clip.name}: ${syncSamples(output)} keyframes, " +
                 "${output.length()} bytes in ${SystemClock.elapsedRealtime() - started} ms",
         )
         return withContext(Dispatchers.IO) {
             val swapped = swap(clip, output)
-            if (swapped) store.deleteScrubArtifacts(dir, lap.videoFile)
+            if (swapped) store.deleteScrubArtifacts(dir)
             swapped
         }
     }

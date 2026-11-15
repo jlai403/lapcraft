@@ -29,3 +29,18 @@ data class LapRecord(
     val driverPsnId: String? = null,
     val event: EventTag? = null,
 )
+
+fun LapRecord.toLapMetadata(): LapMetadata = LapMetadata(
+    index = 1,
+    lapTimeMs = lapTimeMs,
+    startNanos = startTickNanos,
+    endNanos = endTickNanos,
+    sampleCount = 0,
+    videoFile = "",
+    leadInMs = leadInMs,
+    syncOffsetMs = syncOffsetMs,
+    needsCut = false,
+    sourceFile = null,
+    driverPsnId = driverPsnId,
+    event = event,
+)

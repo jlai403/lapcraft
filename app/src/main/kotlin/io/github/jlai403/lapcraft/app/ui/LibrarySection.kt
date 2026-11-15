@@ -25,7 +25,7 @@ import io.github.jlai403.lapcraft.core.session.ExportReport
 import io.github.jlai403.lapcraft.core.session.ImportReport
 import io.github.jlai403.lapcraft.core.session.LapRef
 import io.github.jlai403.lapcraft.core.session.LapSummary
-import io.github.jlai403.lapcraft.core.session.SessionStore
+import io.github.jlai403.lapcraft.core.session.LapStore
 import java.time.LocalDate
 import kotlinx.coroutines.launch
 
@@ -42,7 +42,7 @@ internal fun LibrarySection() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val root = context.filesDir
-    val store = remember { SessionStore(root) }
+    val store = remember { LapStore(root) }
     var laps by remember { mutableStateOf<List<LapSummary>>(store.summaries()) }
     var pending by remember { mutableStateOf<List<LapRef>>(emptyList()) }
     var sheet by remember { mutableStateOf(false) }

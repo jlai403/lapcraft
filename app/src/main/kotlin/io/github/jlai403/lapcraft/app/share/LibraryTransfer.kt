@@ -9,7 +9,7 @@ import io.github.jlai403.lapcraft.core.session.ExportReport
 import io.github.jlai403.lapcraft.core.session.ImportReport
 import io.github.jlai403.lapcraft.core.session.LapRef
 import io.github.jlai403.lapcraft.core.session.LibraryArchive
-import io.github.jlai403.lapcraft.core.session.SessionStore
+import io.github.jlai403.lapcraft.core.session.LapStore
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -41,7 +41,7 @@ object LibraryTransfer {
         val store = DriverProfileStore(context)
         for (profile in report.profiles) store.save(profile)
         // Best-effort backfill for laps whose profile was not in the archive (older builds).
-        val psns = SessionStore(rootDir).summaries().mapNotNull { it.driverPsnId }.distinct()
+        val psns = LapStore(rootDir).summaries().mapNotNull { it.driverPsnId }.distinct()
         for (psn in psns) {
             if (store.profile(psn) != null) continue
             runCatching { GridStatsProfileClient { DriverProfileStore(context).apiKey }.fetch(psn) }.getOrNull()?.let { store.save(it) }

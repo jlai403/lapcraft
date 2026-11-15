@@ -4,8 +4,8 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.content.FileProvider
 import io.github.jlai403.lapcraft.core.session.CsvExporter
-import io.github.jlai403.lapcraft.core.session.LapMetadata
-import io.github.jlai403.lapcraft.core.session.SessionStore
+import io.github.jlai403.lapcraft.core.session.LapId
+import io.github.jlai403.lapcraft.core.session.LapStore
 import java.io.File
 
 object Sharing {
@@ -23,13 +23,12 @@ object Sharing {
 
     fun exportCsv(
         context: Context,
-        store: SessionStore,
-        sessionId: String,
-        lap: LapMetadata,
+        store: LapStore,
+        id: LapId,
     ): File {
-        val samples = store.readSamples(sessionId, lap.index)
+        val samples = store.readSamples(id)
         val dir = File(context.cacheDir, "exports").apply { mkdirs() }
-        val file = File(dir, "%s-lap-%03d.csv".format(sessionId, lap.index))
+        val file = File(dir, "%s.csv".format(id.value))
         file.writeText(CsvExporter.export(samples))
         return file
     }

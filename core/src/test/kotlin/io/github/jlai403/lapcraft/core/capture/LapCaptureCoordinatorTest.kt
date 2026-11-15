@@ -2,7 +2,6 @@ package io.github.jlai403.lapcraft.core.capture
 
 import io.github.jlai403.lapcraft.core.lap.LapBoundary
 import io.github.jlai403.lapcraft.core.model.Sample
-import io.github.jlai403.lapcraft.core.session.SessionMetadata
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -11,16 +10,9 @@ class LapCaptureCoordinatorTest {
     private class RecordingSink : LapSink {
         val saved = mutableListOf<Pair<LapBoundary, List<Sample>>>()
 
-        override fun save(boundary: LapBoundary, samples: List<Sample>): SessionMetadata {
+        override fun save(boundary: LapBoundary, samples: List<Sample>): String {
             saved += boundary to samples
-            return SessionMetadata(
-                sessionId = "s1",
-                createdAt = "2026-11-11T10:00:00Z",
-                trackLabel = "Unknown",
-                carCode = 0,
-                carName = "Car #0",
-                rawFile = "",
-            )
+            return "s1"
         }
     }
 

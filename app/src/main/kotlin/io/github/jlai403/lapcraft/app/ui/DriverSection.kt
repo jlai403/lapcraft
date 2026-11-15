@@ -29,7 +29,8 @@ import io.github.jlai403.lapcraft.core.profile.DriverProfile
 import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
 import io.github.jlai403.lapcraft.app.profile.GridStatsProfileClient
 import io.github.jlai403.lapcraft.app.profile.countryFlagEmoji
-import io.github.jlai403.lapcraft.core.session.SessionStore
+import io.github.jlai403.lapcraft.core.session.LapId
+import io.github.jlai403.lapcraft.core.session.LapStore
 import io.github.jlai403.lapcraft.app.catalog.sessionStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -59,7 +60,7 @@ internal fun DriverSection(
     fun assign(profile: DriverProfile?) {
         scope.launch {
             val updated = withContext(Dispatchers.IO) {
-                sessionStore.setLapDriver(sessionId, lapIndex, profile?.psnId)
+                sessionStore.setDriver(LapId(sessionId), profile?.psnId)
             }
             if (updated == null) {
                 error = "Driver could not be saved."

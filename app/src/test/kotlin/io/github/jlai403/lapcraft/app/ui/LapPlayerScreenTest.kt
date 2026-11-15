@@ -44,7 +44,7 @@ class LapPlayerScreenTest {
     fun `lap without a clip still shows charts and add replay`() {
         SessionFixtures.install(
             context,
-            SessionFixtures.session(lapTimesMs = listOf(90_000), needsCut = true),
+            SessionFixtures.session(lapTimesMs = listOf(90_000), withReplay = false),
         )
 
         compose.setContent {
@@ -71,7 +71,7 @@ class LapPlayerScreenTest {
     fun `the replay source button offers files and the PlayStation app`() {
         SessionFixtures.install(
             context,
-            SessionFixtures.session(lapTimesMs = listOf(90_000), needsCut = true),
+            SessionFixtures.session(lapTimesMs = listOf(90_000), withReplay = false),
         )
 
         compose.setContent {
@@ -342,7 +342,7 @@ class LapPlayerScreenTest {
     fun `share video is disabled without a clip`() {
         SessionFixtures.install(
             context,
-            SessionFixtures.session(lapTimesMs = listOf(90_000), needsCut = true),
+            SessionFixtures.session(lapTimesMs = listOf(90_000), withReplay = false),
         )
 
         compose.setContent {

@@ -27,7 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import io.github.jlai403.lapcraft.core.session.LapSort
 import io.github.jlai403.lapcraft.core.session.LapSummary
-import io.github.jlai403.lapcraft.core.session.SessionStore
+import io.github.jlai403.lapcraft.core.session.LapStore
 import io.github.jlai403.lapcraft.app.catalog.sessionStore
 import io.github.jlai403.lapcraft.core.session.applySort
 import kotlinx.coroutines.Dispatchers

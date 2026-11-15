@@ -63,7 +63,9 @@ import io.github.jlai403.lapcraft.core.clip.TrackProgress
 import io.github.jlai403.lapcraft.core.clip.TrimPlan
 import io.github.jlai403.lapcraft.core.model.Sample
 import io.github.jlai403.lapcraft.core.session.LapMetadata
-import io.github.jlai403.lapcraft.core.session.SessionStore
+import io.github.jlai403.lapcraft.core.session.LapId
+import io.github.jlai403.lapcraft.core.session.LapStore
+import io.github.jlai403.lapcraft.core.session.toLapMetadata
 import io.github.jlai403.lapcraft.app.catalog.sessionStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -176,22 +178,21 @@ fun ImportSyncScreen(
 
     LaunchedEffect(sessionId, lapIndex, sourceUri) {
         error = null
-        val session = withContext(Dispatchers.IO) { store.load(sessionId) }
-        val loaded = session?.laps?.firstOrNull { it.index == lapIndex }
-        if (session == null || loaded == null) {
+        val record = withContext(Dispatchers.IO) { store.load(LapId(sessionId)) }
+        if (record == null) {
             error = "Lap not found."
             return@LaunchedEffect
         }
-        hadClip = loaded.videoFile.isNotBlank() &&
-            !loaded.needsCut &&
-            loaded.videoFile != session.rawFile
+        val loaded = record.toLapMetadata()
+        val dir = store.lapDir(LapId(sessionId))
+        hadClip = File(dir, "replay.mp4").isFile
         lap = loaded
         samples = withContext(Dispatchers.IO) {
-            runCatching { store.readSamples(sessionId, lapIndex) }.getOrDefault(emptyList())
+            runCatching { store.readSamples(LapId(sessionId)) }.getOrDefault(emptyList())
         }
 
         val file = if (sourceUri != null) {
-            val destination = ReplayStore.sourceFile(store.sessionDir(sessionId), lapIndex)
+            val destination = ReplayStore.sourceFile(dir, lapIndex)
             val copied = withContext(Dispatchers.IO) {
                 ReplayStore.copy(context, Uri.parse(sourceUri), destination)
             }
@@ -199,11 +200,11 @@ fun ImportSyncScreen(
                 error = "Could not read the replay. Download it in the PS App and pick the file instead."
                 return@LaunchedEffect
             }
-            val relative = "laps/lap-%03d-source.mp4".format(lapIndex)
-            withContext(Dispatchers.IO) { store.setSource(sessionId, lapIndex, relative) }
+            withContext(Dispatchers.IO) { store.setSource(LapId(sessionId), "source.mp4") }
             destination
         } else {
-            loaded.sourceFile?.let { File(store.sessionDir(sessionId), it) }
+            val sf = File(dir, "source.mp4")
+            sf.takeIf { it.isFile }
         }
 
         if (file == null || !file.isFile) {
@@ -562,8 +563,8 @@ fun ImportSyncScreen(
                             scope.launch {
                                 val result = withContext(Dispatchers.IO) {
                                     val output = File(
-                                        store.sessionDir(sessionId),
-                                        "laps/lap-%03d.mp4".format(lapIndex),
+                                        store.lapDir(LapId(sessionId)),
+                                        "replay.mp4",
                                     )
                                     val trimmed = trimmer.trim(source, output, trimRange)
                                         ?: return@withContext null
@@ -583,10 +584,8 @@ fun ImportSyncScreen(
                                         }
                                     }
                                     store.attachClip(
-                                        sessionId = sessionId,
-                                        lapIndex = lapIndex,
-                                        videoFile = "laps/lap-%03d.mp4".format(lapIndex),
-                                        leadInMs = trimmed.startOffsetMs,
+                                        LapId(sessionId),
+                                        trimmed.startOffsetMs,
                                     )
                                     trimmed to compactFailed
                                 }
@@ -679,7 +678,7 @@ fun ImportSyncScreen(
                     confirmCancel = false
                     scope.launch {
                         withContext(Dispatchers.IO) {
-                            store.setSource(sessionId, lapIndex, null)
+                            store.setSource(LapId(sessionId), null)
                             sourceFile?.delete()
                         }
                         onCancel()

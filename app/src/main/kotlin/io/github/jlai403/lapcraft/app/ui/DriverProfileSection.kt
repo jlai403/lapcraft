@@ -25,7 +25,7 @@ import io.github.jlai403.lapcraft.core.profile.DriverProfile
 import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
 import io.github.jlai403.lapcraft.app.profile.GridStatsProfileClient
 import io.github.jlai403.lapcraft.app.profile.countryFlagEmoji
-import io.github.jlai403.lapcraft.core.session.SessionStore
+import io.github.jlai403.lapcraft.core.session.LapStore
 import io.github.jlai403.lapcraft.app.catalog.sessionStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -282,7 +282,7 @@ internal fun DriverProfileSection(
     }
 }
 
-private fun missingProfileCount(store: DriverProfileStore, sessionStore: SessionStore): Int =
+private fun missingProfileCount(store: DriverProfileStore, sessionStore: LapStore): Int =
     sessionStore.summaries()
         .mapNotNull { it.driverPsnId }
         .distinct()

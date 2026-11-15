@@ -75,8 +75,11 @@ import io.github.jlai403.lapcraft.R
 import io.github.jlai403.lapcraft.core.model.Sample
 import io.github.jlai403.lapcraft.core.playback.PlaybackCursor
 import io.github.jlai403.lapcraft.core.session.LapSummary
-import io.github.jlai403.lapcraft.core.session.SessionMetadata
-import io.github.jlai403.lapcraft.core.session.SessionStore
+
+import io.github.jlai403.lapcraft.core.session.LapId
+import io.github.jlai403.lapcraft.core.session.LapRecord
+import io.github.jlai403.lapcraft.core.session.toLapMetadata
+import io.github.jlai403.lapcraft.core.session.LapStore
 import io.github.jlai403.lapcraft.app.catalog.CarCatalog
 import io.github.jlai403.lapcraft.app.catalog.sessionStore
 import io.github.jlai403.lapcraft.core.session.trackKey
@@ -124,56 +127,48 @@ fun LapPlayerScreen(
             cachedEvents = EventCache(context).events()
         }
     }
-    val session by produceState<SessionMetadata?>(null, sessionId, sessionReload) {
-        value = withContext(Dispatchers.IO) { store.load(sessionId) }
+    val id = LapId(sessionId)
+    val session by produceState<LapRecord?>(null, sessionId, sessionReload) {
+        value = withContext(Dispatchers.IO) { store.load(id) }
     }
-    val lap = session?.laps?.firstOrNull { it.index == lapIndex }
-    val samples by produceState<List<Sample>>(emptyList(), sessionId, lapIndex) {
+    val lap = session?.toLapMetadata()
+    val samples by produceState<List<Sample>>(emptyList(), sessionId) {
         value = withContext(Dispatchers.IO) {
-            runCatching { store.readSamples(sessionId, lapIndex) }.getOrDefault(emptyList())
+            runCatching { store.readSamples(id) }.getOrDefault(emptyList())
         }
     }
-    val summary by produceState<LapSummary?>(null, sessionId, lapIndex, sessionReload) {
+    val summary by produceState<LapSummary?>(null, sessionId, sessionReload) {
         value = withContext(Dispatchers.IO) {
-            store.summaries().firstOrNull {
-                it.sessionId == sessionId && it.lapIndex == lapIndex
-            }
+            store.summaries().firstOrNull { it.sessionId == sessionId }
         }
     }
-    val ghost by produceState<GhostLap?>(null, sessionId, lapIndex, sessionReload) {
+    val ghost by produceState<GhostLap?>(null, sessionId, sessionReload) {
         value = withContext(Dispatchers.IO) {
             val laps = store.summaries()
-            val current = laps.firstOrNull {
-                it.sessionId == sessionId && it.lapIndex == lapIndex
-            } ?: return@withContext null
+            val current = laps.firstOrNull { it.sessionId == sessionId } ?: return@withContext null
             val best = laps
                 .filter {
-                    it.trackLabel == current.trackLabel &&
-                        !(it.sessionId == sessionId && it.lapIndex == lapIndex)
+                    it.trackLabel == current.trackLabel && it.sessionId != sessionId
                 }
                 .minByOrNull { it.lapTimeMs } ?: return@withContext null
-            val bestLap = store.lap(best.sessionId, best.lapIndex) ?: return@withContext null
+            val bestLap = store.load(LapId(best.sessionId)) ?: return@withContext null
             val bestSamples = runCatching {
-                store.readSamples(best.sessionId, best.lapIndex)
+                store.readSamples(LapId(best.sessionId))
             }.getOrDefault(emptyList())
-            if (bestSamples.isEmpty()) null else GhostLap(bestLap, bestSamples)
+            if (bestSamples.isEmpty()) null else GhostLap(bestLap.toLapMetadata(), bestSamples)
         }
     }
 
     val compareCandidates by produceState<List<LapSummary>>(
         emptyList(),
         sessionId,
-        lapIndex,
         sessionReload,
     ) {
         value = withContext(Dispatchers.IO) {
             val laps = store.summaries()
-            val current = laps.firstOrNull {
-                it.sessionId == sessionId && it.lapIndex == lapIndex
-            } ?: return@withContext emptyList()
+            val current = laps.firstOrNull { it.sessionId == sessionId } ?: return@withContext emptyList()
             laps.filter {
-                it.trackKey == current.trackKey &&
-                    !(it.sessionId == sessionId && it.lapIndex == lapIndex)
+                it.trackKey == current.trackKey && it.sessionId != sessionId
             }.sortedBy { it.lapTimeMs }
         }
     }
@@ -182,10 +177,8 @@ fun LapPlayerScreen(
             .associateWith { profileStore.profile(it) }
     }
 
-    val videoFile = lap
-        ?.takeIf { !it.needsCut && it.videoFile != session?.rawFile }
-        ?.let { File(store.sessionDir(sessionId), it.videoFile) }
-        ?.takeIf { it.isFile }
+    val lapDir = store.lapDir(LapId(sessionId))
+    val videoFile = File(lapDir, "replay.mp4").takeIf { it.isFile }
     val player = remember(sessionId, lapIndex) {
         ExoPlayer.Builder(context).build().apply {
             setSeekParameters(SeekParameters.EXACT)
@@ -260,7 +253,7 @@ fun LapPlayerScreen(
         scope.launch {
             runCatching {
                 withContext(Dispatchers.IO) {
-                    Sharing.exportCsv(context, store, sessionId, active)
+                    Sharing.exportCsv(context, store, LapId(sessionId))
                 }
             }.onSuccess {
                 Sharing.shareFile(context, it, "text/csv", "Export lap $lapIndex")
@@ -274,10 +267,10 @@ fun LapPlayerScreen(
         editing = true
         candidates = null
         reencodeResult = null
-        if (session?.trackLabel == TrackNamer.UNKNOWN) {
+        if (session?.circuitLabel == TrackNamer.UNKNOWN) {
             scope.launch {
                 val found = withContext(Dispatchers.IO) {
-                    runCatching { namer.candidates(sessionId, lapIndex) }.getOrDefault(emptyList())
+                    runCatching { namer.candidates(LapId(sessionId)) }.getOrDefault(emptyList())
                 }
                 if (editing) candidates = found
             }
@@ -404,7 +397,7 @@ fun LapPlayerScreen(
             listOfNotNull(countryFlagEmoji(it.countryCode), it.nickname).joinToString(" ")
         }
     }
-    val subtitle = listOfNotNull(session?.trackLabel, driverLabel).joinToString(" · ").ifBlank { null }
+    val subtitle = listOfNotNull(session?.circuitLabel, driverLabel).joinToString(" · ").ifBlank { null }
     val currentStats = remember(samples, lap) {
         lap?.let { lapStats(samples.lapWindow(it), it) }
     }
@@ -415,7 +408,7 @@ fun LapPlayerScreen(
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader(
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-            title = lap?.let { "Lap ${it.index} · ${lapTimeLabel(it.lapTimeMs)}" } ?: "Lap",
+            title = lap?.let { "Lap 1 · ${lapTimeLabel(it.lapTimeMs)}" } ?: "Lap",
             subtitle = null,
             onBack = onBack,
             onTitleClick = { headerExpanded = !headerExpanded },
@@ -475,7 +468,7 @@ fun LapPlayerScreen(
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 Text(
-                    listOfNotNull(subtitle, CarCatalog(context).name(session?.carCode ?: 0) ?: session?.carName, session?.laps?.firstOrNull { it.index == lapIndex }?.event?.label).joinToString(" · "),
+                    listOfNotNull(subtitle, CarCatalog(context).name(session?.carCode ?: 0) ?: session?.carName, session?.event?.label).joinToString(" · "),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -548,7 +541,7 @@ fun LapPlayerScreen(
                         )
                     }
                 }
-                if (currentLap.sourceFile != null) {
+                if (File(store.lapDir(LapId(sessionId)), "source.mp4").isFile) {
                     Text(
                         "Newer clip waiting to be synced.",
                         style = MaterialTheme.typography.bodySmall,
@@ -557,7 +550,7 @@ fun LapPlayerScreen(
                 }
             } else {
                 SectionCard(title = "Replay") {
-                    if (currentLap.sourceFile != null) {
+                    if (File(store.lapDir(LapId(sessionId)), "source.mp4").isFile) {
                         Text(
                             "Clip imported — sync not finished",
                             style = MaterialTheme.typography.titleMedium,
@@ -706,7 +699,7 @@ fun LapPlayerScreen(
                     editing = false
                     scope.launch {
                         val renamed = withContext(Dispatchers.IO) {
-                            runCatching { store.rename(sessionId, name) }.getOrNull()
+                            runCatching { store.renameTrack(LapId(sessionId), name) }.getOrNull()
                         }
                         if (renamed == null) message = "Track name could not be saved."
                         sessionReload++
@@ -716,7 +709,7 @@ fun LapPlayerScreen(
                     scope.launch {
                         val updated = withContext(Dispatchers.IO) {
                             runCatching {
-                                store.setLapDriver(sessionId, lapIndex, profile?.psnId)
+                                store.setDriver(LapId(sessionId), profile?.psnId)
                             }.getOrNull()
                         }
                         if (updated == null) {
@@ -749,7 +742,7 @@ fun LapPlayerScreen(
                         scope.launch {
                             val reencoded = runCatching {
                                 LapReencoder(store, VideoTranscoder(context))
-                                    .reencode(sessionId, lapIndex)
+                                    .reencode(LapId(sessionId))
                             }.getOrDefault(false)
                             reencoding = false
                             reencodeResult = reencoded
@@ -761,7 +754,7 @@ fun LapPlayerScreen(
                 onAssignEvent = { tag ->
                     scope.launch {
                         withContext(Dispatchers.IO) {
-                            runCatching { store.setLapEvent(sessionId, lapIndex, tag) }
+                            runCatching { store.setEvent(LapId(sessionId), tag) }
                         }
                         sessionReload++
                     }

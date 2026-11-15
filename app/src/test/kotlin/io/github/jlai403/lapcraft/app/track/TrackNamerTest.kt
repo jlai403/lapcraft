@@ -5,6 +5,8 @@ import io.github.jlai403.lapcraft.core.model.Sample
 import io.github.jlai403.lapcraft.core.session.LapMetadata
 import io.github.jlai403.lapcraft.core.session.LapTelemetryCodec
 import io.github.jlai403.lapcraft.core.session.SessionMetadata
+import io.github.jlai403.lapcraft.core.session.LapId
+import io.github.jlai403.lapcraft.core.session.LapStore
 import io.github.jlai403.lapcraft.core.session.SessionStore
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
@@ -22,7 +24,7 @@ class TrackNamerTest {
     @Test
     fun `backfills an unknown legacy lap`() {
         val context = RuntimeEnvironment.getApplication()
-        val store = SessionStore(context.filesDir)
+        val legacyStore = SessionStore(context.filesDir)
         val samples = roadAtlantaLap()
         val lap = LapMetadata(
             index = 1,
@@ -33,7 +35,7 @@ class TrackNamerTest {
             videoFile = "",
             leadInMs = 0,
         )
-        store.save(
+        legacyStore.save(
             SessionMetadata(
                 sessionId = "legacy",
                 createdAt = "2026-11-10T10:00:00Z",
@@ -44,16 +46,17 @@ class TrackNamerTest {
                 laps = listOf(lap),
             ),
         )
-        File(store.sessionDir("legacy"), "laps").mkdirs()
-        File(store.sessionDir("legacy"), "laps/lap-001.gt7lap")
+        File(legacyStore.sessionDir("legacy"), "laps").mkdirs()
+        File(legacyStore.sessionDir("legacy"), "laps/lap-001.gt7lap")
             .writeBytes(LapTelemetryCodec.encode(samples))
 
+        val store = LapStore(context.filesDir)
         val renamed = runBlocking {
             TrackNamer(store, TrackCatalog(context)).identifyUnknownLaps()
         }
 
         assertEquals(1, renamed)
-        assertEquals("Michelin Raceway Road Atlanta", store.load("legacy")?.trackLabel)
+        assertEquals("Michelin Raceway Road Atlanta", store.load(LapId("legacy"))?.circuitLabel)
     }
 
     private fun roadAtlantaLap(): List<Sample> {

@@ -69,7 +69,9 @@ import io.github.jlai403.lapcraft.core.clip.TrackProgress
 import io.github.jlai403.lapcraft.core.model.Sample
 import io.github.jlai403.lapcraft.core.playback.PlaybackCursor
 import io.github.jlai403.lapcraft.core.session.LapMetadata
-import io.github.jlai403.lapcraft.core.session.SessionStore
+import io.github.jlai403.lapcraft.core.session.LapId
+import io.github.jlai403.lapcraft.core.session.LapStore
+import io.github.jlai403.lapcraft.core.session.toLapMetadata
 import io.github.jlai403.lapcraft.app.catalog.sessionStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -744,17 +746,14 @@ private fun newPlayer(context: Context): ExoPlayer =
     }
 
 private suspend fun loadLap(
-    store: SessionStore,
+    store: LapStore,
     sessionId: String,
     lapIndex: Int,
 ): CompareLap? = withContext(Dispatchers.IO) {
-    val session = store.load(sessionId) ?: return@withContext null
-    val lap = session.laps.firstOrNull { it.index == lapIndex } ?: return@withContext null
-    val samples = runCatching { store.readSamples(sessionId, lapIndex) }
+    val record = store.load(LapId(sessionId)) ?: return@withContext null
+    val samples = runCatching { store.readSamples(LapId(sessionId)) }
         .getOrDefault(emptyList())
-    val clip = lap.videoFile
-        .takeIf { it.isNotBlank() && !lap.needsCut && it != session.rawFile }
-        ?.let { File(store.sessionDir(sessionId), it) }
-        ?.takeIf { it.isFile }
-    CompareLap(sessionId, lapIndex, session.trackLabel, lap, samples, clip)
+    val dir = store.lapDir(LapId(sessionId))
+    val clip = File(dir, "replay.mp4").takeIf { it.isFile }
+    CompareLap(sessionId, lapIndex, record.circuitLabel, record.toLapMetadata(), samples, clip)
 }

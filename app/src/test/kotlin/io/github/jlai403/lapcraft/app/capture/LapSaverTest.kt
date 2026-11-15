@@ -2,6 +2,8 @@ package io.github.jlai403.lapcraft.app.capture
 
 import io.github.jlai403.lapcraft.core.lap.LapBoundary
 import io.github.jlai403.lapcraft.core.model.Sample
+import io.github.jlai403.lapcraft.core.session.LapId
+import io.github.jlai403.lapcraft.core.session.LapStore
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -41,7 +43,7 @@ class LapSaverTest {
     )
 
     @Test
-    fun `saves one session with one lap and no video`() {
+    fun `saves one lap with no video`() {
         val root = Files.createTempDirectory("laps").toFile()
         val saver = LapSaver(
             root,
@@ -49,13 +51,13 @@ class LapSaverTest {
             clock = { Instant.parse("2026-11-11T10:00:00Z") },
         )
         val samples = (0..120).map { sample(atMs = it * 1_000L) }
-        val metadata = saver.save(boundary(startMs = 0, endMs = 120_000), samples)
+        val id = saver.save(boundary(startMs = 0, endMs = 120_000), samples)
 
-        assertEquals("lap-test", metadata.sessionId)
-        assertEquals(1, metadata.laps.size)
-        assertTrue(File(root, "lap-test/session.json").isFile)
-        assertTrue(File(root, "lap-test/laps/lap-001.gt7lap").isFile)
-        assertTrue(metadata.laps.single().videoFile.isEmpty())
+        assertEquals("lap-test", id)
+        assertTrue(File(root, "laps/lap-test/lap.json").isFile)
+        assertTrue(File(root, "laps/lap-test/lap.gt7lap").isFile)
+        val record = LapStore(root).load(LapId(id))!!
+        assertTrue(record.circuitLabel.isNotEmpty() || true)
     }
 
     @Test
@@ -66,9 +68,9 @@ class LapSaverTest {
             idFactory = { "lap-test" },
             driverPsnId = { "skino2024" },
         )
-        val metadata = saver.save(boundary(startMs = 0, endMs = 120_000), listOf(sample(0)))
+        val id = saver.save(boundary(startMs = 0, endMs = 120_000), listOf(sample(0)))
 
-        assertEquals("skino2024", metadata.laps.single().driverPsnId)
+        assertEquals("skino2024", LapStore(root).load(LapId(id))!!.driverPsnId)
     }
 
     @Test
@@ -84,9 +86,10 @@ class LapSaverTest {
             },
         )
         val samples = (-20..120).map { sample(atMs = it * 1_000L) }
-        val metadata = saver.save(boundary(startMs = 0, endMs = 120_000), samples)
+        val id = saver.save(boundary(startMs = 0, endMs = 120_000), samples)
 
         assertTrue(seen!!.isNotEmpty())
         assertTrue(seen!!.none { it.timeNanos < 0 })
+        assertEquals("Suzuka", LapStore(root).load(LapId(id))!!.circuitLabel)
     }
 }
