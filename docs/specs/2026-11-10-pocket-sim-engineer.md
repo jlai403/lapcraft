@@ -249,7 +249,7 @@ Replay state is not a field. It is derived from which files exist in the lap dir
 
 ### 9.3 Binary telemetry (`lap.gt7lap`)
 
-Versioned little-endian columnar file; one row per 60 Hz sample. Codec version 1; steering is stored as a float (0.0 means not recorded, indistinguishable from a straight wheel in version 1).
+Versioned little-endian columnar file; one row per 60 Hz sample. Codec version 2: each sample carries a steering presence byte followed by the float, so a missing angle (null) is distinct from a recorded straight wheel. Version 1 files still decode, with an all-zero steering column treated as absent. `packetId` is no longer persisted (wire dedupe only).
 
 ### 9.4 Lap directory
 

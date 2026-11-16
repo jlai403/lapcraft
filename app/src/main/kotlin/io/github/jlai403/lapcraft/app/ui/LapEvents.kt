@@ -47,11 +47,11 @@ internal fun lapEvents(window: List<Sample>, lap: LapMetadata): List<LapEvent> {
         previous = sample
     }
 
-    val steeringAvailable = window.any { abs(it.steering) > 0.01f }
+    val steeringAvailable = window.any { it.steering != null }
     val curvature = if (steeringAvailable) null else curvatureAt(window, lap)
     val threshold = if (steeringAvailable) TURN_STEERING else TURN_CURVATURE
     fun signalAt(index: Int): Float =
-        if (steeringAvailable) abs(window[index].steering) else abs(curvature!![index])
+        if (steeringAvailable) abs(window[index].steering ?: 0f) else abs(curvature!![index])
 
     var inCorner = false
     var apexIndex = 0

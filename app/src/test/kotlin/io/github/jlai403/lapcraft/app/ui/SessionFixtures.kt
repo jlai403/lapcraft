@@ -85,7 +85,7 @@ object SessionFixtures {
         rpm: Float = 7_000f,
         x: Float = 0f,
         z: Float = 0f,
-        steering: Float = 0f,
+        steering: Float? = null,
     ) = Sample(
         timeNanos = timeNanos,
         speedMps = speedMps,

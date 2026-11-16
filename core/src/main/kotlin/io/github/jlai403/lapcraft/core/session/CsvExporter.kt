@@ -34,7 +34,7 @@ object CsvExporter {
             out.append(fmt(sample.tyreTempFR)).append(',')
             out.append(fmt(sample.tyreTempRL)).append(',')
             out.append(fmt(sample.tyreTempRR)).append(',')
-            out.append(fmt(sample.steering)).append(',')
+            out.append(sample.steering?.let { fmt(it) } ?: "").append(',')
             out.append(sample.currentLapTimeMs).append('\n')
         }
         return out.toString()

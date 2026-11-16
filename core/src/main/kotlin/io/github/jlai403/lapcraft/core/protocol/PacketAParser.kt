@@ -38,10 +38,10 @@ object PacketAParser {
     }
 
     /** Packet B and later carry the wheel angle in radians, positive to the left, held at ±π. */
-    private fun steering(packetSize: Int, b: ByteBuffer): Float {
-        if (packetSize < STEERING_END) return 0f
+    private fun steering(packetSize: Int, b: ByteBuffer): Float? {
+        if (packetSize < STEERING_END) return null
         val radians = b.getFloat(STEERING_OFFSET)
-        if (!radians.isFinite()) return 0f
+        if (!radians.isFinite()) return null
         return (radians / PI.toFloat()).coerceIn(-1f, 1f)
     }
 }

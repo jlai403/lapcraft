@@ -218,7 +218,7 @@ class SessionStoreTest {
             tyreTempFR = 0f,
             tyreTempRL = 0f,
             tyreTempRR = 0f,
-            packetId = 1,
+            packetId = 0,
         )
         File(dir, "laps/lap-001.gt7lap").writeBytes(LapTelemetryCodec.encode(listOf(sample)))
         assertEquals(listOf(sample), SessionStore(temp).readSamples("s1", 1))

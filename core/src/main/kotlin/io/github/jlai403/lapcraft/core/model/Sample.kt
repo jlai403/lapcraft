@@ -21,6 +21,6 @@ data class Sample(
     val tyreTempRL: Float,
     val tyreTempRR: Float,
     val packetId: Int,
-    val steering: Float = 0f,
+    val steering: Float? = null,
     val currentLapTimeMs: Int = 0,
 )
