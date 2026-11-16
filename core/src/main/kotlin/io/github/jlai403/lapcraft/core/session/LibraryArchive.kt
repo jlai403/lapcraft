@@ -1,5 +1,7 @@
 package io.github.jlai403.lapcraft.core.session
 
+import io.github.jlai403.lapcraft.core.lap.LapTimeSource
+
 import io.github.jlai403.lapcraft.core.io.AtomicFiles
 import io.github.jlai403.lapcraft.core.profile.DriverProfile
 import kotlinx.serialization.Serializable
@@ -183,8 +185,8 @@ object LibraryArchive {
                 capturedAt = session.createdAt,
                 lapTimeMs = lap.lapTimeMs,
                 lapTimeSource = LapTimeSource.Reported,
-                circuitId = "",
-                circuitLabel = session.trackLabel,
+                trackId = "",
+                trackLabel = session.trackLabel,
                 carCode = session.carCode,
                 carName = session.carName,
                 startTickNanos = lap.startNanos,
@@ -300,8 +302,8 @@ object LibraryArchive {
             capturedAt = session.createdAt,
             lapTimeMs = lap.lapTimeMs,
             lapTimeSource = LapTimeSource.Reported,
-            circuitId = "",
-            circuitLabel = session.trackLabel,
+            trackId = "",
+            trackLabel = session.trackLabel,
             carCode = session.carCode,
             carName = session.carName,
             startTickNanos = lap.startNanos,

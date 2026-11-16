@@ -26,7 +26,7 @@ class SessionCodecTest {
         tyreTempFR = 81f,
         tyreTempRL = 82f,
         tyreTempRR = 83f,
-        packetId = 99,
+        packetId = 0,
         steering = 0.1f,
         currentLapTimeMs = 12_345,
     )

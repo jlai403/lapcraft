@@ -26,8 +26,7 @@ class ExportLapsSheetTest {
 
     private val laps = listOf(
         LapSummary(
-            sessionId = "session-1",
-            lapIndex = 1,
+            lapId = LapId("session-1"),
             lapTimeMs = 92_417,
             createdAt = "2026-11-13T10:00:00Z",
             trackLabel = "Suzuka",
@@ -38,8 +37,7 @@ class ExportLapsSheetTest {
             telemetryBytes = 20,
         ),
         LapSummary(
-            sessionId = "session-2",
-            lapIndex = 1,
+            lapId = LapId("session-2"),
             lapTimeMs = 90_002,
             createdAt = "2026-11-12T10:00:00Z",
             trackLabel = "Monza",
@@ -72,8 +70,8 @@ class ExportLapsSheetTest {
             }
         }
 
-        compose.onNodeWithTag("export-lap-session-1-1").performClick()
-        compose.onNodeWithTag("export-lap-session-2-1").performClick()
+        compose.onNodeWithTag("export-lap-session-1").performClick()
+        compose.onNodeWithTag("export-lap-session-2").performClick()
 
         compose.onNodeWithTag("export-laps-summary").assertTextContains("0 of 2 selected", substring = true)
         compose.onNodeWithTag("export-laps-button").assertIsNotEnabled()
@@ -88,7 +86,7 @@ class ExportLapsSheetTest {
             }
         }
 
-        compose.onNodeWithTag("export-lap-session-1-1").performClick()
+        compose.onNodeWithTag("export-lap-session-1").performClick()
         compose.onNodeWithTag("export-laps-button").performClick()
 
         assertEquals(listOf(LapId("session-2")), exported)

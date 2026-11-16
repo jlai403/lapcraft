@@ -26,9 +26,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import io.github.jlai403.lapcraft.core.session.LapSort
+import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LapSummary
 import io.github.jlai403.lapcraft.core.session.LapStore
-import io.github.jlai403.lapcraft.app.catalog.sessionStore
+import io.github.jlai403.lapcraft.app.catalog.lapStore
 import io.github.jlai403.lapcraft.core.session.applySort
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -37,11 +38,11 @@ import kotlinx.coroutines.withContext
 @Composable
 fun ImportPickScreen(
     uri: String,
-    onPick: (String, Int) -> Unit,
+    onPick: (LapId) -> Unit,
     onClose: () -> Unit,
 ) {
     val context = LocalContext.current
-    val store = remember { sessionStore(context) }
+    val store = remember { lapStore(context) }
     var laps by remember { mutableStateOf<List<LapSummary>?>(null) }
 
     LaunchedEffect(uri) {
@@ -121,7 +122,7 @@ fun ImportPickScreen(
                         }
                         PrimaryPill(
                             text = if (lap.hasReplay || lap.replayPending) "Replace" else "Attach",
-                            onClick = { onPick(lap.sessionId, lap.lapIndex) },
+                            onClick = { onPick(lap.lapId) },
                         )
                     }
                 }

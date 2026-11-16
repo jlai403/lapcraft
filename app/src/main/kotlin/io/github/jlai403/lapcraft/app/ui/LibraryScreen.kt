@@ -50,19 +50,20 @@ import io.github.jlai403.lapcraft.app.settings.SettingsStore
 import io.github.jlai403.lapcraft.app.share.LibraryTransfer
 import io.github.jlai403.lapcraft.app.track.TrackCatalog
 import io.github.jlai403.lapcraft.app.track.TrackNamer
+import io.github.jlai403.lapcraft.core.events.EventFilter
+import io.github.jlai403.lapcraft.core.events.EventKind
 import io.github.jlai403.lapcraft.core.session.LapFilter
 import io.github.jlai403.lapcraft.core.session.LapSort
 import io.github.jlai403.lapcraft.core.session.LapSummary
 import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LapStore
-import io.github.jlai403.lapcraft.app.catalog.sessionStore
+import io.github.jlai403.lapcraft.app.catalog.lapStore
 import io.github.jlai403.lapcraft.app.events.EventCache
 import io.github.jlai403.lapcraft.app.events.EventRefresh
 import io.github.jlai403.lapcraft.core.events.CachedEvent
 import io.github.jlai403.lapcraft.core.session.applyFilter
 import io.github.jlai403.lapcraft.core.session.applySort
 import io.github.jlai403.lapcraft.core.session.fastestPerTrack
-import io.github.jlai403.lapcraft.core.session.sameLap
 import io.github.jlai403.lapcraft.core.session.trackKey
 import io.github.jlai403.lapcraft.core.track.TrackCandidate
 import kotlinx.coroutines.Dispatchers
@@ -72,15 +73,15 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryScreen(
-    onOpenLap: (String, Int) -> Unit,
+    onOpenLap: (LapId) -> Unit,
     onOpenRecord: () -> Unit = {},
-    onOpenSync: (String, Int, String?) -> Unit = { _, _, _ -> },
+    onOpenSync: (LapId, String?) -> Unit = { _, _ -> },
     onOpenSettings: () -> Unit = {},
-    onCompare: (String, Int, String, Int) -> Unit = { _, _, _, _ -> },
+    onCompare: (LapId, LapId) -> Unit = { _, _ -> },
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val store = remember { sessionStore(context) }
+    val store = remember { lapStore(context) }
     val settings = remember { SettingsStore(context) }
     val profileStore = remember { DriverProfileStore(context) }
     val namer = remember { TrackNamer(store, TrackCatalog(context)) }
@@ -113,7 +114,7 @@ fun LibraryScreen(
         val target = syncTarget
         syncTarget = null
         if (uri != null && target != null) {
-            onOpenSync(target.sessionId, target.lapIndex, uri.toString())
+            onOpenSync(LapId(target.lapId.value), uri.toString())
         }
     }
 
@@ -134,16 +135,17 @@ fun LibraryScreen(
     }
 
     LaunchedEffect(reload) {
+        laps = withContext(Dispatchers.IO) { store.summaries() }
         if (settings.trackIdentificationVersion < TrackNamer.VERSION) {
-            runCatching { namer.identifyUnknownLaps() }
+            runCatching { withContext(Dispatchers.IO) { namer.identifyUnknownLaps() } }
             settings.trackIdentificationVersion = TrackNamer.VERSION
+            laps = withContext(Dispatchers.IO) { store.summaries() }
         }
         val cache = EventCache(context)
         if (cache.isPolyphonyStale() || cache.isGridstatsStale()) {
             runCatching { EventRefresh.refresh(context) }
             cachedEvents = EventCache(context).events()
         }
-        laps = withContext(Dispatchers.IO) { store.summaries() }
         refreshing = false
     }
 
@@ -162,9 +164,9 @@ fun LibraryScreen(
         if (lap.trackLabel == TrackNamer.UNKNOWN) {
             scope.launch {
                 val found = withContext(Dispatchers.IO) {
-                    runCatching { namer.candidates(LapId(lap.sessionId)) }.getOrDefault(emptyList())
+                    runCatching { namer.candidates(lap.lapId) }.getOrDefault(emptyList())
                 }
-                if (editing?.sameLap(lap) == true) candidates = found
+                if (editing?.lapId == lap.lapId) candidates = found
             }
         }
     }
@@ -172,7 +174,7 @@ fun LibraryScreen(
     fun saveTrack(lap: LapSummary, name: String) {
         scope.launch {
             val renamed = withContext(Dispatchers.IO) {
-                runCatching { store.renameTrack(LapId(lap.sessionId), name) }.getOrNull()
+                runCatching { store.renameTrack(lap.lapId, name) }.getOrNull()
             }
             if (renamed == null) message = "Track name could not be saved."
             reload++
@@ -182,7 +184,7 @@ fun LibraryScreen(
     fun assignDriver(lap: LapSummary, profile: DriverProfile?) {
         scope.launch {
             val updated = withContext(Dispatchers.IO) {
-                runCatching { store.setDriver(LapId(lap.sessionId), profile?.psnId) }.getOrNull()
+                runCatching { store.setDriver(lap.lapId, profile?.psnId) }.getOrNull()
             }
             if (updated == null) {
                 message = "Driver could not be saved."
@@ -202,23 +204,23 @@ fun LibraryScreen(
         reencodeResult = null
         scope.launch {
             val reencoded = runCatching {
-                LapReencoder(store, VideoTranscoder(context)).reencode(LapId(lap.sessionId))
+                LapReencoder(store, VideoTranscoder(context)).reencode(lap.lapId)
             }.getOrDefault(false)
             reencoding = false
             reencodeResult = reencoded
             if (reencoded) {
                 val fresh = withContext(Dispatchers.IO) {
-                    store.summaries().firstOrNull { it.sameLap(lap) }
+                    store.summaries().firstOrNull { it.lapId == lap.lapId }
                 }
-                if (fresh != null && editing?.sameLap(lap) == true) editing = fresh
+                if (fresh != null && editing?.lapId == lap.lapId) editing = fresh
             }
             reload++
         }
     }
 
     fun togglePick(lap: LapSummary) {
-        if (picks.any { it.sameLap(lap) }) {
-            picks = picks.filterNot { it.sameLap(lap) }
+        if (picks.any { it.lapId == lap.lapId }) {
+            picks = picks.filterNot { it.lapId == lap.lapId }
             return
         }
         val primary = picks.firstOrNull()
@@ -232,7 +234,7 @@ fun LibraryScreen(
 
     val all = laps
     val visible = all?.applyFilter(filter)?.applySort(sort)
-    val tracks = all?.distinctBy { it.trackKey }?.map { it.trackLabel }?.sorted().orEmpty()
+    val tracks = all?.distinctBy { it.trackKey }?.map { it.trackKey to it.trackLabel }?.sortedBy { it.second }.orEmpty()
     val rankable = all?.filter { it.trackLabel != TrackNamer.UNKNOWN }
     val fastest = rankable?.fastestPerTrack().orEmpty()
     val trackCounts = rankable?.groupingBy { it.trackKey }?.eachCount().orEmpty()
@@ -245,7 +247,7 @@ fun LibraryScreen(
     ) {
         ScreenHeader(
             title = "Library",
-            subtitle = summaryLine(all, tracks, previewEmpty),
+            subtitle = summaryLine(all, tracks.map { it.second }, previewEmpty),
             modifier = Modifier.padding(horizontal = 20.dp),
             actions = {
                 if (compareMode) {
@@ -293,7 +295,7 @@ fun LibraryScreen(
             ) {
                 Box {
                     GhostPill(
-                        text = filter.trackLabel ?: "All tracks",
+                        text = tracks.firstOrNull { it.first == filter.trackKey }?.second ?: "All tracks",
                         onClick = { trackMenu = true },
                         trailingIcon = Icons.Filled.KeyboardArrowDown,
                     )
@@ -301,15 +303,15 @@ fun LibraryScreen(
                         DropdownMenuItem(
                             text = { Text("All tracks") },
                             onClick = {
-                                filter = filter.copy(trackLabel = null)
+                                filter = filter.copy(trackKey = null)
                                 trackMenu = false
                             },
                         )
-                        tracks.forEach { track ->
+                        tracks.forEach { (key, label) ->
                             DropdownMenuItem(
-                                text = { Text(track) },
+                                text = { Text(label) },
                                 onClick = {
-                                    filter = filter.copy(trackLabel = track)
+                                    filter = filter.copy(trackKey = key)
                                     trackMenu = false
                                 },
                             )
@@ -326,22 +328,22 @@ fun LibraryScreen(
                         DropdownMenuItem(
                             text = { Text("All events") },
                             onClick = {
-                                filter = filter.copy(eventKind = null, eventId = null)
+                                filter = filter.copy(event = EventFilter.All, eventId = null)
                                 eventMenu = false
                             },
                         )
                         DropdownMenuItem(
                             text = { Text("Untagged") },
                             onClick = {
-                                filter = filter.copy(eventKind = "none", eventId = null)
+                                filter = filter.copy(event = EventFilter.None, eventId = null)
                                 eventMenu = false
                             },
                         )
-                        listOf("daily", "time-trial", "championship").forEach { kind ->
+                        EventKind.entries.forEach { kind ->
                             DropdownMenuItem(
-                                text = { Text(kind.replaceFirstChar { it.uppercase() }.replace("-", " ")) },
+                                text = { Text(kind.label) },
                                 onClick = {
-                                    filter = filter.copy(eventKind = kind, eventId = null)
+                                    filter = filter.copy(event = EventFilter.Kind(kind), eventId = null)
                                     eventMenu = false
                                 },
                             )
@@ -353,7 +355,7 @@ fun LibraryScreen(
                                 DropdownMenuItem(
                                     text = { Text(label) },
                                     onClick = {
-                                        filter = filter.copy(eventKind = null, eventId = ev.id)
+                                        filter = filter.copy(event = EventFilter.All, eventId = ev.id)
                                         eventMenu = false
                                     },
                                 )
@@ -431,10 +433,8 @@ fun LibraryScreen(
                     onClick = {
                         if (picks.size == 2) {
                             onCompare(
-                                picks[0].sessionId,
-                                picks[0].lapIndex,
-                                picks[1].sessionId,
-                                picks[1].lapIndex,
+                                picks[0].lapId,
+                                picks[1].lapId,
                             )
                         }
                     },
@@ -503,11 +503,11 @@ fun LibraryScreen(
 
                     else -> itemsIndexed(
                         items = visible,
-                        key = { _, lap -> "${lap.sessionId}:${lap.lapIndex}" },
+                        key = { _, lap -> lap.lapId.value },
                     ) { index, lap ->
                         val fastestLap = fastest[lap.trackKey]
                         val ranked = (trackCounts[lap.trackKey] ?: 0) >= 2
-                        val isFastest = ranked && fastestLap?.sameLap(lap) == true
+                        val isFastest = ranked && fastestLap?.lapId == lap.lapId
                         val deltaMs = if (ranked && !isFastest && fastestLap != null) {
                             lap.lapTimeMs - fastestLap.lapTimeMs
                         } else {
@@ -527,15 +527,15 @@ fun LibraryScreen(
                                     if (compareMode) {
                                         togglePick(lap)
                                     } else {
-                                        onOpenLap(lap.sessionId, lap.lapIndex)
+                                        onOpenLap(lap.lapId)
                                     }
                                 },
                                 onEdit = { edit(lap) },
                                 onDelete = { deleting = lap },
                                 compareMode = compareMode,
                                 pick = when {
-                                    picks.getOrNull(0)?.sameLap(lap) == true -> LapPick.Primary
-                                    picks.getOrNull(1)?.sameLap(lap) == true -> LapPick.Reference
+                                    picks.getOrNull(0)?.lapId == lap.lapId -> LapPick.Primary
+                                    picks.getOrNull(1)?.lapId == lap.lapId -> LapPick.Reference
                                     else -> null
                                 },
                             )
@@ -573,7 +573,7 @@ fun LibraryScreen(
             onAssignEvent = { tag ->
                 scope.launch {
                     withContext(Dispatchers.IO) {
-                        store.setEvent(LapId(lap.sessionId), tag)
+                        store.setEvent(lap.lapId, tag)
                     }
                     reload++
                 }
@@ -585,7 +585,7 @@ fun LibraryScreen(
             onOpenPlayStation = {
                 if (!PlayStationApp.open(context)) message = "PlayStation App is not available."
             },
-            onResumeSync = { onOpenSync(lap.sessionId, lap.lapIndex, null) },
+            onResumeSync = { onOpenSync(lap.lapId, null) },
             developerTools = settings.developerTools,
             reencoding = reencoding,
             reencodeResult = reencodeResult,
@@ -604,7 +604,7 @@ fun LibraryScreen(
                     deleting = null
                     scope.launch {
                         val deleted = withContext(Dispatchers.IO) {
-                            store.delete(LapId(target.sessionId))
+                            store.delete(target.lapId)
                         }
                         if (!deleted) message = "Lap could not be deleted."
                         reload++
@@ -726,11 +726,11 @@ private val LapSort.label: String
     }
 
 private fun eventFilterLabel(filter: LapFilter, events: List<CachedEvent>): String {
-    val kind = filter.eventKind
+    val event = filter.event
     return when {
         filter.eventId != null -> events.firstOrNull { it.id == filter.eventId }?.label ?: "Event"
-        kind == "none" -> "Untagged"
-        kind != null -> kind.replaceFirstChar { it.uppercase() }.replace("-", " ")
+        event is EventFilter.None -> "Untagged"
+        event is EventFilter.Kind -> event.kind.label
         else -> "All events"
     }
 }

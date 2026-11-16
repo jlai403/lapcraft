@@ -6,10 +6,9 @@ Android telemetry and synchronized replay for Gran Turismo 7. Capture one lap of
 
 ## Documents
 
-- [Product and technical spec](docs/specs/2026-11-10-pocket-sim-engineer.md)
+- [Product and technical spec](docs/specs/2026-11-10-lapcraft.md)
 - [Design system](DESIGN.md)
 - [Glossary](GLOSSARY.md)
-- [Implementation plan](docs/superpowers/plans/2026-11-11-replay-import.md)
 
 ## Architecture
 
@@ -35,7 +34,7 @@ The phone records no video and no audio. Telemetry uses UDP 33739/33740; the onl
 
 ## Backup and restore
 
-Settings → Library exports the laps you select to one `.zip` (`lapcraft-library-<date>.zip`). Each lap is a directory inside the archive holding `session.json`, `lap.json`, its `.gt7lap` telemetry, and any clip or pending source the lap references, so the file is inspectable with any zip tool. Clips are passed through uncompressed; telemetry and JSON are deflated.
+Settings → Library exports the laps you select to one `.zip` (`lapcraft-library-<date>.zip`). Each lap is a directory inside the archive holding `lap.json`, its `.gt7lap` telemetry, and any clip or pending source the lap references, so the file is inspectable with any zip tool. Clips are passed through uncompressed; telemetry and JSON are deflated.
 
 Import merges: ids that already exist are skipped, so importing the same file twice is safe. A lap whose clip is missing still imports, without a replay. Cached driver profiles travel with the laps; settings and the owner stay on this device. The empty library also offers **Import a backup**.
 
@@ -93,7 +92,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 ./gradlew :core:test :app:testDebugUnitTest
 ```
 
-- `:core` — protocol/decrypt/decode, lap detection, capture coordination, track signatures, clip sync/trim planning, track progress, codecs, lap summaries, CSV, remux planning, playback cursor.
+- `:core` — protocol/decrypt/decode, lap detection, capture coordination, track signatures, clip sync/trim planning, track progress, codecs, lap summaries, CSV, remux planning, lap clock.
 - `:app` (JVM) — lap saver, replay copy, decode-failure text, telemetry notification text, settings, frame-ruler stepping, Compose UI for Record, Library, lap player, and import sync.
 - Not covered by JVM tests: real `MediaExtractor`/`MediaMuxer` trim output, real GT7 packets, actual video decode. Those stay device checks.
 
@@ -102,8 +101,8 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 - Wrong-lap detection is visual: a single anchor cannot prove which lap a clip contains. A clip shorter than the lap is blocked.
 - PS App clips are limited to under 3 minutes and ≤1080p; long laps need USB or a broadcast MP4.
 - The replay must be recorded with enough lead-in that the trimmed start is inside the clip.
-- Car names are `Car #<code>`.
-- Packet C extras (steering, live lap timer) are not parsed yet.
+- Car names resolve through the bundled catalogue, falling back to `Car #<code>`.
+- Packet C extras: steering is parsed into `Sample.steering` (nullable); the live lap timer is not used.
 - The desktop/Rust core and cloud backup remain future work.
 
 ## Key decisions

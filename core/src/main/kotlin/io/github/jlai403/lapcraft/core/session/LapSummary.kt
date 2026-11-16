@@ -1,13 +1,16 @@
 package io.github.jlai403.lapcraft.core.session
 
+import io.github.jlai403.lapcraft.core.events.EventFilter
+import io.github.jlai403.lapcraft.core.events.EventKind
+
 import java.time.Instant
 
 /** One row in the flat library. A session holds one lap for new captures; legacy sessions may hold several. */
 data class LapSummary(
-    val sessionId: String,
-    val lapIndex: Int,
+    val lapId: LapId,
     val lapTimeMs: Int,
     val createdAt: String,
+    val trackId: String = "",
     val trackLabel: String,
     val carName: String,
     val hasReplay: Boolean,
@@ -23,18 +26,20 @@ enum class LapSort { Newest, Fastest, Track, Event }
 
 data class LapFilter(
     val hasReplay: Boolean? = null,
-    val trackLabel: String? = null,
-    val eventKind: String? = null,
+    val trackKey: String? = null,
+    val event: EventFilter = EventFilter.All,
     val eventId: String? = null,
 )
 
 fun List<LapSummary>.applyFilter(filter: LapFilter): List<LapSummary> = filter { lap ->
     (filter.hasReplay == null || lap.hasReplay == filter.hasReplay) &&
-        (filter.trackLabel == null || lap.trackKey == filter.trackLabel.trim().lowercase()) &&
+        (filter.trackKey == null || lap.trackKey == filter.trackKey) &&
         (filter.eventId == null || lap.event?.id == filter.eventId) &&
-        (filter.eventKind == null ||
-            (filter.eventKind == "none" && lap.event == null) ||
-            (filter.eventKind != "none" && lap.event?.kind == filter.eventKind))
+        when (filter.event) {
+            EventFilter.All -> true
+            EventFilter.None -> lap.event == null
+            is EventFilter.Kind -> lap.event?.kind == filter.event.kind
+        }
 }
 
 fun List<LapSummary>.applySort(sort: LapSort): List<LapSummary> = when (sort) {
@@ -52,10 +57,8 @@ fun List<LapSummary>.fastestPerTrack(): Map<String, LapSummary> =
 
 /** Track labels are user-editable, so compare them trimmed and case-insensitively. */
 val LapSummary.trackKey: String
-    get() = trackLabel.trim().lowercase()
+    get() = trackId.ifBlank { trackLabel.trim().lowercase() }
 
-fun LapSummary.sameLap(other: LapSummary): Boolean =
-    sessionId == other.sessionId && lapIndex == other.lapIndex
 
 private fun parseInstant(value: String): Instant =
     runCatching { Instant.parse(value) }.getOrDefault(Instant.EPOCH)

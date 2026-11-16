@@ -53,7 +53,7 @@ internal fun LibrarySection() {
             val refs = pending
             val profileStore = DriverProfileStore(context)
             val profiles = refs.mapNotNull { ref ->
-                laps.firstOrNull { it.sessionId == ref.value }
+                laps.firstOrNull { it.lapId.value == ref.value }
                     ?.driverPsnId
                     ?.let { psn -> profileStore.profile(psn) ?: DriverProfile(psn, psn, null) }
             }.distinctBy { it.psnId }

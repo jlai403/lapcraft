@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CachedEvent(
     val id: String,
-    val kind: String,
+    val kind: EventKind,
     val label: String,
     val series: String? = null,
     val round: Int? = null,

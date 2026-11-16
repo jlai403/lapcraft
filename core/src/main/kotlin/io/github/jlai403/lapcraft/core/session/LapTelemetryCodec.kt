@@ -6,19 +6,21 @@ import java.nio.ByteOrder
 
 object LapTelemetryCodec {
     private const val HEADER_SIZE = 32
-    private const val SAMPLE_SIZE = 79
-    private const val VERSION = 1
+    private const val SAMPLE_SIZE_V1 = 79
+    private const val SAMPLE_SIZE_V2 = 76
+    private const val VERSION_V1 = 1
+    private const val VERSION_V2 = 2
     private const val SAMPLE_RATE_HZ = 60
 
     fun encode(samples: List<Sample>): ByteArray {
-        val buffer = ByteBuffer.allocate(HEADER_SIZE + samples.size * SAMPLE_SIZE)
+        val buffer = ByteBuffer.allocate(HEADER_SIZE + samples.size * SAMPLE_SIZE_V2)
             .order(ByteOrder.LITTLE_ENDIAN)
 
         buffer.put(0, 'G'.code.toByte())
         buffer.put(1, '7'.code.toByte())
         buffer.put(2, 'L'.code.toByte())
         buffer.put(3, 'P'.code.toByte())
-        buffer.putShort(4, VERSION.toShort())
+        buffer.putShort(4, VERSION_V2.toShort())
         buffer.putShort(6, HEADER_SIZE.toShort())
         buffer.putInt(8, samples.size)
         buffer.putShort(12, SAMPLE_RATE_HZ.toShort())
@@ -47,8 +49,8 @@ object LapTelemetryCodec {
             buffer.putFloat(offset, sample.tyreTempFR); offset += 4
             buffer.putFloat(offset, sample.tyreTempRL); offset += 4
             buffer.putFloat(offset, sample.tyreTempRR); offset += 4
-            buffer.putInt(offset, sample.packetId); offset += 4
-            buffer.putFloat(offset, sample.steering); offset += 4
+            buffer.put(offset, if (sample.steering != null) 1 else 0); offset += 1
+            buffer.putFloat(offset, sample.steering ?: 0f); offset += 4
             buffer.putInt(offset, sample.currentLapTimeMs); offset += 4
         }
 
@@ -62,11 +64,13 @@ object LapTelemetryCodec {
             bytes[1] == '7'.code.toByte() &&
             bytes[2] == 'L'.code.toByte() &&
             bytes[3] == 'P'.code.toByte()) { "bad telemetry magic" }
-        require(buffer.getShort(4).toInt() == VERSION) { "unsupported telemetry version" }
+        val version = buffer.getShort(4).toInt()
+        require(version == VERSION_V1 || version == VERSION_V2) { "unsupported telemetry version" }
         require(buffer.getShort(6).toInt() == HEADER_SIZE) { "bad telemetry header size" }
 
         val sampleCount = buffer.getInt(8)
-        require(bytes.size == HEADER_SIZE + sampleCount * SAMPLE_SIZE) { "bad telemetry length" }
+        val sampleSize = if (version == VERSION_V2) SAMPLE_SIZE_V2 else SAMPLE_SIZE_V1
+        require(bytes.size == HEADER_SIZE + sampleCount * sampleSize) { "bad telemetry length" }
 
         val samples = ArrayList<Sample>(sampleCount)
         var offset = HEADER_SIZE
@@ -90,8 +94,18 @@ object LapTelemetryCodec {
             val tyreTempFR = buffer.getFloat(offset); offset += 4
             val tyreTempRL = buffer.getFloat(offset); offset += 4
             val tyreTempRR = buffer.getFloat(offset); offset += 4
-            val packetId = buffer.getInt(offset); offset += 4
-            val steering = buffer.getFloat(offset); offset += 4
+
+            val steering: Float?
+            if (version == VERSION_V2) {
+                val present = bytes[offset].toInt() and 0xFF; offset += 1
+                val raw = buffer.getFloat(offset); offset += 4
+                steering = if (present == 1) raw else null
+            } else {
+                val packetId = buffer.getInt(offset); offset += 4
+                val raw = buffer.getFloat(offset); offset += 4
+                steering = raw
+            }
+
             val currentLapTimeMs = buffer.getInt(offset); offset += 4
 
             samples += Sample(
@@ -114,11 +128,19 @@ object LapTelemetryCodec {
                 tyreTempFR = tyreTempFR,
                 tyreTempRL = tyreTempRL,
                 tyreTempRR = tyreTempRR,
-                packetId = packetId,
+                packetId = 0,
                 steering = steering,
                 currentLapTimeMs = currentLapTimeMs,
             )
         }
-        return samples
+
+        // For version 1 files, apply the legacy heuristic: if every steering value is zero,
+        // treat them as "not recorded" so old packet-A laps keep their current behaviour.
+        return if (version == VERSION_V1) {
+            val hasAny = samples.any { it.steering != null && it.steering != 0f }
+            if (hasAny) samples else samples.map { it.copy(steering = null) }
+        } else {
+            samples
+        }
     }
 }

@@ -31,7 +31,7 @@ import io.github.jlai403.lapcraft.app.profile.GridStatsProfileClient
 import io.github.jlai403.lapcraft.app.profile.countryFlagEmoji
 import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LapStore
-import io.github.jlai403.lapcraft.app.catalog.sessionStore
+import io.github.jlai403.lapcraft.app.catalog.lapStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -39,15 +39,14 @@ import kotlinx.coroutines.withContext
 
 @Composable
 internal fun DriverSection(
-    sessionId: String,
-    lapIndex: Int,
+    lapId: LapId,
     driverPsnId: String?,
     onChanged: () -> Unit,
     lookupProfile: (suspend (String) -> DriverProfile)? = null,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val sessionStore = remember { sessionStore(context) }
+    val sessionStore = remember { lapStore(context) }
     val profileStore = remember { DriverProfileStore(context) }
     val resolvedLookup: suspend (String) -> DriverProfile =
         lookupProfile ?: { GridStatsProfileClient { profileStore.apiKey }.fetch(it) }
@@ -60,7 +59,7 @@ internal fun DriverSection(
     fun assign(profile: DriverProfile?) {
         scope.launch {
             val updated = withContext(Dispatchers.IO) {
-                sessionStore.setDriver(LapId(sessionId), profile?.psnId)
+                sessionStore.setDriver(lapId, profile?.psnId)
             }
             if (updated == null) {
                 error = "Driver could not be saved."

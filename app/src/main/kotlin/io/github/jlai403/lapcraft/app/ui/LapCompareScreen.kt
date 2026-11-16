@@ -67,12 +67,12 @@ import io.github.jlai403.lapcraft.app.replay.probeClip
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
 import io.github.jlai403.lapcraft.core.clip.TrackProgress
 import io.github.jlai403.lapcraft.core.model.Sample
-import io.github.jlai403.lapcraft.core.playback.PlaybackCursor
+import io.github.jlai403.lapcraft.core.clip.LapClock
 import io.github.jlai403.lapcraft.core.session.LapMetadata
 import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LapStore
 import io.github.jlai403.lapcraft.core.session.toLapMetadata
-import io.github.jlai403.lapcraft.app.catalog.sessionStore
+import io.github.jlai403.lapcraft.app.catalog.lapStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -84,8 +84,7 @@ import kotlin.math.roundToLong
 internal val COMPARE_MAP_PANE_WIDTH = 320.dp
 
 private data class CompareLap(
-    val sessionId: String,
-    val lapIndex: Int,
+    val lapId: LapId,
     val trackLabel: String,
     val lap: LapMetadata,
     val samples: List<Sample>,
@@ -99,24 +98,22 @@ private data class CompareLap(
 @OptIn(UnstableApi::class)
 @Composable
 fun LapCompareScreen(
-    primarySessionId: String,
-    primaryLapIndex: Int,
-    referenceSessionId: String,
-    referenceLapIndex: Int,
+    primaryLapId: LapId,
+    referenceLapId: LapId,
     onBack: () -> Unit,
-    onAddClip: (String, Int) -> Unit,
+    onAddClip: (LapId) -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val store = remember { sessionStore(context) }
+    val store = remember { lapStore(context) }
     val settings = remember { SettingsStore(context) }
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
-    val primary by produceState<CompareLap?>(null, primarySessionId, primaryLapIndex) {
-        value = loadLap(store, primarySessionId, primaryLapIndex)
+    val primary by produceState<CompareLap?>(null, primaryLapId) {
+        value = loadLap(store, primaryLapId)
     }
-    val reference by produceState<CompareLap?>(null, referenceSessionId, referenceLapIndex) {
-        value = loadLap(store, referenceSessionId, referenceLapIndex)
+    val reference by produceState<CompareLap?>(null, referenceLapId) {
+        value = loadLap(store, referenceLapId)
     }
 
     val activity = remember(context) { context.findActivity() }
@@ -228,7 +225,7 @@ fun LapCompareScreen(
         durationMs = maxOf(probe.durationMs, loaded.lap.lapTimeMs + loaded.lap.leadInMs.toLong())
         frameStepMs = probe.frameMs
         frameDurationUs = probe.frameDurationUs
-        val start = PlaybackCursor.clipMs(0, loaded.lap.leadInMs, loaded.lap.syncOffsetMs)
+        val start = LapClock.forTrimmedLap(loaded.lap.leadInMs, loaded.lap.syncOffsetMs, loaded.lap.lapTimeMs).clipMs(0)
             .coerceIn(0L, durationMs)
         withContext(Dispatchers.Main) {
             player.setMediaItem(MediaItem.fromUri(Uri.fromFile(file)))
@@ -246,7 +243,7 @@ fun LapCompareScreen(
         val probe = withContext(Dispatchers.IO) { probeClip(file) }
         referenceDurationMs =
             maxOf(probe.durationMs, loaded.lap.lapTimeMs + loaded.lap.leadInMs.toLong())
-        val start = PlaybackCursor.clipMs(0, loaded.lap.leadInMs, loaded.lap.syncOffsetMs)
+        val start = LapClock.forTrimmedLap(loaded.lap.leadInMs, loaded.lap.syncOffsetMs, loaded.lap.lapTimeMs).clipMs(0)
             .coerceIn(0L, referenceDurationMs)
         withContext(Dispatchers.Main) {
             player.setMediaItem(MediaItem.fromUri(Uri.fromFile(file)))
@@ -287,7 +284,7 @@ fun LapCompareScreen(
     val displayedUs = displayedFrameUs(framesLive, scrubTargetMs, renderedUs, positionMs)
     val displayedMs = displayedUs / 1_000
     val primaryCursorMs = primaryLap?.let {
-        PlaybackCursor.telemetryMs(displayedMs, it.leadInMs, it.syncOffsetMs, it.lapTimeMs)
+        LapClock.forTrimmedLap(it.leadInMs, it.syncOffsetMs, it.lapTimeMs).telemetryMs(displayedMs)
     } ?: 0
 
     val primaryWindow = remember(primary) {
@@ -313,7 +310,7 @@ fun LapCompareScreen(
         alignment = alignment,
     )
     val referenceClipMs = reference?.let { loaded ->
-        PlaybackCursor.clipMs(referenceCursorMs, loaded.lap.leadInMs, loaded.lap.syncOffsetMs)
+        LapClock.forTrimmedLap(loaded.lap.leadInMs, loaded.lap.syncOffsetMs, loaded.lap.lapTimeMs).clipMs(referenceCursorMs.toInt())
             .coerceIn(0L, referenceDurationMs.coerceAtLeast(0L))
     } ?: 0L
 
@@ -339,7 +336,7 @@ fun LapCompareScreen(
     fun seekLap(targetMs: Long) {
         val lap = primaryLap ?: return
         val clamped = targetMs.coerceIn(0L, lap.lapTimeMs.toLong())
-        seekPrimary(PlaybackCursor.clipMs(clamped.toInt(), lap.leadInMs, lap.syncOffsetMs))
+        seekPrimary(LapClock.forTrimmedLap(lap.leadInMs, lap.syncOffsetMs, lap.lapTimeMs).clipMs(clamped.toInt()))
         primaryPlayer?.pause()
         scrubTargetMs = null
         primarySeeker.clearPending()
@@ -347,8 +344,8 @@ fun LapCompareScreen(
 
     fun scrubTarget(baseUs: Long, frames: Int): Long? {
         val lap = primaryLap ?: return null
-        val startMs = PlaybackCursor.clipMs(0, lap.leadInMs, lap.syncOffsetMs).coerceAtLeast(0)
-        val endMs = PlaybackCursor.clipMs(lap.lapTimeMs, lap.leadInMs, lap.syncOffsetMs)
+        val startMs = LapClock.forTrimmedLap(lap.leadInMs, lap.syncOffsetMs, lap.lapTimeMs).clipMs(0).coerceAtLeast(0)
+        val endMs = LapClock.forTrimmedLap(lap.leadInMs, lap.syncOffsetMs, lap.lapTimeMs).clipMs(lap.lapTimeMs)
             .coerceAtMost(durationMs.coerceAtLeast(0))
         return frameStepTargetMs(baseUs, frames, frameDurationUs)
             .coerceIn(startMs, endMs.coerceAtLeast(startMs))
@@ -429,7 +426,7 @@ fun LapCompareScreen(
                         cursorMs = primaryCursorMs,
                         imperial = settings.imperialUnits,
                         showHud = settings.telemetryHud,
-                        onAddClip = { onAddClip(primarySessionId, primaryLapIndex) },
+                        onAddClip = { onAddClip(primaryLapId) },
                         modifier = Modifier.weight(1f).fillMaxHeight(),
                     )
                     ComparePane(
@@ -440,7 +437,7 @@ fun LapCompareScreen(
                         cursorMs = referenceCursorMs,
                         imperial = settings.imperialUnits,
                         showHud = settings.telemetryHud,
-                        onAddClip = { onAddClip(referenceSessionId, referenceLapIndex) },
+                        onAddClip = { onAddClip(referenceLapId) },
                         modifier = Modifier.weight(1f).fillMaxHeight(),
                     )
                 }
@@ -469,7 +466,7 @@ fun LapCompareScreen(
                                 cursorMs = primaryCursorMs,
                                 follow = true,
                                 centeredFollow = true,
-                                reference = reference?.let { GhostLap(it.lap, it.samples) },
+                                reference = reference?.let { LoadedLap(it.lap, it.samples) },
                                 referenceCursorMs = referenceCursorMs,
                                 fillHeight = true,
                                 view = mapView,
@@ -480,7 +477,7 @@ fun LapCompareScreen(
                         CompareCharts(
                             samples = active.samples,
                             lap = active.lap,
-                            reference = reference?.let { GhostLap(it.lap, it.samples) },
+                            reference = reference?.let { LoadedLap(it.lap, it.samples) },
                             cursorMs = primaryCursorMs,
                             imperial = settings.imperialUnits,
                             alignment = alignment,
@@ -747,13 +744,12 @@ private fun newPlayer(context: Context): ExoPlayer =
 
 private suspend fun loadLap(
     store: LapStore,
-    sessionId: String,
-    lapIndex: Int,
+    lapId: LapId,
 ): CompareLap? = withContext(Dispatchers.IO) {
-    val record = store.load(LapId(sessionId)) ?: return@withContext null
-    val samples = runCatching { store.readSamples(LapId(sessionId)) }
+    val record = store.load(lapId) ?: return@withContext null
+    val samples = runCatching { store.readSamples(lapId) }
         .getOrDefault(emptyList())
-    val dir = store.lapDir(LapId(sessionId))
+    val dir = store.lapDir(lapId)
     val clip = File(dir, "replay.mp4").takeIf { it.isFile }
-    CompareLap(sessionId, lapIndex, record.circuitLabel, record.toLapMetadata(), samples, clip)
+    CompareLap(lapId, record.trackLabel, record.toLapMetadata(), samples, clip)
 }

@@ -1,6 +1,7 @@
 package io.github.jlai403.lapcraft.app.capture
 
 import io.github.jlai403.lapcraft.core.lap.LapBoundary
+import io.github.jlai403.lapcraft.core.lap.LapTimeSource
 import io.github.jlai403.lapcraft.core.model.Sample
 import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LapStore
@@ -57,7 +58,8 @@ class LapSaverTest {
         assertTrue(File(root, "laps/lap-test/lap.json").isFile)
         assertTrue(File(root, "laps/lap-test/lap.gt7lap").isFile)
         val record = LapStore(root).load(LapId(id))!!
-        assertTrue(record.circuitLabel.isNotEmpty() || true)
+        assertTrue(record.trackLabel.isNotEmpty() || true)
+        assertEquals(LapTimeSource.Reported, record.lapTimeSource)
     }
 
     @Test
@@ -90,6 +92,6 @@ class LapSaverTest {
 
         assertTrue(seen!!.isNotEmpty())
         assertTrue(seen!!.none { it.timeNanos < 0 })
-        assertEquals("Suzuka", LapStore(root).load(LapId(id))!!.circuitLabel)
+        assertEquals("Suzuka", LapStore(root).load(LapId(id))!!.trackLabel)
     }
 }

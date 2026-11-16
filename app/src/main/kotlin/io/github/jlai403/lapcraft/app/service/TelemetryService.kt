@@ -26,6 +26,7 @@ import io.github.jlai403.lapcraft.app.Diagnostics
 import io.github.jlai403.lapcraft.core.capture.CaptureState
 import io.github.jlai403.lapcraft.core.capture.LapCaptureCoordinator
 import io.github.jlai403.lapcraft.core.lap.LapBoundary
+import io.github.jlai403.lapcraft.core.lap.CurrentLap
 import io.github.jlai403.lapcraft.core.lap.LapDetector
 import io.github.jlai403.lapcraft.core.network.Ipv4
 import io.github.jlai403.lapcraft.core.protocol.Gt7Decoder
@@ -92,13 +93,12 @@ class TelemetryService : Service() {
     private fun handleCommand(intent: Intent?): Int {
         when (intent?.action) {
             ACTION_CAPTURE -> {
-                val start = lapDetector.currentLapStartNanos
+                val current = lapDetector.currentLap
                 if (::coordinator.isInitialized &&
                     state.value.connected &&
-                    lapDetector.currentLapStartObserved &&
-                    start != null
+                    current is CurrentLap.FromLine
                 ) {
-                    coordinator.requestCapture(start)
+                    coordinator.requestCapture(current.startNanos)
                 } else {
                     capture.value = CaptureState.Rejected("Cross the start line first")
                 }
@@ -147,8 +147,9 @@ class TelemetryService : Service() {
                     val driverProfiles = DriverProfileStore(this)
                     coordinator = LapCaptureCoordinator(
                         sink = LapSaver(
-                            sessionsDir = File(filesDir, "sessions"),
+                            sessionsDir = filesDir,
                             trackName = TrackCatalog(this)::identify,
+                            trackMatch = TrackCatalog(this)::match,
                             driverPsnId = { driverProfiles.owner()?.psnId },
                             carName = CarCatalog(this)::name,
                             eventTag = EventTagger(this)::tag,

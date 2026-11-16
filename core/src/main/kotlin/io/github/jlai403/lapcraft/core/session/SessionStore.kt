@@ -90,9 +90,10 @@ class SessionStore(
                 ?.takeIf { it.isNotBlank() }
                 ?.let { File(dir, it) }
                 ?.takeIf { it.isFile }
+            val id = if (session.laps.size == 1) session.sessionId else "${session.sessionId}-l${lap.index}"
             LapSummary(
-                sessionId = session.sessionId,
-                lapIndex = lap.index,
+                lapId = LapId(id),
+                trackId = "",
                 lapTimeMs = lap.lapTimeMs,
                 createdAt = session.createdAt,
                 trackLabel = session.trackLabel,

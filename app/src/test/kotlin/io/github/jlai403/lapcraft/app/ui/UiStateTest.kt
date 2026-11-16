@@ -52,7 +52,7 @@ class UiStateTest {
             sample(timeNanos = 1_000_000_000, steering = 1f),
         )
 
-        assertEquals(0.25f, window.sampleAt(lap, 250)!!.steering, 0.001f)
+        assertEquals(0.25f, window.sampleAt(lap, 250)!!.steering!!, 0.001f)
     }
 
     @Test

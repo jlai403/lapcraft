@@ -6,7 +6,8 @@ import io.github.jlai403.lapcraft.core.model.Sample
 import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LapRecord
 import io.github.jlai403.lapcraft.core.session.LapStore
-import io.github.jlai403.lapcraft.core.session.LapTimeSource
+import io.github.jlai403.lapcraft.core.lap.LapTimeSource
+import io.github.jlai403.lapcraft.core.track.TrackMatch
 import java.io.File
 import java.time.Instant
 import java.util.UUID
@@ -17,6 +18,7 @@ class LapSaver(
     private val idFactory: () -> String = { "lap-" + UUID.randomUUID() },
     private val clock: () -> Instant = { Instant.now() },
     private val trackName: (List<Sample>) -> String? = { null },
+    private val trackMatch: (List<Sample>) -> TrackMatch? = { null },
     private val driverPsnId: () -> String? = { null },
     private val carName: (Int) -> String? = { null },
     private val eventTag: (Int, String, Long, Int) -> io.github.jlai403.lapcraft.core.events.EventTag? = { _, _, _, _ -> null },
@@ -27,13 +29,15 @@ class LapSaver(
         val now = clock()
         val carCode = samples.lastOrNull()?.carCode ?: 0
         val lapSamples = samples.filter { it.timeNanos in boundary.startNanos..boundary.endNanos }
-        val resolvedTrack = trackName(lapSamples) ?: "Unknown"
+        val match = trackMatch(lapSamples)
+        val resolvedTrack = match?.name ?: trackName(lapSamples) ?: "Unknown"
+        val resolvedTrackId = match?.officialId ?: ""
         val record = LapRecord(
             capturedAt = now.toString(),
             lapTimeMs = boundary.lapTimeMs,
-            lapTimeSource = LapTimeSource.Reported,
-            circuitId = "",
-            circuitLabel = resolvedTrack,
+            lapTimeSource = boundary.lapTimeSource,
+            trackId = resolvedTrackId,
+            trackLabel = resolvedTrack,
             carCode = carCode,
             carName = carName(carCode) ?: "Car #$carCode",
             startTickNanos = boundary.startNanos,

@@ -161,17 +161,8 @@ Dialogs use Material 3 `AlertDialog`. Destructive confirmation labels are red; c
 - “GT7 stream” card: a health line (Streaming / Waiting / stale / low rate) with pps, errors, and packet age. While not connected it adds one hint: `Tap Connect to listen for GT7 telemetry.` or, when running, `GT7 sends telemetry only while a race or time trial is on screen.` `Show details` reveals packet ID, car code, flags, inputs, accepted packets, lap-event count, the last five events, and `Copy diagnostics`; copy includes version, build number, commit, and the current metrics.
 - Warnings render in an `errorContainer` banner.
 - “Console” card with the PS5 IP field, `Save IP`, and `Connect` / `Disconnect`. The field and Save are disabled while the listener runs; Disconnect is disabled while recording.
-- Full-width `Start recording` primary pill, enabled only while the stream is connected. A helper line under it states the next action: `Connect before recording.`, `Waiting for the first packet.`, `Recording begins when the car is on track.`, or `Tap Stop to finish the session.`
-- `Test 10 s` and `Stop` ghost pills; Stop is enabled only while recording.
-- “How to record” card: collapsed by default with a one-line summary and a `Show steps` pill; expands to nine numbered steps, then a red “Keep in mind” block covering the Chiaki-Up bar, screen lock, blocked audio, and the test-recording caveat. The steps are: hide Chiaki-Up's controls, park on track, Connect, wait for ~60 pps, Start recording.
-
-### Session
-
-- Header: track name, car subtitle, back button, `Rename` and red `Delete` ghost pills.
-- Summary line: `N laps · best M:SS.mmm` in green.
-- Recorded date in muted body small.
-- Lap card: circular “Lap N” badge, time as the dominant number, sample count, uncut warning, `Open` primary pill.
-- Secondary row: `Share MP4`, `Export CSV`.
+- `Start recording` is disabled until the stream is connected and the start line has been observed; the helper line states the next action. `Cancel` appears while capturing.
+- “How to record” card: collapsed by default; expands to the capture steps and the keep-in-mind block.
 
 ### Player
 
@@ -267,13 +258,14 @@ While Chiaki-Up is fullscreen the Record tab is not visible, and v0.1 has no ove
 | `ui/Theme.kt` | color, type, shape tokens |
 | `ui/Components.kt` | shared header, pills, chips, cards, segmented control |
 | `ui/App.kt` | tab state, safe-area root, bottom navigation |
-| `ui/LibraryScreen.kt` | session groups |
-| `ui/CaptureScreen.kt` | telemetry + arm controls |
-| `ui/SessionScreen.kt` | lap list and actions |
+| `ui/LibraryScreen.kt` | flat lap feed, compare mode, filters |
+| `ui/RecordScreen.kt` | telemetry + capture arm |
 | `ui/LapPlayerScreen.kt` | video, sync, charts, map |
 | `ui/LapCompareScreen.kt` | landscape two-lap comparison, track-progress sync |
+| `ui/ImportPickScreen.kt` / `ImportSyncScreen.kt` | clip attach and sync |
 | `ui/SettingsScreen.kt` | capture and unit settings |
 | `ui/TelemetryCharts.kt` | traces and track map |
+| `ui/EditLapSheet.kt` / `LapCard.kt` | lap editing and row presentation |
 | `res/font/` | bundled Geist Sans and Geist Mono TTF files |
 | `licenses/Geist-OFL.txt` | Geist OFL-1.1 license |
 | `MainActivity.kt` | edge-to-edge system bars, permissions, service wiring |

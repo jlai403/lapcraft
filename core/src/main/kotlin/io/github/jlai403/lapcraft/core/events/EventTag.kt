@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class EventTag(
     val id: String,
-    val kind: String, // daily | time-trial | championship
+    val kind: EventKind,
     val label: String,
     val series: String? = null,
     val round: Int? = null,

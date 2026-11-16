@@ -32,7 +32,7 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
 - The frame ruler only scrubs: a tap does nothing (no seek, no pause), and a horizontal drag past
   the touch slop steps frames from the playhead the drag started on. There is no jump-to-place.
 - Library is a flat feed: no cards/radii, `Hairline` dividers, `RowPressed` for pressed rows.
-- `DESIGN.md` is the visual/behaviour reference; `docs/specs/2026-11-10-pocket-sim-engineer.md` is the functional spec. The domain model lives in `docs/adr/` (ADRs) and `docs/domain-model-review.md` (living review log); `GLOSSARY.md` is the vocabulary.
+- `DESIGN.md` is the visual/behaviour reference; `docs/specs/2026-11-10-lapcraft.md` is the functional spec. The domain model lives in `docs/adr/` (ADRs) and `docs/domain-model-review.md` (living review log); `GLOSSARY.md` is the vocabulary.
 ## Replay storage
 
 - New imports are trimmed, then compacted with the Settings replay profile before `attachClip`.
@@ -128,6 +128,19 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
   `Primary`, same-track picks only, and a third pick replaces the reference.
 - Entry points are `Screen.Compare(...)`; the player's `Compare` pill and the library's compare action
   both route there, and `Add clip` returns through `ImportSync(returnToCompare = ...)`.
+
+## Domain model (current)
+
+- Lap identity is a `LapId` (directory name under `files/laps/`); `LapSummary`, `Screen` and `CaptureState.Saved` all carry it. `LapSummary` is a projection of `LapRecord`, keyed by `trackId`.
+- Replay state is derived from files present (`replay.mp4`/`source.mp4`), not fields; `LapRecord` keeps only `leadInMs` and `syncOffsetMs`.
+- Clip-to-lap mapping is a single `LapClock` (`core/clip`); `PlaybackCursor` and `ClipSync` are gone.
+- Track identity: `LapRecord.trackId` (official circuit id, empty when unidentified) + `trackLabel` (editable). `trackKey` falls back to the normalised label only when `trackId` is empty. `renameTrack` changes only the label.
+- `Sample.steering: Float?` (null = not recorded); codec version 2 with a presence byte; `packetId` is not persisted. Readers use `hasSteering()` (window scan for non-null) instead of thresholds.
+- Event tags: `EventTag.kind: EventKind`, `LapFilter.event: EventFilter` (sealed All/None/Kind). No magic `"none"` string.
+- `LapDetector` exposes a sealed `CurrentLap` (None/FromLine/MidLap) replacing the two volatile fields. `LapBoundary` carries `lapTimeSource`; `LapTimeSource` lives in `core/lap`.
+- `LoadedLap` (renamed from `GhostLap`) is "a lap with its samples decoded"; ghost/reference are roles.
+- Storage helpers: `lapStore(context)` (renamed from `sessionStore`); `SessionStore` remains as the legacy session-shaped reader for imports/migration.
+- New module file: `core/.../clip/LapClock.kt`, `core/.../events/EventKind.kt`, `core/.../events/EventFilter.kt`, `core/.../lap/LapTimeSource.kt`.
 
 ## Release
 

@@ -54,6 +54,7 @@ class LapDetectorTest {
         assertEquals(90_000, boundary?.lapTimeMs)
         assertEquals(0L, boundary?.startNanos)
         assertEquals(90_000_000_000L, boundary?.endNanos)
+        assertEquals(LapTimeSource.Reported, boundary?.lapTimeSource)
     }
 
     @Test
@@ -89,16 +90,17 @@ class LapDetectorTest {
         detector.onSample(sample(0, 1, packetId = 1))
         val boundary = detector.onSample(sample(75_000_000_000, 2, lastLapTimeMs = 0, packetId = 2))
         assertEquals(75_000, boundary?.lapTimeMs)
+        assertEquals(LapTimeSource.Measured, boundary?.lapTimeSource)
     }
 
     @Test
     fun `lap start is unobserved until a crossing happens`() {
         val detector = LapDetector()
         detector.onSample(sample(30_000_000_000, 1, packetId = 1))
-        assertFalse(detector.currentLapStartObserved)
+        assertTrue(detector.currentLap is CurrentLap.MidLap)
 
         detector.onSample(sample(90_000_000_000, 2, lastLapTimeMs = 60_000, packetId = 2))
-        assertTrue(detector.currentLapStartObserved)
+        assertTrue(detector.currentLap is CurrentLap.FromLine)
     }
 
     @Test
@@ -106,6 +108,6 @@ class LapDetectorTest {
         val detector = LapDetector()
         detector.onSample(sample(0, 3, packetId = 1))
         detector.onSample(sample(10_000_000_000, 1, packetId = 2))
-        assertFalse(detector.currentLapStartObserved)
+        assertTrue(detector.currentLap is CurrentLap.MidLap)
     }
 }

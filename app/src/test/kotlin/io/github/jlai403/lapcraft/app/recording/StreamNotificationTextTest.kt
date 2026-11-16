@@ -2,6 +2,7 @@ package io.github.jlai403.lapcraft.app.recording
 
 import io.github.jlai403.lapcraft.app.service.TelemetryUiState
 import io.github.jlai403.lapcraft.core.capture.CaptureState
+import io.github.jlai403.lapcraft.core.session.LapId
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -49,7 +50,7 @@ class StreamNotificationTextTest {
             "GT7 stream · saved 2:39.831",
             StreamNotificationText.streamSummary(
                 state(),
-                CaptureState.Saved(sessionId = "s1", lapTimeMs = 159_831),
+                CaptureState.Saved(lapId = LapId("s1"), lapTimeMs = 159_831),
             ),
         )
     }

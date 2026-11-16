@@ -10,15 +10,15 @@ Scope: the whole model, `core` plus how the app consumes it. Method: read the pe
 
 | # | Finding | Status |
 |---|---|---|
-| 1 | Lap identity is a `(sessionId, lapIndex)` pair used in about 20 places | done: `LapId` + per-lap directories (refactor/lap-record, merged) |
+| 1 | Lap identity is a `(sessionId, lapIndex)` pair used in about 20 places | done: `LapId` everywhere. `LapSummary`, `Screen`, `CaptureState.Saved` and the library key all carry a `LapId`; `sameLap` and the hardcoded index are gone. `LapMetadata`/`index` remains only as the legacy migration shape. |
 | 2 | Replay readiness is encoded in four overlapping fields with four derived read rules | done: fixed media names, state derived from the directory |
-| 3 | Track identity is an editable display string | accepted, ADR 0002, follow-up branch |
+| 3 | Track identity is an editable display string | done: `trackId` is populated at capture (via `TrackCatalog.match`), carried through `LapSummary`, and keys grouping, compare eligibility, fastest-per-track and the ghost. `renameTrack` changes only the label. `TrackNamer` backfills empty ids (VERSION 2). Archives keep the id. |
 | 4 | The session no longer describes anything the app does | done: flattened to one directory per lap (ADR 0001) |
-| 5 | Two independent clip-to-lap time mappings | open, recommendation below |
-| 6 | Missing steering is stored as `0f` | accepted, ADR 0003, follow-up branch |
-| 7 | Three time bases share `Ms` and `Nanos` names, and lap time has two sources | partly accepted: record fields renamed, detector part open |
-| 8 | The library row is a parallel definition of a lap, and filters are stringly typed | open, recommendation below |
-| 9 | Glossary and code disagree on three terms | resolved in the glossary rewrite; `GhostLap` rename open |
+| 5 | Two independent clip-to-lap time mappings | done: single `LapClock` in `core/clip`, `PlaybackCursor` and `ClipSync` removed; trim range and sync validation take the clock. |
+| 6 | Missing steering is stored as `0f` | done: `Sample.steering: Float?` (null = not recorded), codec version 2 with presence byte and v1 decode (all-zero heuristic), `packetId` dropped from the file, readers use `hasSteering()` instead of three thresholds. |
+| 7 | Three time bases share `Ms` and `Nanos` names, and lap time has two sources | done: per-lap wall clock from the flatten; `LapTimeSource` moved to `core/lap` and carried by `LapBoundary` so measured laps are no longer mislabelled `Reported`; detector state is a sealed `CurrentLap` (atomic start + observed flag). |
+| 8 | The library row is a parallel definition of a lap, and filters are stringly typed | done: identity half in `refactor/lap-row`; event half in `refactor/event-kind-and-loaded-lap` (`EventTag.kind: EventKind`, `LapFilter.event: EventFilter`, no magic `"none"` string). |
+| 9 | Glossary and code disagree on three terms | resolved in the glossary rewrite, except the track name: glossary says *Track id* and avoids *circuit id*, while code and ADR 0002 say `circuitId`. Settled in the docs truth-up branch: rename code to `trackId`/`trackLabel` (the field is dead and unwired, so the rename is free now and a schema migration later). `GhostLap` renamed to `LoadedLap`. |
 
 ### What was already sound
 
@@ -54,13 +54,13 @@ Problem. The identifier resolves a lap to an official circuit id plus a display 
 
 Evidence. `TrackCatalog.kt:24` returns only `analyze(samples).name`. `LapSummary.kt:54` defines `trackKey` from the label. `LibraryScreen.kt:224` and `LapPlayerScreen.kt:175` gate compare on it. `SessionStore.rename` rewrites it.
 
-Decision. Persist `circuitId` and `circuitLabel`, key grouping on the id, fall back to the normalised label only when no signature matched. ADR 0002.
+Decision. Persist `trackId` and `trackLabel`, key grouping on the id, fall back to the normalised label only when no signature matched. ADR 0002.
 
 ### 4. Session versus lap
 
 Problem. The spec still describes a session as a capture run owning laps, but capture has been one lap at a time since `4a61138`, and every new session holds exactly one lap. What remains session-scoped is the circuit, the car, the creation time, and a set of fields from the raw-recording era: `rawFile`, `audioFile`, `keepRaw`, `rawDeleted`, `recordingStartNanos`, and a second `syncOffsetMs` that nothing reads.
 
-Evidence. `docs/specs/2026-11-10-pocket-sim-engineer.md:56` ("one session containing one lap; legacy multi-lap sessions remain readable"). `SessionWriter.kt:52` writes the session offset into each lap. `LapSaver.kt:34` writes `rawFile = ""`. The lap record is also written twice, to `session.json:laps[]` and to `laps/lap-NNN.json`, and `LibraryArchive.importStaged` (`:174-186`) resolves the disagreement in favour of the file copy without documenting it.
+Evidence. `docs/specs/2026-11-10-lapcraft.md:56` ("one session containing one lap; legacy multi-lap sessions remain readable"). `SessionWriter.kt:52` writes the session offset into each lap. `LapSaver.kt:34` writes `rawFile = ""`. The lap record is also written twice, to `session.json:laps[]` and to `laps/lap-NNN.json`, and `LibraryArchive.importStaged` (`:174-186`) resolves the disagreement in favour of the file copy without documenting it.
 
 Decision. Flatten. One directory per lap, `files/laps/<lapId>/`. Re-adding a capture run later is a nullable `captureRunId` per lap. ADR 0001.
 
@@ -100,22 +100,24 @@ Recommendation. Make the row a projection of the lap record once the flatten lan
 
 - **Session** described a container the app no longer uses. Removed from the glossary, kept only as a legacy layout name in ADR 0001.
 - **Place alignment** exists in the glossary as `TrackProgress.align` and `Alignment`, and nowhere is it called that. The glossary entry now names the code path.
-- **Ghost** is `GhostLap` in code, and the same type is also passed as the comparison reference (`TelemetryChartsTest.kt:126`). Rename the type to `LoadedLap` or `LapWithSamples` and keep ghost and reference as roles. Open.
+- **Ghost** is `LoadedLap` in code now; ghost and reference remain roles, not types. Done in `refactor/event-kind-and-loaded-lap`.
 - New terms added: lap id, pending replay, track, track id, track label, sample, steering angle.
 
 ### Deliberately not doing
 
 - Value objects inside `Sample` (`Position`, `Tyres`, `Pedals`). The codec and interpolation would both change for readability alone.
 - Renaming `SessionStore` and the `sessions/` directory without the layout migration. Superseded by the flatten.
-- Dropping `packetId` from the sample file. It is wire dedupe only, but the saving is four bytes a sample and the codec change is already taken by ADR 0003. Fold it in there if convenient, otherwise leave it.
+- `packetId` is no longer persisted (codec v2); it remains on the in-memory `Sample` for live dedupe in `LapDetector`.
 - An ADR for exact seeks. The reasoning already sits in `AGENTS.md` and `DESIGN.md`, and nothing is about to change it.
 
-Note: spec `docs/specs/2026-11-10-pocket-sim-engineer.md` §9.2 and §9.5 still describe the legacy session layout and have not been rewritten for the flatten.
+Note: spec rewritten for the flatten in the docs cleanup; legacy layout remains documented as read-only in §9.5.
 
 ### Follow-up order agreed
 
 1. Docs: ADR 0001, 0002, 0003 and the glossary. Done.
 2. Branch `refactor/lap-record`: identity, flatten, migration, archive format 2, replay state, app call sites, `AGENTS.md` and spec §9.2 and §9.5. Done (merged).
-3. Branch for `circuitId`. Open.
-4. Branch for nullable steering and codec version 2. Open.
-5. Opportunistic: `LapClock`, detector state, `EventKind`, `LoadedLap`. Open.
+3. Branch for `trackId`. Done (merged).
+4. Branch for nullable steering and codec version 2. Done (merged).
+5. Opportunistic: `LapClock`, detector state, `EventKind`, `LoadedLap`. Done (merged).
+
+All findings closed as of 2026-11-16.

@@ -81,7 +81,7 @@ internal fun ChartColumn(
     imperial: Boolean = false,
     showSpeed: Boolean = true,
     showPedals: Boolean = true,
-    reference: GhostLap? = null,
+    reference: LoadedLap? = null,
     windowMs: Int = CHART_WINDOW_MS,
     modifier: Modifier = Modifier,
 ) {
@@ -99,7 +99,7 @@ internal fun ChartColumn(
     val referenceTable = remember(referenceWindow, reference) {
         reference?.let { TrackProgress.table(referenceWindow, it.lap.startNanos) }
     }
-    val hasSteering = remember(window) { window.any { abs(it.steering) > 0.001f } }
+    val hasSteering = remember(window) { window.any { it.steering != null } }
     val current = remember(window, lap, cursorMs) { window.sampleAt(lap, cursorMs) }
     val speedColor = MaterialTheme.colorScheme.secondary
     val throttleColor = MaterialTheme.colorScheme.primary
@@ -157,7 +157,7 @@ internal fun ChartColumn(
                         imperial = imperial,
                     )
                     if (hasSteering) {
-                        SteeringWheel(steering = sample.steering)
+                        SteeringWheel(steering = sample.steering ?: 0f)
                         Text(
                             "STEER",
                             style = MaterialTheme.typography.labelSmall,
@@ -372,11 +372,11 @@ internal fun TrackMap(
     samples: List<Sample>,
     lap: LapMetadata,
     cursorMs: Int,
-    ghost: GhostLap? = null,
+    ghost: LoadedLap? = null,
     showGhost: Boolean = true,
     follow: Boolean = false,
     centeredFollow: Boolean = false,
-    reference: GhostLap? = null,
+    reference: LoadedLap? = null,
     referenceCursorMs: Int = 0,
     fillHeight: Boolean = false,
     view: MapViewState = remember(follow) { MapViewState(if (follow) MAX_MAP_ZOOM else 1f) },
@@ -713,7 +713,7 @@ private data class CompareMetric(
 internal fun CompareCharts(
     samples: List<Sample>,
     lap: LapMetadata,
-    reference: GhostLap?,
+    reference: LoadedLap?,
     cursorMs: Int,
     imperial: Boolean,
     alignment: TrackProgress.Alignment? = null,

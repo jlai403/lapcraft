@@ -1,5 +1,7 @@
 package io.github.jlai403.lapcraft.core.session
 
+import io.github.jlai403.lapcraft.core.lap.LapTimeSource
+
 import io.github.jlai403.lapcraft.core.events.EventTag
 import io.github.jlai403.lapcraft.core.io.AtomicFiles
 import io.github.jlai403.lapcraft.core.model.Sample
@@ -53,7 +55,17 @@ open class LapStore(
 
     fun renameTrack(id: LapId, trackLabel: String): LapRecord? {
         val record = load(id) ?: return null
-        val updated = record.copy(circuitLabel = trackLabel)
+        val updated = record.copy(trackLabel = trackLabel)
+        save(id, updated)
+        return updated
+    }
+
+    fun setTrack(id: LapId, trackId: String, trackLabel: String): LapRecord? {
+        val record = load(id) ?: return null
+        val updated = record.copy(
+            trackId = trackId.ifBlank { record.trackId },
+            trackLabel = trackLabel.ifBlank { record.trackLabel },
+        )
         save(id, updated)
         return updated
     }
@@ -115,11 +127,11 @@ open class LapStore(
             val telemetryFile = File(dir, "lap.gt7lap").takeIf { it.isFile }
             val pendingFile = File(dir, "source.mp4").takeIf { it.isFile }
             LapSummary(
-                sessionId = id.value,
-                lapIndex = 1,
+                lapId = id,
                 lapTimeMs = record.lapTimeMs,
                 createdAt = record.capturedAt,
-                trackLabel = record.circuitLabel,
+                trackId = record.trackId,
+                trackLabel = record.trackLabel,
                 carName = carName(record.carCode) ?: record.carName,
                 hasReplay = replayFile != null,
                 replayPending = pendingFile != null,
@@ -199,8 +211,8 @@ open class LapStore(
                     capturedAt = session.createdAt,
                     lapTimeMs = lap.lapTimeMs,
                     lapTimeSource = LapTimeSource.Reported,
-                    circuitId = "",
-                    circuitLabel = session.trackLabel,
+                    trackId = "",
+                    trackLabel = session.trackLabel,
                     carCode = session.carCode,
                     carName = session.carName,
                     startTickNanos = lap.startNanos,

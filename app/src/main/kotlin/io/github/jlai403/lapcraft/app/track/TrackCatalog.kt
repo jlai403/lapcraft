@@ -22,6 +22,8 @@ class TrackCatalog(context: Context) {
 
     fun identify(samples: List<Sample>): String? = analyze(samples).name
 
+    fun match(samples: List<Sample>): TrackMatch = analyze(samples)
+
     fun candidates(samples: List<Sample>): List<TrackCandidate> = analyze(samples).candidates
 
     private fun analyze(samples: List<Sample>): TrackMatch {
