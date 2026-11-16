@@ -133,16 +133,17 @@ fun LibraryScreen(
     }
 
     LaunchedEffect(reload) {
+        laps = withContext(Dispatchers.IO) { store.summaries() }
         if (settings.trackIdentificationVersion < TrackNamer.VERSION) {
-            runCatching { namer.identifyUnknownLaps() }
+            runCatching { withContext(Dispatchers.IO) { namer.identifyUnknownLaps() } }
             settings.trackIdentificationVersion = TrackNamer.VERSION
+            laps = withContext(Dispatchers.IO) { store.summaries() }
         }
         val cache = EventCache(context)
         if (cache.isPolyphonyStale() || cache.isGridstatsStale()) {
             runCatching { EventRefresh.refresh(context) }
             cachedEvents = EventCache(context).events()
         }
-        laps = withContext(Dispatchers.IO) { store.summaries() }
         refreshing = false
     }
 
@@ -231,7 +232,7 @@ fun LibraryScreen(
 
     val all = laps
     val visible = all?.applyFilter(filter)?.applySort(sort)
-    val tracks = all?.distinctBy { it.trackKey }?.map { it.trackLabel }?.sorted().orEmpty()
+    val tracks = all?.distinctBy { it.trackKey }?.map { it.trackKey to it.trackLabel }?.sortedBy { it.second }.orEmpty()
     val rankable = all?.filter { it.trackLabel != TrackNamer.UNKNOWN }
     val fastest = rankable?.fastestPerTrack().orEmpty()
     val trackCounts = rankable?.groupingBy { it.trackKey }?.eachCount().orEmpty()
@@ -244,7 +245,7 @@ fun LibraryScreen(
     ) {
         ScreenHeader(
             title = "Library",
-            subtitle = summaryLine(all, tracks, previewEmpty),
+            subtitle = summaryLine(all, tracks.map { it.second }, previewEmpty),
             modifier = Modifier.padding(horizontal = 20.dp),
             actions = {
                 if (compareMode) {
@@ -292,7 +293,7 @@ fun LibraryScreen(
             ) {
                 Box {
                     GhostPill(
-                        text = filter.trackLabel ?: "All tracks",
+                        text = tracks.firstOrNull { it.first == filter.trackKey }?.second ?: "All tracks",
                         onClick = { trackMenu = true },
                         trailingIcon = Icons.Filled.KeyboardArrowDown,
                     )
@@ -300,15 +301,15 @@ fun LibraryScreen(
                         DropdownMenuItem(
                             text = { Text("All tracks") },
                             onClick = {
-                                filter = filter.copy(trackLabel = null)
+                                filter = filter.copy(trackKey = null)
                                 trackMenu = false
                             },
                         )
-                        tracks.forEach { track ->
+                        tracks.forEach { (key, label) ->
                             DropdownMenuItem(
-                                text = { Text(track) },
+                                text = { Text(label) },
                                 onClick = {
-                                    filter = filter.copy(trackLabel = track)
+                                    filter = filter.copy(trackKey = key)
                                     trackMenu = false
                                 },
                             )

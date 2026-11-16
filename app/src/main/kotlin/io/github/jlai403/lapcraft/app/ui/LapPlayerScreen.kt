@@ -146,7 +146,7 @@ fun LapPlayerScreen(
             val current = laps.firstOrNull { it.lapId == lapId } ?: return@withContext null
             val best = laps
                 .filter {
-                    it.trackLabel == current.trackLabel && it.lapId != lapId
+                    it.trackKey == current.trackKey && it.lapId != lapId
                 }
                 .minByOrNull { it.lapTimeMs } ?: return@withContext null
             val bestLap = store.load(best.lapId) ?: return@withContext null

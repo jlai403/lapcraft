@@ -12,7 +12,7 @@ Scope: the whole model, `core` plus how the app consumes it. Method: read the pe
 |---|---|---|
 | 1 | Lap identity is a `(sessionId, lapIndex)` pair used in about 20 places | done: `LapId` everywhere. `LapSummary`, `Screen`, `CaptureState.Saved` and the library key all carry a `LapId`; `sameLap` and the hardcoded index are gone. `LapMetadata`/`index` remains only as the legacy migration shape. |
 | 2 | Replay readiness is encoded in four overlapping fields with four derived read rules | done: fixed media names, state derived from the directory |
-| 3 | Track identity is an editable display string | accepted, ADR 0002. *Not* merely open: `LapRecord.circuitId`/`circuitLabel` already exist and are written empty by `LapSaver`, `LapStore` migration, and `LibraryArchive` (four call sites). The field is dead schema; no code reads it. Branch `feat/circuit-id` (rename to `trackId`/`trackLabel` first, see #9). |
+| 3 | Track identity is an editable display string | done: `trackId` is populated at capture (via `TrackCatalog.match`), carried through `LapSummary`, and keys grouping, compare eligibility, fastest-per-track and the ghost. `renameTrack` changes only the label. `TrackNamer` backfills empty ids (VERSION 2). Archives keep the id. |
 | 4 | The session no longer describes anything the app does | done: flattened to one directory per lap (ADR 0001) |
 | 5 | Two independent clip-to-lap time mappings | open, recommendation below. Defer until the sync screen is next touched. |
 | 6 | Missing steering is stored as `0f` | accepted, ADR 0003. Open branch `feat/steering-codec-v2`. |
@@ -116,6 +116,6 @@ Note: spec `docs/specs/2026-11-10-pocket-sim-engineer.md` §9.2 and §9.5 still 
 
 1. Docs: ADR 0001, 0002, 0003 and the glossary. Done.
 2. Branch `refactor/lap-record`: identity, flatten, migration, archive format 2, replay state, app call sites, `AGENTS.md` and spec §9.2 and §9.5. Done (merged).
-3. Branch for `trackId` (circuit-id work). Open.
+3. Branch for `trackId`. Done (merged).
 4. Branch for nullable steering and codec version 2. Open.
 5. Opportunistic: `LapClock`, detector state, `EventKind`, `LoadedLap`. Open.

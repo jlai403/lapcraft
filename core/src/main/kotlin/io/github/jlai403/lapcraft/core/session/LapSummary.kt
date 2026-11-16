@@ -7,6 +7,7 @@ data class LapSummary(
     val lapId: LapId,
     val lapTimeMs: Int,
     val createdAt: String,
+    val trackId: String = "",
     val trackLabel: String,
     val carName: String,
     val hasReplay: Boolean,
@@ -22,14 +23,14 @@ enum class LapSort { Newest, Fastest, Track, Event }
 
 data class LapFilter(
     val hasReplay: Boolean? = null,
-    val trackLabel: String? = null,
+    val trackKey: String? = null,
     val eventKind: String? = null,
     val eventId: String? = null,
 )
 
 fun List<LapSummary>.applyFilter(filter: LapFilter): List<LapSummary> = filter { lap ->
     (filter.hasReplay == null || lap.hasReplay == filter.hasReplay) &&
-        (filter.trackLabel == null || lap.trackKey == filter.trackLabel.trim().lowercase()) &&
+        (filter.trackKey == null || lap.trackKey == filter.trackKey) &&
         (filter.eventId == null || lap.event?.id == filter.eventId) &&
         (filter.eventKind == null ||
             (filter.eventKind == "none" && lap.event == null) ||
@@ -51,7 +52,7 @@ fun List<LapSummary>.fastestPerTrack(): Map<String, LapSummary> =
 
 /** Track labels are user-editable, so compare them trimmed and case-insensitively. */
 val LapSummary.trackKey: String
-    get() = trackLabel.trim().lowercase()
+    get() = trackId.ifBlank { trackLabel.trim().lowercase() }
 
 
 private fun parseInstant(value: String): Instant =

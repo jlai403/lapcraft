@@ -194,7 +194,7 @@ class LapSummaryTest {
         val withReplay = laps.applyFilter(LapFilter(hasReplay = true))
         assertEquals(listOf("s2"), withReplay.map { it.lapId.value })
 
-        val suzuka = laps.applyFilter(LapFilter(trackLabel = "Suzuka"))
+        val suzuka = laps.applyFilter(LapFilter(trackKey = "suzuka"))
         assertEquals(listOf("s1"), suzuka.map { it.lapId.value })
     }
 
@@ -263,7 +263,7 @@ class LapSummaryTest {
             summary("c", 92_000, "Monza", "2026-11-11T10:00:00Z"),
         )
 
-        val filtered = laps.applyFilter(LapFilter(trackLabel = " Suzuka "))
+        val filtered = laps.applyFilter(LapFilter(trackKey = "suzuka"))
 
         assertEquals(listOf("a", "b"), filtered.map { it.lapId.value })
     }

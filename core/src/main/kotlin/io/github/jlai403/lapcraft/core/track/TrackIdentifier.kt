@@ -76,7 +76,7 @@ object TrackIdentifier {
                 scored[resolved.name] = resolved
             }
         }
-        if (scored.isEmpty()) return TrackMatch(null, emptyList())
+        if (scored.isEmpty()) return TrackMatch(null, null, emptyList())
 
         val ranked = scored.entries.sortedByDescending { it.value.coverage }
         val offered = ranked
@@ -90,7 +90,8 @@ object TrackIdentifier {
         } else {
             null
         }
-        return TrackMatch(name, offered)
+        val officialId = if (name != null) best.officialId else null
+        return TrackMatch(name, officialId, offered)
     }
 
     private fun matchByBoxOnly(lap: TrackSignature, candidates: List<TrackSignature>): TrackMatch {
@@ -99,7 +100,9 @@ object TrackIdentifier {
         val offered = names.map { name ->
             TrackCandidate(name, gated.first { it.name == name }.officialId, 1f)
         }
-        return TrackMatch(names.singleOrNull(), offered)
+        val name = names.singleOrNull()
+        val officialId = name?.let { gated.firstOrNull { c -> c.name == name }?.officialId }
+        return TrackMatch(name, officialId, offered)
     }
 
     private fun resolve(lap: TrackSignature, candidate: TrackSignature): Scored? {

@@ -93,6 +93,7 @@ class SessionStore(
             val id = if (session.laps.size == 1) session.sessionId else "${session.sessionId}-l${lap.index}"
             LapSummary(
                 lapId = LapId(id),
+                trackId = "",
                 lapTimeMs = lap.lapTimeMs,
                 createdAt = session.createdAt,
                 trackLabel = session.trackLabel,
