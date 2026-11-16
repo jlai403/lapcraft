@@ -1,6 +1,7 @@
 package io.github.jlai403.lapcraft.core.capture
 
 import io.github.jlai403.lapcraft.core.lap.LapBoundary
+import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.model.Sample
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -48,7 +49,7 @@ class LapCaptureCoordinator(
         }
         val saved = sink.save(boundary, buffer.samplesFor(boundary))
         expectedStartNanos = null
-        state.value = CaptureState.Saved(saved, boundary.lapTimeMs)
+        state.value = CaptureState.Saved(LapId(saved), boundary.lapTimeMs)
         buffer.trimBefore(boundary.endNanos - KEEP_NANOS)
     }
 

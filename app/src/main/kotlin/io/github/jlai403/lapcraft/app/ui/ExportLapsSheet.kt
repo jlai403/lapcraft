@@ -35,9 +35,9 @@ internal fun ExportLapsSheet(
     onExport: (List<LapId>) -> Unit,
 ) {
     var selected by remember(laps) {
-        mutableStateOf(laps.map { LapId(it.sessionId) }.toSet())
+        mutableStateOf(laps.map { it.lapId }.toSet())
     }
-    val selectedLaps = laps.filter { LapId(it.sessionId) in selected }
+    val selectedLaps = laps.filter { it.lapId in selected }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
@@ -59,7 +59,7 @@ internal fun ExportLapsSheet(
                         selected = if (selected.size == laps.size) {
                             emptySet()
                         } else {
-                            laps.map { LapId(it.sessionId) }.toSet()
+                            laps.map { it.lapId }.toSet()
                         }
                     },
                     modifier = Modifier.testTag("export-laps-select-all"),
@@ -72,13 +72,13 @@ internal fun ExportLapsSheet(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 360.dp)) {
-                items(laps, key = { "${it.sessionId}-${it.lapIndex}" }) { lap ->
-                    val ref = LapId(lap.sessionId)
+                items(laps, key = { it.lapId.value }) { lap ->
+                    val ref = lap.lapId
                     val checked = ref in selected
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .testTag("export-lap-${lap.sessionId}-${lap.lapIndex}")
+                            .testTag("export-lap-${lap.lapId.value}")
                             .clickable {
                                 selected = if (checked) selected - ref else selected + ref
                             }
@@ -112,7 +112,7 @@ internal fun ExportLapsSheet(
                 } else {
                     "Export ${selected.size} lap${if (selected.size == 1) "" else "s"}"
                 },
-                onClick = { onExport(selectedLaps.map { LapId(it.sessionId) }) },
+                onClick = { onExport(selectedLaps.map { it.lapId }) },
                 modifier = Modifier.fillMaxWidth().testTag("export-laps-button"),
                 enabled = selected.isNotEmpty(),
             )

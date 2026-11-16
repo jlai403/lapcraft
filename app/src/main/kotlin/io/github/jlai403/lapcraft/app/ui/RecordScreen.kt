@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import io.github.jlai403.lapcraft.BuildConfig
 import io.github.jlai403.lapcraft.app.Diagnostics
 import io.github.jlai403.lapcraft.core.capture.CaptureState
+import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.network.Ipv4
 import io.github.jlai403.lapcraft.core.telemetry.TelemetryHealth
 
@@ -48,7 +49,7 @@ fun RecordScreen(
     onDisconnect: () -> Unit,
     onCapture: () -> Unit,
     onCancelCapture: () -> Unit,
-    onOpenLap: (String, Int) -> Unit,
+    onOpenLap: (LapId) -> Unit,
 ) {
     var ip by remember(state.ps5Ip) { mutableStateOf(state.ps5Ip) }
     var savedIp by remember { mutableStateOf<String?>(null) }
@@ -228,7 +229,7 @@ private fun CaptureCard(
     state: CaptureUiState,
     onCapture: () -> Unit,
     onCancelCapture: () -> Unit,
-    onOpenLap: (String, Int) -> Unit,
+    onOpenLap: (LapId) -> Unit,
 ) {
     val canCapture = state.connected && state.lapStartObserved
     val hint = when {
@@ -255,7 +256,7 @@ private fun CaptureCard(
                     )
                     GhostPill(
                         text = "View lap",
-                        onClick = { onOpenLap(capture.sessionId, 1) },
+                        onClick = { onOpenLap(capture.lapId) },
                         modifier = Modifier.weight(1f),
                     )
                 }

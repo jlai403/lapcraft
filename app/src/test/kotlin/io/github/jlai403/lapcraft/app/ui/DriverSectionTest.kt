@@ -46,8 +46,7 @@ class DriverSectionTest {
         compose.setContent {
             LapCraftTheme {
                 DriverSection(
-                    sessionId = "session-1",
-                    lapIndex = 1,
+                    lapId = LapId("session-1"),
                     driverPsnId = null,
                     onChanged = { changes++ },
                 )
@@ -72,8 +71,7 @@ class DriverSectionTest {
         compose.setContent {
             LapCraftTheme {
                 DriverSection(
-                    sessionId = "session-1",
-                    lapIndex = 1,
+                    lapId = LapId("session-1"),
                     driverPsnId = null,
                     onChanged = {},
                 )
@@ -95,8 +93,7 @@ class DriverSectionTest {
         compose.setContent {
             LapCraftTheme {
                 DriverSection(
-                    sessionId = "session-1",
-                    lapIndex = 1,
+                    lapId = LapId("session-1"),
                     driverPsnId = null,
                     onChanged = {},
                 )

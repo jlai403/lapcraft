@@ -26,7 +26,7 @@ import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
 import io.github.jlai403.lapcraft.app.profile.GridStatsProfileClient
 import io.github.jlai403.lapcraft.app.profile.countryFlagEmoji
 import io.github.jlai403.lapcraft.core.session.LapStore
-import io.github.jlai403.lapcraft.app.catalog.sessionStore
+import io.github.jlai403.lapcraft.app.catalog.lapStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
@@ -37,7 +37,7 @@ internal fun DriverProfileSection(
     val context = LocalContext.current
     val store = remember { DriverProfileStore(context) }
     val settings = remember { io.github.jlai403.lapcraft.app.settings.SettingsStore(context) }
-    val sessionStore = remember { sessionStore(context) }
+    val sessionStore = remember { lapStore(context) }
     val resolvedLookup: suspend (String) -> DriverProfile =
         lookupProfile ?: { GridStatsProfileClient { store.apiKey }.fetch(it) }
     val scope = rememberCoroutineScope()

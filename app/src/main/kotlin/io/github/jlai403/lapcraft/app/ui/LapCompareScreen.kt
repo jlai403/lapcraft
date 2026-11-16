@@ -72,7 +72,7 @@ import io.github.jlai403.lapcraft.core.session.LapMetadata
 import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LapStore
 import io.github.jlai403.lapcraft.core.session.toLapMetadata
-import io.github.jlai403.lapcraft.app.catalog.sessionStore
+import io.github.jlai403.lapcraft.app.catalog.lapStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -84,8 +84,7 @@ import kotlin.math.roundToLong
 internal val COMPARE_MAP_PANE_WIDTH = 320.dp
 
 private data class CompareLap(
-    val sessionId: String,
-    val lapIndex: Int,
+    val lapId: LapId,
     val trackLabel: String,
     val lap: LapMetadata,
     val samples: List<Sample>,
@@ -99,24 +98,22 @@ private data class CompareLap(
 @OptIn(UnstableApi::class)
 @Composable
 fun LapCompareScreen(
-    primarySessionId: String,
-    primaryLapIndex: Int,
-    referenceSessionId: String,
-    referenceLapIndex: Int,
+    primaryLapId: LapId,
+    referenceLapId: LapId,
     onBack: () -> Unit,
-    onAddClip: (String, Int) -> Unit,
+    onAddClip: (LapId) -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val store = remember { sessionStore(context) }
+    val store = remember { lapStore(context) }
     val settings = remember { SettingsStore(context) }
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
-    val primary by produceState<CompareLap?>(null, primarySessionId, primaryLapIndex) {
-        value = loadLap(store, primarySessionId, primaryLapIndex)
+    val primary by produceState<CompareLap?>(null, primaryLapId) {
+        value = loadLap(store, primaryLapId)
     }
-    val reference by produceState<CompareLap?>(null, referenceSessionId, referenceLapIndex) {
-        value = loadLap(store, referenceSessionId, referenceLapIndex)
+    val reference by produceState<CompareLap?>(null, referenceLapId) {
+        value = loadLap(store, referenceLapId)
     }
 
     val activity = remember(context) { context.findActivity() }
@@ -429,7 +426,7 @@ fun LapCompareScreen(
                         cursorMs = primaryCursorMs,
                         imperial = settings.imperialUnits,
                         showHud = settings.telemetryHud,
-                        onAddClip = { onAddClip(primarySessionId, primaryLapIndex) },
+                        onAddClip = { onAddClip(primaryLapId) },
                         modifier = Modifier.weight(1f).fillMaxHeight(),
                     )
                     ComparePane(
@@ -440,7 +437,7 @@ fun LapCompareScreen(
                         cursorMs = referenceCursorMs,
                         imperial = settings.imperialUnits,
                         showHud = settings.telemetryHud,
-                        onAddClip = { onAddClip(referenceSessionId, referenceLapIndex) },
+                        onAddClip = { onAddClip(referenceLapId) },
                         modifier = Modifier.weight(1f).fillMaxHeight(),
                     )
                 }
@@ -747,13 +744,12 @@ private fun newPlayer(context: Context): ExoPlayer =
 
 private suspend fun loadLap(
     store: LapStore,
-    sessionId: String,
-    lapIndex: Int,
+    lapId: LapId,
 ): CompareLap? = withContext(Dispatchers.IO) {
-    val record = store.load(LapId(sessionId)) ?: return@withContext null
-    val samples = runCatching { store.readSamples(LapId(sessionId)) }
+    val record = store.load(lapId) ?: return@withContext null
+    val samples = runCatching { store.readSamples(lapId) }
         .getOrDefault(emptyList())
-    val dir = store.lapDir(LapId(sessionId))
+    val dir = store.lapDir(lapId)
     val clip = File(dir, "replay.mp4").takeIf { it.isFile }
-    CompareLap(sessionId, lapIndex, record.trackLabel, record.toLapMetadata(), samples, clip)
+    CompareLap(lapId, record.trackLabel, record.toLapMetadata(), samples, clip)
 }

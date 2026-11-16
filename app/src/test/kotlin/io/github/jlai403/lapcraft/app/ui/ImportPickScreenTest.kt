@@ -42,7 +42,7 @@ class ImportPickScreenTest {
 
         compose.setContent {
             LapCraftTheme {
-                ImportPickScreen(uri = "content://replay", onPick = { _, _ -> }, onClose = {})
+                ImportPickScreen(uri = "content://replay", onPick = { _ -> }, onClose = {})
             }
         }
 
@@ -64,7 +64,7 @@ class ImportPickScreenTest {
             LapCraftTheme {
                 ImportPickScreen(
                     uri = "content://replay",
-                    onPick = { id, index -> picked = id to index },
+                    onPick = { id -> picked = id.value to 1 },
                     onClose = {},
                 )
             }

@@ -115,8 +115,7 @@ open class LapStore(
             val telemetryFile = File(dir, "lap.gt7lap").takeIf { it.isFile }
             val pendingFile = File(dir, "source.mp4").takeIf { it.isFile }
             LapSummary(
-                sessionId = id.value,
-                lapIndex = 1,
+                lapId = id,
                 lapTimeMs = record.lapTimeMs,
                 createdAt = record.capturedAt,
                 trackLabel = record.trackLabel,

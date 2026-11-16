@@ -10,6 +10,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
 import io.github.jlai403.lapcraft.core.profile.DriverProfile
+import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LapSummary
 import io.github.jlai403.lapcraft.core.track.TrackCandidate
 import org.junit.Assert.assertEquals
@@ -28,8 +29,7 @@ class EditLapSheetTest {
     val compose = createComposeRule()
 
     private val lap = LapSummary(
-        sessionId = "session-1",
-        lapIndex = 1,
+        lapId = LapId("session-1"),
         lapTimeMs = 90_000,
         createdAt = "2026-11-11T10:00:00Z",
         trackLabel = "Suzuka",
