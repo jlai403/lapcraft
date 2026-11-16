@@ -1,5 +1,8 @@
 package io.github.jlai403.lapcraft.core.session
 
+import io.github.jlai403.lapcraft.core.events.EventFilter
+import io.github.jlai403.lapcraft.core.events.EventKind
+
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
@@ -275,6 +278,23 @@ class LapSummaryTest {
         assertTrue(lap.lapId == summary("a", 80_000, "Suzuka", "2026-11-11T10:00:00Z").lapId)
         assertFalse(lap.lapId == summary("a2", 90_000, "Suzuka", "2026-11-11T10:00:00Z").lapId)
         assertFalse(lap.lapId == summary("b", 90_000, "Suzuka", "2026-11-11T10:00:00Z").lapId)
+    }
+
+    @Test
+    fun `event filter keeps only matching laps`() {
+        val tagged = summary("t", 90_000, "Suzuka", "2026-11-11T10:00:00Z").copy(
+            event = io.github.jlai403.lapcraft.core.events.EventTag(
+                id = "e1",
+                kind = EventKind.Daily,
+                label = "Daily",
+            )
+        )
+        val untagged = summary("u", 90_000, "Suzuka", "2026-11-11T10:00:00Z")
+        val laps = listOf(tagged, untagged)
+
+        assertEquals(listOf("t"), laps.applyFilter(LapFilter(event = EventFilter.Kind(EventKind.Daily))).map { it.lapId.value })
+        assertEquals(listOf("u"), laps.applyFilter(LapFilter(event = EventFilter.None)).map { it.lapId.value })
+        assertEquals(2, laps.applyFilter(LapFilter()).size)
     }
 
     private fun summary(
