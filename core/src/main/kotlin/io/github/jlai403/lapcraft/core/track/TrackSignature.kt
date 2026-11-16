@@ -23,4 +23,4 @@ data class TrackSignature(
 data class TrackCandidate(val name: String, val officialId: String, val coverage: Float)
 
 /** The automatic answer and the candidates worth offering the user. */
-data class TrackMatch(val name: String?, val candidates: List<TrackCandidate>)
+data class TrackMatch(val name: String?, val officialId: String? = null, val candidates: List<TrackCandidate> = emptyList())

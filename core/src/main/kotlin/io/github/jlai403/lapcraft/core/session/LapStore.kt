@@ -58,6 +58,16 @@ open class LapStore(
         return updated
     }
 
+    fun setTrack(id: LapId, trackId: String, trackLabel: String): LapRecord? {
+        val record = load(id) ?: return null
+        val updated = record.copy(
+            trackId = trackId.ifBlank { record.trackId },
+            trackLabel = trackLabel.ifBlank { record.trackLabel },
+        )
+        save(id, updated)
+        return updated
+    }
+
     fun setDriver(id: LapId, psnId: String?): LapRecord? {
         val record = load(id) ?: return null
         val updated = record.copy(driverPsnId = psnId?.trim()?.takeIf { it.isNotEmpty() })
@@ -118,6 +128,7 @@ open class LapStore(
                 lapId = id,
                 lapTimeMs = record.lapTimeMs,
                 createdAt = record.capturedAt,
+                trackId = record.trackId,
                 trackLabel = record.trackLabel,
                 carName = carName(record.carCode) ?: record.carName,
                 hasReplay = replayFile != null,

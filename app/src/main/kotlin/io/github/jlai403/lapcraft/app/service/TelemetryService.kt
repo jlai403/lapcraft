@@ -147,8 +147,9 @@ class TelemetryService : Service() {
                     val driverProfiles = DriverProfileStore(this)
                     coordinator = LapCaptureCoordinator(
                         sink = LapSaver(
-                            sessionsDir = File(filesDir, "sessions"),
+                            sessionsDir = filesDir,
                             trackName = TrackCatalog(this)::identify,
+                            trackMatch = TrackCatalog(this)::match,
                             driverPsnId = { driverProfiles.owner()?.psnId },
                             carName = CarCatalog(this)::name,
                             eventTag = EventTagger(this)::tag,
