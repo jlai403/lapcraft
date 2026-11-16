@@ -30,7 +30,7 @@ class PlaybackFooterTest {
             LapCraftTheme {
                 PlaybackFooter(
                     cursorMs = 1_000,
-                    lapTimeMs = 90_000,
+                    endMs = 90_000,
                     frameStepMs = 33,
                     enabled = true,
                     playing = false,
@@ -75,7 +75,7 @@ class PlaybackFooterTest {
             LapCraftTheme {
                 PlaybackFooter(
                     cursorMs = 1_000,
-                    lapTimeMs = 90_000,
+                    endMs = 90_000,
                     frameStepMs = 33,
                     enabled = true,
                     playing = false,

@@ -43,7 +43,7 @@ class LapClockTest {
     @Test
     fun `trimmed and anchor clocks agree`() {
         val trimmed = LapClock.forTrimmedLap(2_000, 0, 90_000)
-        val anchored = LapClock.forAnchor(2_000 + 90_000L, 90_000)
+        val anchored = LapClock.forLapStart(2_000L, 90_000)
         assertEquals(trimmed.telemetryMs(3_500), anchored.telemetryMs(3_500))
         assertEquals(trimmed.clipMs(30_000), anchored.clipMs(30_000))
         assertEquals(trimmed.trimInMs, anchored.trimInMs)

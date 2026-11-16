@@ -155,7 +155,7 @@ private fun TransportButton(
 @Composable
 internal fun PlaybackFooter(
     cursorMs: Int,
-    lapTimeMs: Int,
+    endMs: Int,
     frameStepMs: Long,
     enabled: Boolean,
     playing: Boolean,
@@ -174,6 +174,8 @@ internal fun PlaybackFooter(
     onSpeedChange: (Float) -> Unit,
     onStep: (Int) -> Unit = {},
     compact: Boolean = false,
+    clockLabel: String = "Lap",
+    lapMs: Int? = null,
 ) {
     Column(
         modifier = Modifier
@@ -202,7 +204,7 @@ internal fun PlaybackFooter(
                 FrameRuler(
                     valueMs = cursorMs.toLong(),
                     startMs = 0,
-                    endMs = lapTimeMs.toLong(),
+                    endMs = endMs.toLong(),
                     frameStepMs = frameStepMs,
                     enabled = enabled,
                     onScrubStart = onScrubStart,
@@ -224,11 +226,21 @@ internal fun PlaybackFooter(
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    NumericText(
-                        "%s / %s".format(formatMillis(cursorMs.toLong()), lapTimeLabel(lapTimeMs)),
+                    Row(
                         modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.labelMedium,
-                    )
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text(
+                            clockLabel,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        NumericText(
+                            "%s / %s".format(formatMillis(cursorMs.toLong()), lapTimeLabel(endMs)),
+                            style = MaterialTheme.typography.labelMedium,
+                        )
+                    }
                     FilterChip(
                         selected = looping,
                         onClick = onToggleLoop,
@@ -236,10 +248,26 @@ internal fun PlaybackFooter(
                     )
                     SpeedStepper(speed = speed, onSpeedChange = onSpeedChange)
                 }
+                lapMs?.let { ms ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text(
+                            "Lap",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        NumericText(
+                            lapTimeLabel(ms),
+                            style = MaterialTheme.typography.labelMedium,
+                        )
+                    }
+                }
                 FrameRuler(
                     valueMs = cursorMs.toLong(),
                     startMs = 0,
-                    endMs = lapTimeMs.toLong(),
+                    endMs = endMs.toLong(),
                     frameStepMs = frameStepMs,
                     enabled = enabled,
                     onScrubStart = onScrubStart,
@@ -283,14 +311,6 @@ private fun TransportControls(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        TransportButton(
-            icon = TransportIcons.SkipPrevious,
-            description = "Previous brake point",
-            enabled = enabled,
-            onClick = onRewind,
-            size = 36.dp,
-            iconSize = 20.dp,
-        )
         StepButton(
             text = "−1",
             onClick = { onStep(-1) },
@@ -301,6 +321,14 @@ private fun TransportControls(
             modifier = Modifier.testTag("frame-back"),
         )
         TransportButton(
+            icon = TransportIcons.SkipPrevious,
+            description = "Previous brake point",
+            enabled = enabled,
+            onClick = onRewind,
+            size = 36.dp,
+            iconSize = 20.dp,
+        )
+        TransportButton(
             icon = if (playing) TransportIcons.Pause else Icons.Filled.PlayArrow,
             description = if (playing) "Pause" else "Play",
             enabled = enabled,
@@ -308,6 +336,14 @@ private fun TransportControls(
             primary = true,
             size = 44.dp,
             iconSize = 24.dp,
+        )
+        TransportButton(
+            icon = TransportIcons.SkipNext,
+            description = "Next brake point",
+            enabled = enabled,
+            onClick = onForward,
+            size = 36.dp,
+            iconSize = 20.dp,
         )
         StepButton(
             text = "+1",
@@ -317,14 +353,6 @@ private fun TransportControls(
             compact = true,
             description = "Step forward one frame",
             modifier = Modifier.testTag("frame-forward"),
-        )
-        TransportButton(
-            icon = TransportIcons.SkipNext,
-            description = "Next brake point",
-            enabled = enabled,
-            onClick = onForward,
-            size = 36.dp,
-            iconSize = 20.dp,
         )
     }
 }

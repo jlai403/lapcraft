@@ -8,8 +8,8 @@ import org.junit.jupiter.api.Test
 
 class ClipSyncTest {
     @Test
-    fun `anchor at the line gives a lap-length trim`() {
-        val sync = LapClock.forAnchor(165_100, 159_831)
+    fun `start at the line gives a lap-length trim`() {
+        val sync = LapClock.forLapStart(5_269, 159_831)
         assertEquals(5_269L, sync.trimInMs)
         assertEquals(165_100L, sync.trimOutMs)
         assertEquals(0, sync.telemetryMs(5_269L))
@@ -19,20 +19,20 @@ class ClipSyncTest {
 
     @Test
     fun `clip shorter than the lap is blocked`() {
-        val sync = LapClock.forAnchor(150_000, 159_831)
+        val sync = LapClock.forLapStart(-9_831, 159_831)
         assertEquals(SyncCheck.ClipTooShort(missingMs = 9_831L), SyncValidator.check(sync, 170_000, 0f))
     }
 
     @Test
-    fun `anchor beyond the clip is blocked`() {
-        val sync = LapClock.forAnchor(180_000, 159_831)
+    fun `start past the clip end is blocked`() {
+        val sync = LapClock.forLapStart(20_169, 159_831)
         assertEquals(SyncCheck.ClipTooShort(missingMs = 10_000L), SyncValidator.check(sync, 170_000, 0f))
     }
 
     @Test
-    fun `start frame away from the line is blocked`() {
-        val sync = LapClock.forAnchor(165_100, 159_831)
-        assertEquals(SyncCheck.StartNotAtLine(41f), SyncValidator.check(sync, 170_000, 41f))
+    fun `finish frame away from the line is blocked`() {
+        val sync = LapClock.forLapStart(5_269, 159_831)
+        assertEquals(SyncCheck.EndNotAtLine(41f), SyncValidator.check(sync, 170_000, 41f))
         assertEquals(SyncCheck.Ok, SyncValidator.check(sync, 170_000, 0.4f))
         assertEquals(SyncCheck.Ok, SyncValidator.check(sync, 170_000, 99.6f))
     }

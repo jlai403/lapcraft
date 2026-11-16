@@ -59,12 +59,16 @@ Aligning a clip to its lap with an anchor and a confirmed start frame.
 _Avoid_: align, calibrate
 
 **Anchor**:
-The finish-line frame that ends the lap; trimming works backwards from it.
+The frame where the lap's HUD timer restarts (near 0:00.0); the clip runs one lap forward from it, and the anchor's offset (the timer value on that frame) pulls the start onto the line.
 _Avoid_: end marker, sync point
 
 **Start frame**:
-The frame one lap earlier than the anchor; the replay's first frame.
+Resolved clip time of the lap's first frame: `anchor − offset`. The replay's first frame.
 _Avoid_: clip start, sync start
+
+**Sync offset**:
+The HUD lap time shown on the anchor frame, typed as seconds.milliseconds (e.g. 0.019). It measures how far past the line the frame landed, and is folded into the stored lead-in.
+_Avoid_: frame nudge, residual
 
 **Lead-in**:
 Clip time before the start frame, kept when the keyframe cut lands early.

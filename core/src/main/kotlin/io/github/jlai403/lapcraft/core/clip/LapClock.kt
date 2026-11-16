@@ -17,7 +17,7 @@ data class LapClock(
         fun forTrimmedLap(leadInMs: Int, syncOffsetMs: Int, lapTimeMs: Int): LapClock =
             LapClock(leadInMs.toLong(), lapTimeMs, syncOffsetMs)
 
-        fun forAnchor(anchorMs: Long, lapTimeMs: Int): LapClock =
-            LapClock(anchorMs - lapTimeMs, lapTimeMs)
+        fun forLapStart(startMs: Long, lapTimeMs: Int): LapClock =
+            LapClock(startMs, lapTimeMs)
     }
 }

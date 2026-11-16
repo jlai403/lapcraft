@@ -31,6 +31,9 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
 - Replay clips live under `laps/<id>/replay.mp4` (new layout) or `sessions/<id>/laps/lap-NNN.mp4` (legacy, migrated on first launch); telemetry is `lap.gt7lap` (new) or `lap-NNN.gt7lap` (legacy).
 - The frame ruler only scrubs: a tap does nothing (no seek, no pause), and a horizontal drag past
   the touch slop steps frames from the playhead the drag started on. There is no jump-to-place.
+- Sync anchors the **lap start**: the frame where the HUD timer restarts near 0:00.0, plus a typed
+  offset (`0.019` = 19 ms) that pulls the trim start onto the line. `LapClock.forLapStart` and
+  `core/clip/SyncOffset`. The sync footer reads `Clip current / end` plus a second `Lap` row.
 - Library is a flat feed: no cards/radii, `Hairline` dividers, `RowPressed` for pressed rows.
 - `DESIGN.md` is the visual/behaviour reference; `docs/specs/2026-11-10-lapcraft.md` is the functional spec. The domain model lives in `docs/adr/` (ADRs) and `docs/domain-model-review.md` (living review log); `GLOSSARY.md` is the vocabulary.
 ## Replay storage
@@ -119,11 +122,13 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
 - The compare `Speed`/`Gear` row shows lap 1 / reference values plus a signed delta: speed delta
   is mint when lap 1 is faster and red when slower; gear delta is mint in a higher gear and red in
   a lower one (muted when equal).
-- `PlaybackFooter(compact = true)` is the shared footer for the compare and sync screens: one 48 dp
-  row with the frame steps beside Play, a 40 dp ruler, a `1×` rate cycle, and a loop icon. The
-  single-lap player keeps the taller layout. All three screens step via `ScrubSeeker` +
-  `scrubTargetMs`. `StepButton` reads its callback through `rememberUpdatedState`, since the
-  pointer-input gesture coroutine is only restarted when its keys or handler class change.
+- `PlaybackFooter(compact = true)` is the shared footer for the compare screen only: one 48 dp
+  row with the frame steps on the outside of the skip buttons, a 40 dp ruler, a `1×` rate cycle, and a
+  loop icon. The sync screen and the single-lap player keep the taller layout with a labelled clock
+  readout (`Clip`/`Lap` `current / end`, plus a second `Lap` row on the sync screen). All three
+  screens step via `ScrubSeeker` + `scrubTargetMs`. `StepButton` reads its callback through
+  `rememberUpdatedState`, since the pointer-input gesture coroutine is only restarted when its keys
+  or handler class change.
 - Library compare mode lives in `LibraryScreen`: header pill, row checkboxes, the first pick labelled
   `Primary`, same-track picks only, and a third pick replaces the reference.
 - Entry points are `Screen.Compare(...)`; the player's `Compare` pill and the library's compare action
@@ -140,7 +145,7 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
 - `LapDetector` exposes a sealed `CurrentLap` (None/FromLine/MidLap) replacing the two volatile fields. `LapBoundary` carries `lapTimeSource`; `LapTimeSource` lives in `core/lap`.
 - `LoadedLap` (renamed from `GhostLap`) is "a lap with its samples decoded"; ghost/reference are roles.
 - Storage helpers: `lapStore(context)` (renamed from `sessionStore`); `SessionStore` remains as the legacy session-shaped reader for imports/migration.
-- New module file: `core/.../clip/LapClock.kt`, `core/.../events/EventKind.kt`, `core/.../events/EventFilter.kt`, `core/.../lap/LapTimeSource.kt`.
+- New module file: `core/.../clip/LapClock.kt`, `core/.../clip/SyncOffset.kt`, `core/.../events/EventKind.kt`, `core/.../events/EventFilter.kt`, `core/.../lap/LapTimeSource.kt`.
 
 ## Release
 

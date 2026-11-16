@@ -22,6 +22,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -58,6 +59,7 @@ import io.github.jlai403.lapcraft.app.settings.estimatedOriginalBytes
 import io.github.jlai403.lapcraft.app.settings.replayProfile
 import io.github.jlai403.lapcraft.core.clip.LapClock
 import io.github.jlai403.lapcraft.core.clip.SyncCheck
+import io.github.jlai403.lapcraft.core.clip.SyncOffset
 import io.github.jlai403.lapcraft.core.clip.SyncValidator
 import io.github.jlai403.lapcraft.core.clip.TrackProgress
 import io.github.jlai403.lapcraft.core.clip.TrimPlan
@@ -121,6 +123,7 @@ fun ImportSyncScreen(
     var positionMs by remember { mutableLongStateOf(0L) }
     var renderedUs by remember { mutableLongStateOf(-1L) }
     var anchorMs by remember { mutableStateOf<Long?>(null) }
+    var offsetText by remember(sourceUri) { mutableStateOf("0.000") }
     var playing by remember { mutableStateOf(false) }
     var previewing by remember { mutableStateOf(false) }
     var playbackSpeed by remember { mutableStateOf(1f) }
@@ -211,7 +214,7 @@ fun ImportSyncScreen(
         }
         sourceFile = file
         val probe = withContext(Dispatchers.IO) { probeClip(file) }
-        val floor = loaded.lapTimeMs + loaded.leadInMs.toLong()
+        val floor = if (probe.durationMs <= 0L) loaded.lapTimeMs + loaded.leadInMs.toLong() else 0L
         durationMs = maxOf(probe.durationMs, floor)
         frameStepMs = probe.frameMs
         frameDurationUs = probe.frameDurationUs
@@ -230,12 +233,15 @@ fun ImportSyncScreen(
         }
         durationMs = maxOf(durationMs, reported)
         lap?.let { l ->
-            durationMs = maxOf(durationMs, l.lapTimeMs + l.leadInMs.toLong())
+            if (durationMs <= 0L) durationMs = maxOf(durationMs, l.lapTimeMs + l.leadInMs.toLong())
         }
-        val last = lastFrameMs(durationMs, frameStepMs)
-        anchorMs = last
+        val lapTime = (lap?.lapTimeMs ?: 0).toLong()
+        val suggested = (durationMs - lapTime).coerceIn(0L, durationMs.coerceAtLeast(0L))
+        val step = frameStepMs.coerceAtLeast(1L)
+        val snapped = (suggested / step) * step
+        anchorMs = snapped
         anchorSuggested = true
-        withContext(Dispatchers.Main) { seekTo(last) }
+        withContext(Dispatchers.Main) { seekTo(snapped) }
         started = true
     }
 
@@ -250,7 +256,7 @@ fun ImportSyncScreen(
     }
 
     LaunchedEffect(previewing) {
-        val range = trimRange(lap, anchorMs, durationMs)
+        val range = trimRange(lap, anchorMs, SyncOffset.parse(offsetText), durationMs)
         if (!previewing || range == null) {
             return@LaunchedEffect
         }
@@ -297,7 +303,14 @@ fun ImportSyncScreen(
         scrubTargetMs = target
         scrubSeeker.submit(target)
     }
-    val sync = if (currentLap != null && anchor != null) LapClock.forAnchor(anchor, currentLap.lapTimeMs) else null
+    val offsetMs = SyncOffset.parse(offsetText) ?: -1L
+    val offsetValid = offsetMs in 0..(frameStepMs.coerceAtLeast(1L) - 1)
+    val resolvedStart = if (anchor != null && offsetValid) anchor - offsetMs else null
+    val sync = if (currentLap != null && resolvedStart != null) {
+        LapClock.forLapStart(resolvedStart, currentLap.lapTimeMs)
+    } else {
+        null
+    }
     val lapWindow = currentLap?.let { samples.lapWindow(it) } ?: emptyList()
     val events = remember(lapWindow, currentLap) {
         currentLap?.let { lapEvents(lapWindow, it) } ?: emptyList()
@@ -330,7 +343,8 @@ fun ImportSyncScreen(
     } else {
         0
     }
-    val check = sync?.let { SyncValidator.check(it, durationMs, startTrackPercent = 0f) }
+    val endTrackPercent = currentLap?.let { TrackProgress.percentAt(samples, it.startNanos, it.lapTimeMs) }
+    val check = sync?.let { SyncValidator.check(it, durationMs, endTrackPercent = endTrackPercent ?: 0f) }
     val telemetryMs = sync?.telemetryMs(displayedMs)
     val trackPercent = if (currentLap != null && telemetryMs != null) {
         TrackProgress.percentAt(samples, currentLap.startNanos, telemetryMs)
@@ -374,9 +388,11 @@ fun ImportSyncScreen(
 
             Text(
                 buildString {
-                    append(formatMillis(displayedMs))
-                    if (trackPercent != null) append(" · %.1f%% lap".format(trackPercent))
-                    if (nearestSpeed != null) append(" · %.0f km/h".format(nearestSpeed * 3.6f))
+                    if (trackPercent != null) append("%.1f%% lap".format(trackPercent))
+                    if (nearestSpeed != null) {
+                        if (trackPercent != null) append(" · ")
+                        append("%.0f km/h".format(nearestSpeed * 3.6f))
+                    }
                 },
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.fillMaxWidth(),
@@ -399,35 +415,69 @@ fun ImportSyncScreen(
             currentLap?.let { activeLap ->
                 SectionCard(title = "Anchor") {
                     Text(
-                        "The finish line that ends this lap",
+                        "The first frame of the lap",
                         style = MaterialTheme.typography.titleMedium,
                     )
                     Text(
-                        "The clip is trimmed to exactly one lap (${lapTimeLabel(activeLap.lapTimeMs)}) " +
-                            "backwards from this frame. Get this frame right and the clip is right.",
+                        "The clip runs exactly one lap (${lapTimeLabel(activeLap.lapTimeMs)}) " +
+                            "forward from this frame. Get this frame right and the clip is right.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     MetricLine("Anchor", anchor?.let(::formatMillis) ?: "Not set")
                     if (anchorSuggested) {
                         Text(
-                            "Suggested at the clip's end — verify the front bumper is on the line, " +
-                                "or rewind and set it again.",
+                            "Suggested one lap back from the clip's end — check the HUD timer has " +
+                                "just restarted here, or set it again.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.primary,
                         )
                     }
+                    OutlinedTextField(
+                        value = offsetText,
+                        onValueChange = { offsetText = it },
+                        label = { Text("Lap timer on this frame") },
+                        singleLine = true,
+                        supportingText = {
+                            Text(
+                                when {
+                                    SyncOffset.parse(offsetText) == null && offsetText.isNotBlank() ->
+                                        "Type the timer as seconds.milliseconds, e.g. 0.019."
+                                    !offsetValid ->
+                                        "That's a whole frame or more — step back one frame instead."
+                                    else ->
+                                        "Copy the HUD lap time from this frame. The frame usually lands a " +
+                                            "few ms after the line, so 0:00.019 \u2192 0.019 starts the clip " +
+                                            "${SyncOffset.parse(offsetText)} ms earlier, on the line. " +
+                                            "Leave 0.000 when the timer reads 0:00.000."
+                                },
+                            )
+                        },
+                        isError = offsetText.isNotBlank() && (SyncOffset.parse(offsetText) == null || !offsetValid),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    if (anchor != null && offsetValid) {
+                        val start = anchor - (SyncOffset.parse(offsetText) ?: 0L)
+                        Text(
+                            "Starts on the line at ${formatMillis(start)} \u00b7 ends ${formatMillis(start + activeLap.lapTimeMs)}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                     TextButton(onClick = { tipsOpen = !tipsOpen }) {
-                        Text(if (tipsOpen) "Hide tips" else "How to find the finish frame")
+                        Text(if (tipsOpen) "Hide tips" else "How to find the start frame")
                     }
                     if (tipsOpen) {
                         AnchorTip(
-                            "Pause when the HUD lap timer freezes on " +
-                                "${lapTimeLabel(activeLap.lapTimeMs)} — the next lap starts just after.",
+                            "Pause on the frame where the HUD lap timer restarts near 0:00.0 — " +
+                                "that frame is the first of the lap.",
                         )
-                        AnchorTip("No lap timer? Frame-step until the front bumper touches the start/finish line.")
-                        AnchorTip("Record a few seconds before the start line: the whole lap must fit before the anchor.")
-                        AnchorTip("The playhead starts at the clip's end, so rewind instead of fast-forwarding.")
+                        AnchorTip(
+                            "Type the timer you see into the offset (0:00.019 \u2192 0.019) so the " +
+                                "clip starts on the line.",
+                        )
+                        AnchorTip("Still counting the previous lap's time? You're one frame too far back.")
+                        AnchorTip("Keep recording a few seconds past the finish: the whole lap must fit after the anchor.")
                     }
                     PrimaryPill(
                         text = "Set anchor at this frame",
@@ -449,36 +499,37 @@ fun ImportSyncScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 } else {
-                    MetricLine("Clip in", formatMillis(sync.trimInMs))
-                    MetricLine("Clip out", formatMillis(sync.trimOutMs))
+                    MetricLine("Start", formatMillis(sync.trimInMs))
+                    MetricLine("End", formatMillis(sync.trimOutMs))
                     MetricLine("Lap", lapTimeLabel(sync.lapTimeMs))
-                    range?.let { MetricLine("Start frame", formatMillis(it.startMs)) }
+                    range?.let { MetricLine("Anchor frame", formatMillis(it.endMs)) }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        GhostPill("Check start frame", {
+                        GhostPill("Check finish frame", {
                             range?.let {
-                                seekTo(it.startMs)
+                                seekTo(it.endMs)
                             }
                         }, Modifier.weight(1f))
                     }
                     Text(
-                        "Start and anchor are the same point on the track, one lap apart.",
+                        "The end of the clip lands back on the line, one lap after the anchor.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     when (val result = check) {
                         is SyncCheck.ClipTooShort -> Text(
-                            "The clip is %.1f s short of a full lap from this anchor — record more lead-in before the line."
+                            "The clip is %.1f s short of a full lap from this frame — keep recording past the finish line."
                                 .format(result.missingMs / 1_000.0),
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodySmall,
                         )
-                        is SyncCheck.StartNotAtLine -> Text(
-                            "Computed start is %.1f%% around the lap. Re-anchor at the line.".format(result.trackPercent),
+                        is SyncCheck.EndNotAtLine -> Text(
+                            "The clip's end lands %.1f%% around the lap, not on the line. Move the anchor."
+                                .format(result.trackPercent),
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodySmall,
                         )
                         else -> Text(
-                            "Check that the start frame shows the line, then save.",
+                            "Check that the finish frame shows the line, then save.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -603,14 +654,14 @@ fun ImportSyncScreen(
                         }
                     },
                     modifier = Modifier.weight(1f),
-                    enabled = check == SyncCheck.Ok && !saving,
+                    enabled = check == SyncCheck.Ok && offsetValid && !saving,
                 )
             }
         }
         if (durationMs > 0) {
             PlaybackFooter(
                 cursorMs = displayedMs.toInt(),
-                lapTimeMs = durationMs.toInt(),
+                endMs = durationMs.toInt(),
                 frameStepMs = frameStepMs,
                 enabled = durationMs > 0,
                 playing = playing,
@@ -618,6 +669,8 @@ fun ImportSyncScreen(
                 speed = playbackSpeed,
                 events = rulerEvents,
                 hapticsEnabled = hapticsEnabled,
+                clockLabel = "Clip",
+                lapMs = currentLap?.lapTimeMs,
                 onScrubStart = {
                     scrubBaseUs = displayedUs
                     scrubTargetMs = null
@@ -647,7 +700,6 @@ fun ImportSyncScreen(
                 onToggleLoop = { previewing = !previewing },
                 onSpeedChange = { playbackSpeed = it },
                 onStep = { frames -> stepFrames(frames) },
-                compact = true,
             )
         }
     }
@@ -748,9 +800,9 @@ private fun MetricLine(label: String, value: String) {
     }
 }
 
-private fun trimRange(lap: LapMetadata?, anchorMs: Long?, durationMs: Long) =
-    if (lap != null && anchorMs != null) {
-        TrimPlan.forSync(LapClock.forAnchor(anchorMs, lap.lapTimeMs), durationMs)
+private fun trimRange(lap: LapMetadata?, anchorMs: Long?, offsetMs: Long?, durationMs: Long) =
+    if (lap != null && anchorMs != null && offsetMs != null && offsetMs >= 0) {
+        TrimPlan.forSync(LapClock.forLapStart(anchorMs - offsetMs, lap.lapTimeMs), durationMs)
     } else {
         null
     }

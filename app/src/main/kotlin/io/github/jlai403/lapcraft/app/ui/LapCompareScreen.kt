@@ -485,7 +485,7 @@ fun LapCompareScreen(
             if (primaryPlayer != null) {
                 PlaybackFooter(
                     cursorMs = primaryCursorMs,
-                    lapTimeMs = primaryLap?.lapTimeMs ?: 0,
+                    endMs = primaryLap?.lapTimeMs ?: 0,
                     frameStepMs = frameStepMs,
                     enabled = durationMs > 0,
                     playing = playing,

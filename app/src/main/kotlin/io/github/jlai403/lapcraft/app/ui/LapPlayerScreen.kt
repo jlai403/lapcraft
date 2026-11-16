@@ -633,7 +633,7 @@ fun LapPlayerScreen(
         if (videoFile != null) {
             PlaybackFooter(
                 cursorMs = cursorMs,
-                lapTimeMs = currentLap.lapTimeMs,
+                endMs = currentLap.lapTimeMs,
                 frameStepMs = frameStepMs,
                 enabled = durationMs > 0,
                 playing = playing,

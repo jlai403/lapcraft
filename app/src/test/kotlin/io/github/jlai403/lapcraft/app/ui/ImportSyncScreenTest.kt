@@ -92,7 +92,7 @@ class ImportSyncScreenTest {
         }
 
         compose.waitUntil(TIMEOUT) {
-            compose.onAllNodesWithText("How to find the finish frame").fetchSemanticsNodes().isNotEmpty() &&
+            compose.onAllNodesWithText("How to find the start frame").fetchSemanticsNodes().isNotEmpty() &&
                 compose.onAllNodesWithTag("frame-forward").fetchSemanticsNodes().isNotEmpty()
         }
         compose.waitForIdle()
@@ -144,15 +144,15 @@ class ImportSyncScreenTest {
         }
 
         compose.waitUntil(TIMEOUT) {
-            compose.onAllNodesWithText("How to find the finish frame").fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithText("How to find the start frame").fetchSemanticsNodes().isNotEmpty()
         }
-        compose.onNodeWithText("How to find the finish frame").performScrollTo().performClick()
+        compose.onNodeWithText("How to find the start frame").performScrollTo().performClick()
         compose.waitUntil(TIMEOUT) {
             compose.onAllNodesWithText(
-                "No lap timer? Frame-step until the front bumper touches the start/finish line.",
+                "Still counting the previous lap's time? You're one frame too far back.",
             ).fetchSemanticsNodes().isNotEmpty()
         }
-        compose.onNodeWithText("The playhead starts at the clip's end, so rewind instead of fast-forwarding.")
+        compose.onNodeWithText("Keep recording a few seconds past the finish: the whole lap must fit after the anchor.")
             .assertExists()
     }
 
