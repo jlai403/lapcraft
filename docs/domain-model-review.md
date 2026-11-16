@@ -10,15 +10,15 @@ Scope: the whole model, `core` plus how the app consumes it. Method: read the pe
 
 | # | Finding | Status |
 |---|---|---|
-| 1 | Lap identity is a `(sessionId, lapIndex)` pair used in about 20 places | accepted, in the flatten branch |
-| 2 | Replay readiness is encoded in four overlapping fields with four derived read rules | accepted, falls out of fixed file names |
+| 1 | Lap identity is a `(sessionId, lapIndex)` pair used in about 20 places | done: `LapId` + per-lap directories (refactor/lap-record, merged) |
+| 2 | Replay readiness is encoded in four overlapping fields with four derived read rules | done: fixed media names, state derived from the directory |
 | 3 | Track identity is an editable display string | accepted, ADR 0002, follow-up branch |
-| 4 | The session no longer describes anything the app does | accepted, ADR 0001, flatten |
+| 4 | The session no longer describes anything the app does | done: flattened to one directory per lap (ADR 0001) |
 | 5 | Two independent clip-to-lap time mappings | open, recommendation below |
 | 6 | Missing steering is stored as `0f` | accepted, ADR 0003, follow-up branch |
-| 7 | Three time bases share `Ms` and `Nanos` names, and lap time has two sources | partly accepted, detector part open |
+| 7 | Three time bases share `Ms` and `Nanos` names, and lap time has two sources | partly accepted: record fields renamed, detector part open |
 | 8 | The library row is a parallel definition of a lap, and filters are stringly typed | open, recommendation below |
-| 9 | Glossary and code disagree on three terms | resolved in the glossary rewrite, two code renames open |
+| 9 | Glossary and code disagree on three terms | resolved in the glossary rewrite; `GhostLap` rename open |
 
 ### What was already sound
 
@@ -110,10 +110,12 @@ Recommendation. Make the row a projection of the lap record once the flatten lan
 - Dropping `packetId` from the sample file. It is wire dedupe only, but the saving is four bytes a sample and the codec change is already taken by ADR 0003. Fold it in there if convenient, otherwise leave it.
 - An ADR for exact seeks. The reasoning already sits in `AGENTS.md` and `DESIGN.md`, and nothing is about to change it.
 
+Note: spec `docs/specs/2026-11-10-pocket-sim-engineer.md` §9.2 and §9.5 still describe the legacy session layout and have not been rewritten for the flatten.
+
 ### Follow-up order agreed
 
-1. Docs: ADR 0001, 0002, 0003 and the glossary.
-2. Branch `refactor/lap-record`: identity, flatten, migration, archive format 2, replay state, app call sites, `AGENTS.md` and spec §9.2 and §9.5.
-3. Branch for `circuitId`.
-4. Branch for nullable steering and codec version 2.
-5. Opportunistic: `LapClock`, detector state, `EventKind`, `LoadedLap`.
+1. Docs: ADR 0001, 0002, 0003 and the glossary. Done.
+2. Branch `refactor/lap-record`: identity, flatten, migration, archive format 2, replay state, app call sites, `AGENTS.md` and spec §9.2 and §9.5. Done (merged).
+3. Branch for `circuitId`. Open.
+4. Branch for nullable steering and codec version 2. Open.
+5. Opportunistic: `LapClock`, detector state, `EventKind`, `LoadedLap`. Open.
