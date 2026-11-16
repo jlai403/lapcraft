@@ -4,7 +4,6 @@ import android.content.Context
 import java.io.File
 import java.time.Instant
 
-/** Append-only timeline that survives logcat rotation, so "why did it not stop" is answerable. */
 object Diagnostics {
     private const val MAX_BYTES = 256 * 1024
     private var file: File? = null

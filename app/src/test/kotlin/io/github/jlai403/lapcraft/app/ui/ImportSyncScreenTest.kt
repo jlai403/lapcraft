@@ -123,10 +123,6 @@ class ImportSyncScreenTest {
             compose.onAllNodesWithTag("frame-forward").fetchSemanticsNodes().isNotEmpty()
         }
 
-        // Pointer path (not the semantics performClick): exercise the real gesture handler.
-        // A frozen handler would compute its target from the first composition (0 ms) and
-        // never move the playhead; here we just assert the tap is consumed without crashing
-        // and the control stays enabled.
         compose.onNodeWithTag("frame-back").performTouchInput { click() }
         compose.waitForIdle()
         compose.onNodeWithTag("frame-back").assertExists()

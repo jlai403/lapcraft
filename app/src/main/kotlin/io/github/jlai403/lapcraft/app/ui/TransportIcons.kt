@@ -1,12 +1,13 @@
 package io.github.jlai403.lapcraft.app.ui
 
+// Material Symbols paths are vendored so the debug APK avoids the icons-extended artifact.
+
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.addPathNodes
 import androidx.compose.ui.unit.dp
 
-/** Material Symbols paths kept local so the debug APK avoids the icons-extended artifact. */
 internal object TransportIcons {
     val Pause: ImageVector = icon("Pause", "M6 19h4V5H6v14zm8-14v14h4V5h-4z")
     val Rewind: ImageVector = icon("Rewind", "M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z")

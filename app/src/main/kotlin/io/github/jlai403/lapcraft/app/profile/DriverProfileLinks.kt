@@ -3,7 +3,6 @@ package io.github.jlai403.lapcraft.app.profile
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
-/** Public profile pages; the app only opens these in the browser. */
 object DriverProfileLinks {
     val gridStatsHome: String = "https://gt-gridstats.com"
 

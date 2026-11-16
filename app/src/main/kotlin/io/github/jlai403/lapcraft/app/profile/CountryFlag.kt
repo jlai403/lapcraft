@@ -1,6 +1,5 @@
 package io.github.jlai403.lapcraft.app.profile
 
-/** Regional-indicator pair for a two-letter ISO country code, or null when unknown. */
 fun countryFlagEmoji(countryCode: String?): String? {
     val code = countryCode?.trim()?.uppercase() ?: return null
     if (code.length != 2 || code.any { it !in 'A'..'Z' }) return null

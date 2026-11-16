@@ -12,7 +12,6 @@ import java.io.File
 import java.time.Instant
 import java.util.UUID
 
-/** Writes a captured lap as its own record. Video is attached later. */
 class LapSaver(
     private val sessionsDir: File,
     private val idFactory: () -> String = { "lap-" + UUID.randomUUID() },

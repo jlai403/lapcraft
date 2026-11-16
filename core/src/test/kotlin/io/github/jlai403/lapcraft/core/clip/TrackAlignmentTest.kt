@@ -36,7 +36,6 @@ class TrackAlignmentTest {
         packetId = 0,
     )
 
-    /** Samples one metre apart along a polyline, one millisecond per metre. */
     private fun lapAlong(points: List<Pair<Double, Double>>, stepM: Double = 1.0): List<Sample> {
         val lengths = (1 until points.size).map { index ->
             hypot(points[index].first - points[index - 1].first, points[index].second - points[index - 1].second)

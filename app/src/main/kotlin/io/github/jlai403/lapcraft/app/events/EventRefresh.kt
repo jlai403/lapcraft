@@ -29,7 +29,6 @@ object EventRefresh {
         var polyphonyCount = 0
         var gridStatsCount = 0
 
-        // Polyphony CDN (official championship schedule). Gated by the event-tags toggle.
         if (settings.eventTags && (force || cache.isPolyphonyStale(now))) {
             try {
                 val url = "https://static.gt7.game.gran-turismo.com/championship/seasons/2/active.json"
@@ -39,8 +38,6 @@ object EventRefresh {
                 } else {
                     val events = PolyphonyCdnParser.parseActive(body)
                     if (events.isNotEmpty() || true) {
-                        // Stamp only on a successful 200 with a parseable body; a failed fetch
-                        // (null body) leaves the old timestamp so the next open retries.
                         cache.replacePolyphony(events, now)
                         polyphonyCount = events.size
                     }

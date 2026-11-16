@@ -80,7 +80,6 @@ import java.io.File
 import kotlin.math.abs
 import kotlin.math.roundToLong
 
-/** One side of the comparison: its metadata, telemetry window, and clip when one is attached. */
 internal val COMPARE_MAP_PANE_WIDTH = 320.dp
 
 private data class CompareLap(
@@ -91,10 +90,6 @@ private data class CompareLap(
     val clip: File?,
 )
 
-/**
- * Two same-track laps side by side. The primary owns the clock; the reference is
- * seeked to the primary's track progress, frame-exact, and never plays.
- */
 @OptIn(UnstableApi::class)
 @Composable
 fun LapCompareScreen(
@@ -220,8 +215,6 @@ fun LapCompareScreen(
         renderedUs = -1L
         scrubTargetMs = null
         val probe = withContext(Dispatchers.IO) { probeClip(file) }
-        // A clip is at least as long as its lap plus the lead-in; keep the controls
-        // usable when the platform cannot report a duration.
         durationMs = maxOf(probe.durationMs, loaded.lap.lapTimeMs + loaded.lap.leadInMs.toLong())
         frameStepMs = probe.frameMs
         frameDurationUs = probe.frameDurationUs
@@ -278,8 +271,6 @@ fun LapCompareScreen(
     }
 
     val primaryLap = primary?.lap
-    // While the ruler is under a finger, show the requested frame rather than the
-    // last one the decoder managed to render.
     val framesLive = tab == 0
     val displayedUs = displayedFrameUs(framesLive, scrubTargetMs, renderedUs, positionMs)
     val displayedMs = displayedUs / 1_000
@@ -314,7 +305,6 @@ fun LapCompareScreen(
             .coerceIn(0L, referenceDurationMs.coerceAtLeast(0L))
     } ?: 0L
 
-    // One seek per rendered primary frame, coalesced so a scrub cannot queue a storm.
     LaunchedEffect(referenceSeeker, referenceClipMs, tab) {
         if (tab != 0) return@LaunchedEffect
         if (referencePlayer == null || primaryPlayer == null) return@LaunchedEffect
@@ -710,7 +700,6 @@ private fun ComparePane(
     }
 }
 
-/** Lap time on the reference lap at the primary lap's place on track. */
 internal fun referenceCursor(
     primaryTable: TrackProgress.Table?,
     primaryCursorMs: Int,
@@ -724,7 +713,6 @@ internal fun referenceCursor(
         ?: 0
 }
 
-/** Which timestamp drives the cursor: the rendered frame on Video, the media clock otherwise. */
 internal fun displayedFrameUs(
     framesLive: Boolean,
     scrubTargetMs: Long?,

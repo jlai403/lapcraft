@@ -5,7 +5,6 @@ import io.github.jlai403.lapcraft.app.Diagnostics
 import io.github.jlai403.lapcraft.core.catalog.CarCatalogCodec
 import io.github.jlai403.lapcraft.core.catalog.CarInfo
 
-/** Loads the bundled GT7 car catalogue (car_code → name) from assets. */
 class CarCatalog(context: Context) {
     private val cars by lazy {
         runCatching {

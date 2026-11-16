@@ -12,7 +12,6 @@ import io.github.jlai403.lapcraft.core.model.Sample
 import io.github.jlai403.lapcraft.core.session.LapMetadata
 import kotlin.math.ceil
 
-/** A tiny unlabeled trace for the readout row and video HUD. */
 @Composable
 internal fun TelemetrySparkline(
     window: List<Sample>,
@@ -58,6 +57,5 @@ internal fun TelemetrySparkline(
     }
 }
 
-/** Maps a time inside [startMs]..[endMs] across the widget, not across the whole lap. */
 internal fun windowTimeToX(timeMs: Int, startMs: Int, endMs: Int, width: Float): Float =
     ((timeMs - startMs).toFloat() / (endMs - startMs).coerceAtLeast(1)).coerceIn(0f, 1f) * width

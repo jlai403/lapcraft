@@ -35,7 +35,6 @@ import io.github.jlai403.lapcraft.core.session.LapSummary
 import io.github.jlai403.lapcraft.core.events.EventKind
 import io.github.jlai403.lapcraft.core.track.TrackCandidate
 
-/** Track, driver, and replay for one lap, without leaving the library. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun EditLapSheet(

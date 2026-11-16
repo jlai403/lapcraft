@@ -243,7 +243,6 @@ fun SegmentedChoice(
     }
 }
 
-/** Numeric text in Geist Mono: lap times, speeds, RPM, offsets. */
 @Composable
 fun NumericText(
     text: String,

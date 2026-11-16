@@ -12,15 +12,11 @@ data class LapMetadata(
     val endNanos: Long,
     val sampleCount: Int,
     val videoFile: String,
-    /** Clip time before the start frame, kept when the keyframe cut lands early. */
     @SerialName("videoStartOffsetMs")
     val leadInMs: Int,
     val syncOffsetMs: Int = 0,
     val needsCut: Boolean = false,
-    /** Imported replay before trimming; null once the lap clip is attached or the import is discarded. */
     val sourceFile: String? = null,
-    /** PSN ID of the driver for this lap/replay; null for legacy laps. */
     val driverPsnId: String? = null,
-    /** Optional sport-mode event tag. */
     val event: io.github.jlai403.lapcraft.core.events.EventTag? = null,
 )

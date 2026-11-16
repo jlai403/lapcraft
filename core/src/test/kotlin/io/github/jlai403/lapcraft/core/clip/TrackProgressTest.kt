@@ -30,7 +30,6 @@ class TrackProgressTest {
         packetId = 0,
     )
 
-    /** 400 m square, one sample per 1% of the lap. */
     private fun squareLap(): List<Sample> {
         val side = 100.0
         return (0..100).map { index ->

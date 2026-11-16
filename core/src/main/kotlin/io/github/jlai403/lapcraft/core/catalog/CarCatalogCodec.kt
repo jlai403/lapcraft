@@ -4,7 +4,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-/** One entry in the bundled GT7 car catalogue (car_code → name). */
 @Serializable
 data class CarInfo(
     val code: Int,
@@ -13,7 +12,6 @@ data class CarInfo(
     val manufacturer: String? = null,
 )
 
-/** Decodes the bundled `car-catalog.json` shipped under app assets. */
 object CarCatalogCodec {
     private val json = Json { ignoreUnknownKeys = true }
 

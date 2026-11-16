@@ -146,7 +146,6 @@ open class LapStore(
 
     fun deleteScrubArtifacts(dir: File) {
         listOf(".tmp", ".bak", ".compact.mp4", ".reencode.mp4").forEach { suffix ->
-            // scrub temporaries are named after the clip base; with fixed names the base is "replay"
             File(dir, "replay.mp4" + suffix).delete()
             File(dir, "source.mp4" + suffix).delete()
         }

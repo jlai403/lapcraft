@@ -8,7 +8,6 @@ import io.github.jlai403.lapcraft.core.track.TrackIdentifier
 import io.github.jlai403.lapcraft.core.track.TrackMatch
 import io.github.jlai403.lapcraft.core.track.TrackSignatureCodec
 
-/** Loads the bundled CC0 signatures and names a lap from its coordinates. */
 class TrackCatalog(context: Context) {
     private val signatures by lazy {
         runCatching {

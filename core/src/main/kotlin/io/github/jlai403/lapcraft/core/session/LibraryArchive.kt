@@ -261,7 +261,6 @@ object LibraryArchive {
 
     private fun resolve(rootDir: File, id: LapId): Entry? {
         if (!ID_PATTERN.matches(id.value)) return null
-        // New layout: laps/<id>/lap.json
         val newDir = File(rootDir, "laps/${id.value}")
         val newLapFile = File(newDir, "lap.json")
         if (newLapFile.isFile) {
@@ -276,7 +275,6 @@ object LibraryArchive {
             }
             return Entry(id = id.value, lapJson = json.encodeToString(record), files = media)
         }
-        // Legacy layout: sessions/<sessionId> with lap index derived from the id.
         val (sessionId, index) = parseLegacyId(id.value) ?: return null
         val dir = File(rootDir, "sessions/$sessionId")
         val sessionFile = File(dir, "session.json")

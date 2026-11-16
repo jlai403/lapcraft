@@ -17,23 +17,20 @@ import io.github.jlai403.lapcraft.R
 
 val AccentMint = Color(0xFF34D399)
 val AccentCyan = Color(0xFF38BDF8)
-val AccentAmber = Color(0xFFFBBF24)  // reference lap in comparison charts/map, gear trace
+val AccentAmber = Color(0xFFFBBF24)
 val AccentRed = Color(0xFFF43F5E)
 
-/** Muted text colour (secondary text, icons, map line). */
 val GhostSlate = Color(0xFF94A3B8)
 val CrispWhite = Color(0xFFF8FAFC)
 val Ink = Color(0xFF0D1114)
 val Panel = Color(0xFF12181C)
 val PanelRaised = Color(0xFF1A2226)
 
-/** Library feed hairline: visible on Ink without reading as a border. */
 val Hairline = Color(0xFF2C3944)
 
-/** Pressed lap row, one step above the background. */
 val RowPressed = Color(0xFF12191E)
 
-/** Geist Sans for interface text. OFL-1.1; see licenses/Geist-OFL.txt. */
+// Geist Sans/Mono, OFL-1.1; see licenses/Geist-OFL.txt.
 val GeistSansFamily = FontFamily(
     Font(R.font.geist_regular, FontWeight.Normal),
     Font(R.font.geist_medium, FontWeight.Medium),
@@ -42,7 +39,6 @@ val GeistSansFamily = FontFamily(
     Font(R.font.geist_black, FontWeight.Black),
 )
 
-/** Geist Mono for lap times and telemetry values, so digits do not jitter. */
 val GeistMonoFamily = FontFamily(
     Font(R.font.geist_mono_regular, FontWeight.Normal),
     Font(R.font.geist_mono_medium, FontWeight.Medium),

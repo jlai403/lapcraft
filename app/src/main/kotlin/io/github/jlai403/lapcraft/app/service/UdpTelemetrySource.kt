@@ -46,7 +46,6 @@ class UdpTelemetrySource(
     private val decodeFailures = DecodeFailureLog()
     private var lastDecodeFailure = ""
 
-    /** Returns null on success, or a message when the address or socket cannot be used. */
     fun start(): String? {
         stop()
         val address = runCatching { InetAddress.getByName(host) }.getOrNull()

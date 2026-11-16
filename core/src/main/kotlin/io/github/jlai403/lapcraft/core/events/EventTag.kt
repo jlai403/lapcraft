@@ -2,7 +2,6 @@ package io.github.jlai403.lapcraft.core.events
 
 import kotlinx.serialization.Serializable
 
-/** A lap's optional sport-mode event tag. */
 @Serializable
 data class EventTag(
     val id: String,

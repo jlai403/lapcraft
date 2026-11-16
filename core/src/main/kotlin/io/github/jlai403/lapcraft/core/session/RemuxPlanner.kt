@@ -1,9 +1,7 @@
 package io.github.jlai403.lapcraft.core.session
 
-/** Requested clip range in the recording's microseconds time base. */
 data class ClipRange(val startUs: Long, val endUs: Long)
 
-/** Clip start after keyframe alignment, plus the offset to the start/finish line. */
 data class AlignedClip(val clipStartUs: Long, val leadInMs: Int)
 
 object RemuxPlanner {

@@ -9,7 +9,6 @@ import io.github.jlai403.lapcraft.core.track.TrackMatch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/** Names laps captured before track identification existed. */
 class TrackNamer(
     private val store: LapStore,
     private val catalog: TrackCatalog,
@@ -48,7 +47,6 @@ class TrackNamer(
     companion object {
         const val UNKNOWN = "Unknown"
 
-        /** Bumped when the matcher or bundled signatures change, so old laps are retried once. */
         const val VERSION = 2
     }
 }

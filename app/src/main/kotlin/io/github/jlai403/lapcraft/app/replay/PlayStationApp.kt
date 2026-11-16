@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 
-/** Opens the PlayStation App, or its store listing when it is not installed. */
 object PlayStationApp {
     const val PACKAGE = "com.scee.psxandroid"
 

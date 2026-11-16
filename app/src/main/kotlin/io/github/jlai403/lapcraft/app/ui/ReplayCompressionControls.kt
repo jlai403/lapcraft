@@ -31,7 +31,6 @@ import io.github.jlai403.lapcraft.app.settings.keyframesCaption
 import io.github.jlai403.lapcraft.app.settings.presetCaption
 import io.github.jlai403.lapcraft.app.settings.resolutionCaption
 
-/** The replay profile controls, shared by Settings (defaults) and the import screen (per lap). */
 @Composable
 internal fun ReplayCompressionControls(
     preset: ReplayPreset,

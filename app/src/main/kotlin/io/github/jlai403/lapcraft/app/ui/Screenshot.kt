@@ -10,7 +10,6 @@ import android.view.PixelCopy
 import io.github.jlai403.lapcraft.app.share.Sharing
 import java.io.File
 
-/** Captures the current window (video frame included) and shares it as a PNG. */
 internal fun shareScreenshot(context: Context, title: String, onError: (String) -> Unit) {
     val activity = context.findActivity()
     if (activity == null) {

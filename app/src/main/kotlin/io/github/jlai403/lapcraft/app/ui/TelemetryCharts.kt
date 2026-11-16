@@ -311,7 +311,6 @@ private fun DrawScope.drawTrace(
     line: TraceSeries,
 ) {
     if (points.isEmpty() || times.isEmpty()) return
-    // Keep only the samples that fall inside the visible window.
     val first = lowerBound(times, axis.startMs)
     val last = upperBound(times, axis.startMs + axis.windowMs) - 1
     if (last - first < 1) return
@@ -332,7 +331,6 @@ private fun DrawScope.drawTrace(
         }
         index += step
     }
-    // Always close the visible segment to its last sample.
     if (started && index - step != last) {
         val sample = points[last]
         val x = axis.xOf(times[last], size.width)
@@ -708,7 +706,6 @@ private data class CompareMetric(
     val maxValue: Float,
 )
 
-/** Five per-metric traces for a comparison: primary blue, reference yellow. */
 @Composable
 internal fun CompareCharts(
     samples: List<Sample>,
@@ -875,7 +872,6 @@ private fun MetricChart(
         }
     }
 }
-
 
 
 internal fun followAnchor(size: Size, centred: Boolean): Offset =

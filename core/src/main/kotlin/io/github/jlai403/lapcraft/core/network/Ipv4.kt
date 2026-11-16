@@ -1,7 +1,6 @@
 package io.github.jlai403.lapcraft.core.network
 
 object Ipv4 {
-    /** Returns a canonical dotted-quad address, or null when [raw] is not a valid IPv4 literal. */
     fun normalize(raw: String): String? {
         val parts = raw.trim().split('.')
         if (parts.size != 4) return null

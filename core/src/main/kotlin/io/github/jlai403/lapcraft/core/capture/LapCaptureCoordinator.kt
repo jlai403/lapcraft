@@ -9,10 +9,6 @@ fun interface LapSink {
     fun save(boundary: LapBoundary, samples: List<Sample>): String
 }
 
-/**
- * Captures exactly one lap. The caller requests the lap currently in progress and passes the
- * start crossing it observed; the next boundary that matches that start is saved.
- */
 class LapCaptureCoordinator(
     private val buffer: LapSampleBuffer = LapSampleBuffer(),
     private val sink: LapSink,
