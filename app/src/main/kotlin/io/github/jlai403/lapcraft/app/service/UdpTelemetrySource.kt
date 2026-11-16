@@ -1,6 +1,7 @@
 package io.github.jlai403.lapcraft.app.service
 
 import io.github.jlai403.lapcraft.core.lap.LapBoundary
+import io.github.jlai403.lapcraft.core.lap.CurrentLap
 import io.github.jlai403.lapcraft.core.lap.LapDetector
 import io.github.jlai403.lapcraft.core.model.Sample
 import io.github.jlai403.lapcraft.app.Diagnostics
@@ -143,7 +144,7 @@ class UdpTelemetrySource(
                 lastForeignSource = lastForeignSource,
                 lastDecodeFailure = lastDecodeFailure,
                 lastPacketAgeMs = lastPacket?.let { (nowNanos - it) / 1_000_000 } ?: -1,
-                lapStartObserved = lapDetector.currentLapStartObserved,
+                lapStartObserved = lapDetector.currentLap is CurrentLap.FromLine,
                 lapCount = sample?.lapCount ?: 0,
                 speedMps = sample?.speedMps ?: 0f,
                 gear = sample?.gear ?: 0,

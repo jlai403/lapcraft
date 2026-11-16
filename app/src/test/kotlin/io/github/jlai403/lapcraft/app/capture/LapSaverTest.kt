@@ -1,6 +1,7 @@
 package io.github.jlai403.lapcraft.app.capture
 
 import io.github.jlai403.lapcraft.core.lap.LapBoundary
+import io.github.jlai403.lapcraft.core.lap.LapTimeSource
 import io.github.jlai403.lapcraft.core.model.Sample
 import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LapStore
@@ -58,6 +59,7 @@ class LapSaverTest {
         assertTrue(File(root, "laps/lap-test/lap.gt7lap").isFile)
         val record = LapStore(root).load(LapId(id))!!
         assertTrue(record.trackLabel.isNotEmpty() || true)
+        assertEquals(LapTimeSource.Reported, record.lapTimeSource)
     }
 
     @Test

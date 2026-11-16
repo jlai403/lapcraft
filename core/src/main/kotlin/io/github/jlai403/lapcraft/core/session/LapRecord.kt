@@ -1,12 +1,10 @@
 package io.github.jlai403.lapcraft.core.session
 
+import io.github.jlai403.lapcraft.core.lap.LapTimeSource
+
 import io.github.jlai403.lapcraft.core.events.EventTag
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-
-/** Where a lap's time came from. GT7 reports it at the crossing; the app measures when the report is missing or implausible. */
-@Serializable
-enum class LapTimeSource { Reported, Measured }
 
 /**
  * One lap. Facts only; nothing about the container it used to live in, and nothing
