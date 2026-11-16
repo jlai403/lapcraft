@@ -55,15 +55,15 @@ Copying a clip into app storage.
 _Avoid_: upload, download
 
 **Sync**:
-Aligning a clip to its lap with an anchor and a confirmed start frame.
+Aligning a clip to its lap with a lap start and a confirmed start frame.
 _Avoid_: align, calibrate
 
-**Anchor**:
-The frame where the lap's HUD timer restarts (near 0:00.0); the clip runs one lap forward from it, and the anchor's offset (the timer value on that frame) pulls the start onto the line.
-_Avoid_: end marker, sync point
+**Lap start**:
+The frame where the car crosses the line and the lap begins. The clip runs one lap forward from it. When the HUD timer is counting up (0:00.xxx) on that frame, typing the time pulls the start onto the line; when it shows a lap time or the fastest-lap flash, the frame alone is the lap start.
+_Avoid_: anchor, sync point
 
 **Start frame**:
-Resolved clip time of the lap's first frame: `anchor − offset`. The replay's first frame.
+Resolved clip time of the lap's first frame: `lap start − offset`. The replay's first frame, after the timer's offset is applied.
 _Avoid_: clip start, sync start
 
 **Sync offset**:
@@ -75,7 +75,7 @@ Clip time before the start frame, kept when the keyframe cut lands early.
 _Avoid_: pre-roll, video start offset
 
 **Trim**:
-Cutting a synced clip to the span between the start frame and the anchor.
+Cutting a synced clip to one lap, from the start frame to the finish frame.
 _Avoid_: cut, crop
 
 **Attach**:

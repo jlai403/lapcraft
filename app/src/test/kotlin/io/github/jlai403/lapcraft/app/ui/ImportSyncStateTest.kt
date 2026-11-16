@@ -10,7 +10,7 @@ class ImportSyncStateTest {
             durationMs = 10_000,
             positionMs = 0,
             renderedMs = 0,
-            anchorMs = null,
+            lapStartMs = null,
             frameStepMs = 33,
         )
         assertEquals(33L, state.stepFrame(forward = true))
@@ -23,7 +23,7 @@ class ImportSyncStateTest {
             durationMs = 10_000,
             positionMs = 0,
             renderedMs = 0,
-            anchorMs = null,
+            lapStartMs = null,
             frameStepMs = 33,
         )
         assertEquals(9_967L, state.initialPosition())
@@ -35,7 +35,7 @@ class ImportSyncStateTest {
             durationMs = 0,
             positionMs = 0,
             renderedMs = 0,
-            anchorMs = null,
+            lapStartMs = null,
             frameStepMs = 33,
         )
         assertEquals(0L, state.initialPosition())
@@ -47,7 +47,7 @@ class ImportSyncStateTest {
             durationMs = 10_000,
             positionMs = 5_000,
             renderedMs = 5_000,
-            anchorMs = null,
+            lapStartMs = null,
             frameStepMs = 33,
         )
         assertEquals(10_000L, state.nudge(10_000))

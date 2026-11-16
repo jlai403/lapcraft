@@ -177,6 +177,9 @@ internal fun PlaybackFooter(
     compact: Boolean = false,
     clockLabel: String = "Lap",
     lapMs: Int? = null,
+    frameNumber: Int? = null,
+    frameTotal: Int? = null,
+    markersMs: List<Long> = emptyList(),
 ) {
     Column(
         modifier = Modifier
@@ -214,6 +217,7 @@ internal fun PlaybackFooter(
                     events = events,
                     showProgress = true,
                     onSeekFraction = onSeekFraction,
+                    markersMs = markersMs,
                     hapticsEnabled = hapticsEnabled,
                     compact = true,
                     modifier = Modifier.weight(1f),
@@ -263,6 +267,14 @@ internal fun PlaybackFooter(
                             lapTimeLabel(ms),
                             style = MaterialTheme.typography.labelMedium,
                         )
+                        if (frameNumber != null && frameTotal != null) {
+                            Spacer(Modifier.weight(1f))
+                            Text(
+                                framePositionLabel(frameNumber, frameTotal),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
                 }
                 FrameRuler(
@@ -277,6 +289,7 @@ internal fun PlaybackFooter(
                     events = events,
                     showProgress = true,
                     onSeekFraction = onSeekFraction,
+                    markersMs = markersMs,
                     hapticsEnabled = hapticsEnabled,
                 )
                 Box(modifier = Modifier.fillMaxWidth()) {
@@ -520,6 +533,7 @@ internal fun FrameRuler(
     onSeekFraction: (Float) -> Unit = {},
     hapticsEnabled: Boolean = true,
     compact: Boolean = false,
+    markersMs: List<Long> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
@@ -690,6 +704,17 @@ internal fun FrameRuler(
                 color = eventColors.getValue(event.type),
                 radius = 2.dp.toPx(),
                 center = Offset(x, 4.dp.toPx()),
+            )
+        }
+        markersMs.forEach { ms ->
+            if (ms < startMs || ms > endMs) return@forEach
+            val x = centerX + (ms - valueMs).toFloat() * pxPerMs
+            if (x < 0f || x > size.width) return@forEach
+            drawLine(
+                color = needleColor.copy(alpha = 0.6f),
+                start = Offset(x, needleTop),
+                end = Offset(x, baseline),
+                strokeWidth = 2.dp.toPx(),
             )
         }
         if (showProgress) {

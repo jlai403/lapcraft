@@ -11,6 +11,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -26,7 +27,7 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35], application = Application::class)
+@Config(sdk = [35], application = Application::class, qualifiers = "w411dp-h891dp")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class ImportSyncScreenTest {
     @get:Rule
@@ -92,7 +93,7 @@ class ImportSyncScreenTest {
         }
 
         compose.waitUntil(TIMEOUT) {
-            compose.onAllNodesWithText("How to find the start frame").fetchSemanticsNodes().isNotEmpty() &&
+            compose.onAllNodesWithText("How to find the lap start").fetchSemanticsNodes().isNotEmpty() &&
                 compose.onAllNodesWithTag("frame-forward").fetchSemanticsNodes().isNotEmpty()
         }
         compose.waitForIdle()
@@ -100,7 +101,7 @@ class ImportSyncScreenTest {
         compose.onNodeWithContentDescription("Previous brake point").assertExists()
         compose.onNodeWithContentDescription("Next brake point").assertExists()
         compose.onNodeWithContentDescription("Play").assertExists()
-        compose.onNodeWithText("Anchor: the finish-line frame that ends the lap").assertExists()
+        compose.onNodeWithText("The lap start is the first frame of the lap. The replay and telemetry are clamped to it.").assertExists()
         compose.onNodeWithContentDescription("Step back one frame").assertExists()
         compose.onNodeWithContentDescription("Step forward one frame").assertExists()
     }
@@ -144,15 +145,14 @@ class ImportSyncScreenTest {
         }
 
         compose.waitUntil(TIMEOUT) {
-            compose.onAllNodesWithText("How to find the start frame").fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithText("How to find the lap start").fetchSemanticsNodes().isNotEmpty()
         }
-        compose.onNodeWithText("How to find the start frame").performScrollTo().performClick()
+        compose.onNodeWithText("How to find the lap start").performScrollTo().performClick()
+        compose.waitForIdle()
         compose.waitUntil(TIMEOUT) {
-            compose.onAllNodesWithText(
-                "Still counting the previous lap's time? You're one frame too far back.",
-            ).fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithText("Hide tips").fetchSemanticsNodes().isNotEmpty()
         }
-        compose.onNodeWithText("Keep recording a few seconds past the finish: the whole lap must fit after the anchor.")
+        compose.onNodeWithText("Record a few seconds past the finish so the whole lap fits after the start.")
             .assertExists()
     }
 
@@ -176,6 +176,7 @@ class ImportSyncScreenTest {
             compose.onAllNodesWithText("REPLAY QUALITY").fetchSemanticsNodes().isNotEmpty()
         }
         compose.onNodeWithText("Change").performScrollTo().performClick()
+        compose.waitForIdle()
         compose.onNodeWithText("Preset").assertExists()
         compose.onNodeWithText("1080p HEVC ~5 Mbps", substring = true).assertExists()
     }

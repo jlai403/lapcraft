@@ -4,7 +4,7 @@ data class ImportSyncState(
     val durationMs: Long,
     val positionMs: Long,
     val renderedMs: Long,
-    val anchorMs: Long?,
+    val lapStartMs: Long?,
     val frameStepMs: Long,
 ) {
     fun stepFrame(forward: Boolean): Long {

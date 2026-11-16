@@ -31,9 +31,10 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
 - Replay clips live under `laps/<id>/replay.mp4` (new layout) or `sessions/<id>/laps/lap-NNN.mp4` (legacy, migrated on first launch); telemetry is `lap.gt7lap` (new) or `lap-NNN.gt7lap` (legacy).
 - The frame ruler only scrubs: a tap does nothing (no seek, no pause), and a horizontal drag past
   the touch slop steps frames from the playhead the drag started on. There is no jump-to-place.
-- Sync anchors the **lap start**: the frame where the HUD timer restarts near 0:00.0, plus a typed
-  offset (`0.019` = 19 ms) that pulls the trim start onto the line. `LapClock.forLapStart` and
-  `core/clip/SyncOffset`. The sync footer reads `Clip current / end` plus a second `Lap` row.
+- Sync sets the **lap start**: the frame where the car crosses the line, plus an optional typed
+  offset (`0.019` = 19 ms) that pulls the trim start onto the line when the HUD timer is counting.
+  `LapClock.forLapStart` and `core/clip/SyncOffset`. The sync footer reads `Clip current / end`
+  plus a second `Lap` row.
 - Library is a flat feed: no cards/radii, `Hairline` dividers, `RowPressed` for pressed rows.
 - `DESIGN.md` is the visual/behaviour reference; `docs/specs/2026-11-10-lapcraft.md` is the functional spec. The domain model lives in `docs/adr/` (ADRs) and `docs/domain-model-review.md` (living review log); `GLOSSARY.md` is the vocabulary.
 ## Replay storage
