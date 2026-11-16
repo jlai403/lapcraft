@@ -1,6 +1,7 @@
 package io.github.jlai403.lapcraft.app.events
 
 import io.github.jlai403.lapcraft.core.events.CachedEvent
+import io.github.jlai403.lapcraft.core.events.EventKind
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -42,7 +43,7 @@ object PolyphonyCdnParser {
                 out.add(
                     CachedEvent(
                         id = id,
-                        kind = "championship",
+                        kind = EventKind.Championship,
                         label = "$title · R$roundId",
                         series = series,
                         round = roundId,

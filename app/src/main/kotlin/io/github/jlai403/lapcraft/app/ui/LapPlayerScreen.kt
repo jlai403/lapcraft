@@ -140,7 +140,7 @@ fun LapPlayerScreen(
             store.summaries().firstOrNull { it.lapId == lapId }
         }
     }
-    val ghost by produceState<GhostLap?>(null, lapId, sessionReload) {
+    val ghost by produceState<LoadedLap?>(null, lapId, sessionReload) {
         value = withContext(Dispatchers.IO) {
             val laps = store.summaries()
             val current = laps.firstOrNull { it.lapId == lapId } ?: return@withContext null
@@ -153,7 +153,7 @@ fun LapPlayerScreen(
             val bestSamples = runCatching {
                 store.readSamples(best.lapId)
             }.getOrDefault(emptyList())
-            if (bestSamples.isEmpty()) null else GhostLap(bestLap.toLapMetadata(), bestSamples)
+            if (bestSamples.isEmpty()) null else LoadedLap(bestLap.toLapMetadata(), bestSamples)
         }
     }
 

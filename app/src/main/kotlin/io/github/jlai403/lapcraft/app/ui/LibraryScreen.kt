@@ -50,6 +50,8 @@ import io.github.jlai403.lapcraft.app.settings.SettingsStore
 import io.github.jlai403.lapcraft.app.share.LibraryTransfer
 import io.github.jlai403.lapcraft.app.track.TrackCatalog
 import io.github.jlai403.lapcraft.app.track.TrackNamer
+import io.github.jlai403.lapcraft.core.events.EventFilter
+import io.github.jlai403.lapcraft.core.events.EventKind
 import io.github.jlai403.lapcraft.core.session.LapFilter
 import io.github.jlai403.lapcraft.core.session.LapSort
 import io.github.jlai403.lapcraft.core.session.LapSummary
@@ -326,22 +328,22 @@ fun LibraryScreen(
                         DropdownMenuItem(
                             text = { Text("All events") },
                             onClick = {
-                                filter = filter.copy(eventKind = null, eventId = null)
+                                filter = filter.copy(event = EventFilter.All, eventId = null)
                                 eventMenu = false
                             },
                         )
                         DropdownMenuItem(
                             text = { Text("Untagged") },
                             onClick = {
-                                filter = filter.copy(eventKind = "none", eventId = null)
+                                filter = filter.copy(event = EventFilter.None, eventId = null)
                                 eventMenu = false
                             },
                         )
-                        listOf("daily", "time-trial", "championship").forEach { kind ->
+                        EventKind.entries.forEach { kind ->
                             DropdownMenuItem(
-                                text = { Text(kind.replaceFirstChar { it.uppercase() }.replace("-", " ")) },
+                                text = { Text(kind.label) },
                                 onClick = {
-                                    filter = filter.copy(eventKind = kind, eventId = null)
+                                    filter = filter.copy(event = EventFilter.Kind(kind), eventId = null)
                                     eventMenu = false
                                 },
                             )
@@ -353,7 +355,7 @@ fun LibraryScreen(
                                 DropdownMenuItem(
                                     text = { Text(label) },
                                     onClick = {
-                                        filter = filter.copy(eventKind = null, eventId = ev.id)
+                                        filter = filter.copy(event = EventFilter.All, eventId = ev.id)
                                         eventMenu = false
                                     },
                                 )
@@ -724,11 +726,11 @@ private val LapSort.label: String
     }
 
 private fun eventFilterLabel(filter: LapFilter, events: List<CachedEvent>): String {
-    val kind = filter.eventKind
+    val event = filter.event
     return when {
         filter.eventId != null -> events.firstOrNull { it.id == filter.eventId }?.label ?: "Event"
-        kind == "none" -> "Untagged"
-        kind != null -> kind.replaceFirstChar { it.uppercase() }.replace("-", " ")
+        event is EventFilter.None -> "Untagged"
+        event is EventFilter.Kind -> event.kind.label
         else -> "All events"
     }
 }

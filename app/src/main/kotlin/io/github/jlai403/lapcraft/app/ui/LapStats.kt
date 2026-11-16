@@ -3,8 +3,8 @@ package io.github.jlai403.lapcraft.app.ui
 import io.github.jlai403.lapcraft.core.model.Sample
 import io.github.jlai403.lapcraft.core.session.LapMetadata
 
-/** Another lap on the same track, used as a reference overlay. */
-internal data class GhostLap(val lap: LapMetadata, val samples: List<Sample>)
+/** A lap with its samples decoded, used for overlays and comparison. */
+internal data class LoadedLap(val lap: LapMetadata, val samples: List<Sample>)
 
 internal data class LapStats(
     val lapTimeMs: Int,

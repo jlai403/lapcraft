@@ -17,8 +17,8 @@ Scope: the whole model, `core` plus how the app consumes it. Method: read the pe
 | 5 | Two independent clip-to-lap time mappings | open, recommendation below. Defer until the sync screen is next touched. |
 | 6 | Missing steering is stored as `0f` | accepted, ADR 0003. Open branch `feat/steering-codec-v2`. |
 | 7 | Three time bases share `Ms` and `Nanos` names, and lap time has two sources | partly accepted. *Per-lap wall clock is resolved by the flatten*: `LapSaver` writes `capturedAt` per lap, so `LapSort.Newest` orders across laps. Remaining scope is only `LapDetector`'s `currentLapStartNanos`/`currentLapStartObserved` → sealed `CurrentLap` state. |
-| 8 | The library row is a parallel definition of a lap, and filters are stringly typed | partly done: identity half landed in `refactor/lap-row` (`LapSummary` is now `lapId` + a projection of `LapRecord`). Remaining: `eventKind == "none"` and `EventTag.kind: String` → sealed `EventKind`/`EventFilter`. |
-| 9 | Glossary and code disagree on three terms | resolved in the glossary rewrite, except the track name: glossary says *Track id* and avoids *circuit id*, while code and ADR 0002 say `circuitId`. Settled in the docs truth-up branch: rename code to `trackId`/`trackLabel` (the field is dead and unwired, so the rename is free now and a schema migration later). `GhostLap` rename (→ `LoadedLap`/`LapWithSamples`) still open. |
+| 8 | The library row is a parallel definition of a lap, and filters are stringly typed | done: identity half in `refactor/lap-row`; event half in `refactor/event-kind-and-loaded-lap` (`EventTag.kind: EventKind`, `LapFilter.event: EventFilter`, no magic `"none"` string). |
+| 9 | Glossary and code disagree on three terms | resolved in the glossary rewrite, except the track name: glossary says *Track id* and avoids *circuit id*, while code and ADR 0002 say `circuitId`. Settled in the docs truth-up branch: rename code to `trackId`/`trackLabel` (the field is dead and unwired, so the rename is free now and a schema migration later). `GhostLap` renamed to `LoadedLap`. |
 
 ### What was already sound
 
@@ -100,7 +100,7 @@ Recommendation. Make the row a projection of the lap record once the flatten lan
 
 - **Session** described a container the app no longer uses. Removed from the glossary, kept only as a legacy layout name in ADR 0001.
 - **Place alignment** exists in the glossary as `TrackProgress.align` and `Alignment`, and nowhere is it called that. The glossary entry now names the code path.
-- **Ghost** is `GhostLap` in code, and the same type is also passed as the comparison reference (`TelemetryChartsTest.kt:126`). Rename the type to `LoadedLap` or `LapWithSamples` and keep ghost and reference as roles. Open.
+- **Ghost** is `LoadedLap` in code now; ghost and reference remain roles, not types. Done in `refactor/event-kind-and-loaded-lap`.
 - New terms added: lap id, pending replay, track, track id, track label, sample, steering angle.
 
 ### Deliberately not doing

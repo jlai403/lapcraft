@@ -466,7 +466,7 @@ fun LapCompareScreen(
                                 cursorMs = primaryCursorMs,
                                 follow = true,
                                 centeredFollow = true,
-                                reference = reference?.let { GhostLap(it.lap, it.samples) },
+                                reference = reference?.let { LoadedLap(it.lap, it.samples) },
                                 referenceCursorMs = referenceCursorMs,
                                 fillHeight = true,
                                 view = mapView,
@@ -477,7 +477,7 @@ fun LapCompareScreen(
                         CompareCharts(
                             samples = active.samples,
                             lap = active.lap,
-                            reference = reference?.let { GhostLap(it.lap, it.samples) },
+                            reference = reference?.let { LoadedLap(it.lap, it.samples) },
                             cursorMs = primaryCursorMs,
                             imperial = settings.imperialUnits,
                             alignment = alignment,

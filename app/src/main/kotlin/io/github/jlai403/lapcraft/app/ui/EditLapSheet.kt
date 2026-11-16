@@ -32,6 +32,7 @@ import io.github.jlai403.lapcraft.core.profile.DriverProfile
 import io.github.jlai403.lapcraft.app.profile.GridStatsProfileClient
 import io.github.jlai403.lapcraft.app.track.TrackNamer
 import io.github.jlai403.lapcraft.core.session.LapSummary
+import io.github.jlai403.lapcraft.core.events.EventKind
 import io.github.jlai403.lapcraft.core.track.TrackCandidate
 
 /** Track, driver, and replay for one lap, without leaving the library. */
@@ -300,7 +301,7 @@ internal fun EditLapSheet(
                         onAssignEvent(
                             io.github.jlai403.lapcraft.core.events.EventTag(
                                 id = "manual-${System.currentTimeMillis()}",
-                                kind = "championship",
+                                kind = EventKind.Championship,
                                 label = manualChamp.trim(),
                                 auto = false,
                             )

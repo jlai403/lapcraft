@@ -1,6 +1,7 @@
 package io.github.jlai403.lapcraft.app.events
 
 import io.github.jlai403.lapcraft.core.events.CachedEvent
+import io.github.jlai403.lapcraft.core.events.EventKind
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -42,7 +43,7 @@ object GridStatsEventParser {
                 out.add(
                     CachedEvent(
                         id = id,
-                        kind = "daily",
+                        kind = EventKind.Daily,
                         label = label,
                         carClass = carClass,
                         trackName = track,
@@ -81,7 +82,7 @@ object GridStatsEventParser {
             out.add(
                 CachedEvent(
                     id = "tt-$eventId",
-                    kind = "time-trial",
+                    kind = EventKind.TimeTrial,
                     label = "Time Trial",
                     trackName = track,
                     ownerCarName = ownerCar,

@@ -106,7 +106,7 @@ class TelemetryChartsTest {
                     samples = samples,
                     lap = lap,
                     cursorMs = 1_000,
-                    ghost = GhostLap(lap, samples),
+                    ghost = LoadedLap(lap, samples),
                     showGhost = true,
                     follow = true,
                 )
@@ -123,7 +123,7 @@ class TelemetryChartsTest {
                 CompareCharts(
                     samples = samples,
                     lap = lap,
-                    reference = GhostLap(lap, samples),
+                    reference = LoadedLap(lap, samples),
                     cursorMs = 1_000,
                     imperial = false,
                 )
