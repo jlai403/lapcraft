@@ -6,7 +6,7 @@ import io.github.jlai403.lapcraft.core.model.Sample
 import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LapRecord
 import io.github.jlai403.lapcraft.core.session.LapStore
-import io.github.jlai403.lapcraft.core.session.LapTimeSource
+import io.github.jlai403.lapcraft.core.lap.LapTimeSource
 import io.github.jlai403.lapcraft.core.track.TrackMatch
 import java.io.File
 import java.time.Instant
@@ -35,7 +35,7 @@ class LapSaver(
         val record = LapRecord(
             capturedAt = now.toString(),
             lapTimeMs = boundary.lapTimeMs,
-            lapTimeSource = LapTimeSource.Reported,
+            lapTimeSource = boundary.lapTimeSource,
             trackId = resolvedTrackId,
             trackLabel = resolvedTrack,
             carCode = carCode,

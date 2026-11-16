@@ -8,22 +8,30 @@ data class LapBoundary(
     val startNanos: Long,
     val endNanos: Long,
     val lapTimeMs: Int,
+    val lapTimeSource: LapTimeSource = LapTimeSource.Reported,
 )
+
+/**
+ * The lap currently in progress, as the detector knows it. A [FromLine] start means the
+ * detector observed the start/finish crossing that began it; a [MidLap] start means it
+ * joined the lap part way through (first sample, or after a GT7 reset). [None] means no
+ * sample has been seen yet. The start and the observed flag are carried together so a
+ * reader can never observe a start from one lap with an observed flag from another.
+ */
+sealed interface CurrentLap {
+    data object None : CurrentLap
+    data class FromLine(val startNanos: Long) : CurrentLap
+    data class MidLap(val startNanos: Long) : CurrentLap
+}
 
 class LapDetector {
     private var previousLapCount: Int? = null
-    private var lapStartNanos: Long = 0
     private var lastPacketId: Int? = null
     private var lastTimeNanos: Long = Long.MIN_VALUE
 
-    /** Start of the lap in progress, or null before the first sample. */
+    /** The lap currently in progress. */
     @Volatile
-    var currentLapStartNanos: Long? = null
-        private set
-
-    /** True only when a lap count increase proved the start/finish crossing was observed. */
-    @Volatile
-    var currentLapStartObserved: Boolean = false
+    var currentLap: CurrentLap = CurrentLap.None
         private set
 
     fun onSample(sample: Sample): LapBoundary? {
@@ -33,9 +41,7 @@ class LapDetector {
         val previous = previousLapCount
         if (previous == null) {
             previousLapCount = sample.lapCount
-            lapStartNanos = sample.timeNanos
-            currentLapStartNanos = sample.timeNanos
-            currentLapStartObserved = false
+            currentLap = CurrentLap.MidLap(sample.timeNanos)
             lastPacketId = sample.packetId
             lastTimeNanos = sample.timeNanos
             return null
@@ -43,9 +49,7 @@ class LapDetector {
 
         if (sample.lapCount < previous) {
             previousLapCount = sample.lapCount
-            lapStartNanos = sample.timeNanos
-            currentLapStartNanos = sample.timeNanos
-            currentLapStartObserved = false
+            currentLap = CurrentLap.MidLap(sample.timeNanos)
             lastPacketId = sample.packetId
             lastTimeNanos = sample.timeNanos
             return null
@@ -55,27 +59,27 @@ class LapDetector {
         if (sample.lapCount > previous) {
             val lapNumber = sample.lapCount - 1
             if (lapNumber > 0) {
-                val measuredMs = ((sample.timeNanos - lapStartNanos) / 1_000_000L).toInt()
-                val lapTimeMs = if (sample.lastLapTimeMs > 0) {
-                    sample.lastLapTimeMs
-                } else {
-                    measuredMs
-                }
+                val startNanos = (currentLap as? CurrentLap.MidLap)?.startNanos
+                    ?: (currentLap as? CurrentLap.FromLine)?.startNanos
+                    ?: sample.timeNanos
+                val measuredMs = ((sample.timeNanos - startNanos) / 1_000_000L).toInt()
+                val reported = sample.lastLapTimeMs
+                val lapTimeMs = if (reported > 0) reported else measuredMs
+                val source = if (reported > 0) LapTimeSource.Reported else LapTimeSource.Measured
                 // A clock jump, or arming mid-lap, means this lap has no complete telemetry.
-                val complete = sample.lastLapTimeMs <= 0 ||
-                    abs(measuredMs - sample.lastLapTimeMs) <= LAP_SPAN_TOLERANCE_MS
+                val complete = reported <= 0 ||
+                    abs(measuredMs - reported) <= LAP_SPAN_TOLERANCE_MS
                 if (complete && lapTimeMs in MIN_PLAUSIBLE_LAP_MS..MAX_PLAUSIBLE_LAP_MS) {
                     boundary = LapBoundary(
                         lapNumber = lapNumber,
-                        startNanos = lapStartNanos,
+                        startNanos = startNanos,
                         endNanos = sample.timeNanos,
                         lapTimeMs = lapTimeMs,
+                        lapTimeSource = source,
                     )
                 }
             }
-            lapStartNanos = sample.timeNanos
-            currentLapStartNanos = sample.timeNanos
-            currentLapStartObserved = true
+            currentLap = CurrentLap.FromLine(sample.timeNanos)
         }
 
         previousLapCount = sample.lapCount

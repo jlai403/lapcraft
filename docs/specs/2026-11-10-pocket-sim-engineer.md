@@ -278,7 +278,7 @@ files/laps/<lapId>/
 ### 10.2 `:core`
 
 - `protocol/` — `Gt7Protocol`, `Gt7Crypto`, `Gt7Decoder`, `PacketAParser`, `DecodeFailureLog`.
-- `lap/` — `LapDetector` with `currentLapStartNanos` / `currentLapStartObserved`.
+- `lap/` — `LapDetector` with a sealed `CurrentLap` state (None / FromLine / MidLap) and `LapTimeSource`.
 - `capture/` — `LapSampleBuffer`, `CaptureState`, `LapCaptureCoordinator`, `LapSink`.
 - `track/` — `TrackSignature`, `TrackIdentifier`, `TrackSignatureCodec`.
 - `clip/` — `ClipSync`, `SyncValidator`, `TrackProgress`, `TrimPlan`.
