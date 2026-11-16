@@ -37,12 +37,24 @@ class LapStoreTest {
         val ids = store.list()
         assertEquals(listOf(LapId("s1")), ids)
         val record = store.load(LapId("s1"))!!
-        assertEquals("Monza", record.circuitLabel)
+        assertEquals("Monza", record.trackLabel)
         assertEquals(42, record.carCode)
         assertEquals("psn", record.driverPsnId)
         assertEquals(90_000, record.lapTimeMs)
         assertTrue(!File(root, "sessions").exists() || File(root, "sessions.legacy-v1").exists())
         assertEquals(1, store.summaries().size)
+    }
+
+    @Test
+    fun readsOldFormatLapJsonWithCircuitKeys() {
+        val dir = File(root, "laps/old").apply { mkdirs() }
+        File(dir, "lap.json").writeText(
+            """{"schemaVersion":2,"capturedAt":"2026-01-01T00:00:00Z","lapTimeMs":90000,"circuitId":"monza","circuitLabel":"Monza"}"""
+        )
+        val store = LapStore(root)
+        val record = store.load(LapId("old"))!!
+        assertEquals("monza", record.trackId)
+        assertEquals("Monza", record.trackLabel)
     }
 
     @Test

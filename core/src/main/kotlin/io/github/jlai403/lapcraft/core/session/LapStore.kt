@@ -53,7 +53,7 @@ open class LapStore(
 
     fun renameTrack(id: LapId, trackLabel: String): LapRecord? {
         val record = load(id) ?: return null
-        val updated = record.copy(circuitLabel = trackLabel)
+        val updated = record.copy(trackLabel = trackLabel)
         save(id, updated)
         return updated
     }
@@ -119,7 +119,7 @@ open class LapStore(
                 lapIndex = 1,
                 lapTimeMs = record.lapTimeMs,
                 createdAt = record.capturedAt,
-                trackLabel = record.circuitLabel,
+                trackLabel = record.trackLabel,
                 carName = carName(record.carCode) ?: record.carName,
                 hasReplay = replayFile != null,
                 replayPending = pendingFile != null,
@@ -199,8 +199,8 @@ open class LapStore(
                     capturedAt = session.createdAt,
                     lapTimeMs = lap.lapTimeMs,
                     lapTimeSource = LapTimeSource.Reported,
-                    circuitId = "",
-                    circuitLabel = session.trackLabel,
+                    trackId = "",
+                    trackLabel = session.trackLabel,
                     carCode = session.carCode,
                     carName = session.carName,
                     startTickNanos = lap.startNanos,

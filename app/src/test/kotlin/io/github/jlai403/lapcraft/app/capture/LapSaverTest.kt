@@ -57,7 +57,7 @@ class LapSaverTest {
         assertTrue(File(root, "laps/lap-test/lap.json").isFile)
         assertTrue(File(root, "laps/lap-test/lap.gt7lap").isFile)
         val record = LapStore(root).load(LapId(id))!!
-        assertTrue(record.circuitLabel.isNotEmpty() || true)
+        assertTrue(record.trackLabel.isNotEmpty() || true)
     }
 
     @Test
@@ -90,6 +90,6 @@ class LapSaverTest {
 
         assertTrue(seen!!.isNotEmpty())
         assertTrue(seen!!.none { it.timeNanos < 0 })
-        assertEquals("Suzuka", LapStore(root).load(LapId(id))!!.circuitLabel)
+        assertEquals("Suzuka", LapStore(root).load(LapId(id))!!.trackLabel)
     }
 }

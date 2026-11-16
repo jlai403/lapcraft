@@ -10,15 +10,15 @@ Scope: the whole model, `core` plus how the app consumes it. Method: read the pe
 
 | # | Finding | Status |
 |---|---|---|
-| 1 | Lap identity is a `(sessionId, lapIndex)` pair used in about 20 places | done: `LapId` + per-lap directories (refactor/lap-record, merged) |
+| 1 | Lap identity is a `(sessionId, lapIndex)` pair used in about 20 places | partly done: `LapId` + per-lap directories landed in `refactor/lap-record`. The pair survives in `LapSummary`, `Screen`, `CaptureState.Saved` (hardcoded index `1` in `RecordScreen`) and the hand-built library key. Finish in `refactor/lap-row`. |
 | 2 | Replay readiness is encoded in four overlapping fields with four derived read rules | done: fixed media names, state derived from the directory |
-| 3 | Track identity is an editable display string | accepted, ADR 0002, follow-up branch |
+| 3 | Track identity is an editable display string | accepted, ADR 0002. *Not* merely open: `LapRecord.circuitId`/`circuitLabel` already exist and are written empty by `LapSaver`, `LapStore` migration, and `LibraryArchive` (four call sites). The field is dead schema; no code reads it. Branch `feat/circuit-id` (rename to `trackId`/`trackLabel` first, see #9). |
 | 4 | The session no longer describes anything the app does | done: flattened to one directory per lap (ADR 0001) |
-| 5 | Two independent clip-to-lap time mappings | open, recommendation below |
-| 6 | Missing steering is stored as `0f` | accepted, ADR 0003, follow-up branch |
-| 7 | Three time bases share `Ms` and `Nanos` names, and lap time has two sources | partly accepted: record fields renamed, detector part open |
-| 8 | The library row is a parallel definition of a lap, and filters are stringly typed | open, recommendation below |
-| 9 | Glossary and code disagree on three terms | resolved in the glossary rewrite; `GhostLap` rename open |
+| 5 | Two independent clip-to-lap time mappings | open, recommendation below. Defer until the sync screen is next touched. |
+| 6 | Missing steering is stored as `0f` | accepted, ADR 0003. Open branch `feat/steering-codec-v2`. |
+| 7 | Three time bases share `Ms` and `Nanos` names, and lap time has two sources | partly accepted. *Per-lap wall clock is resolved by the flatten*: `LapSaver` writes `capturedAt` per lap, so `LapSort.Newest` orders across laps. Remaining scope is only `LapDetector`'s `currentLapStartNanos`/`currentLapStartObserved` → sealed `CurrentLap` state. |
+| 8 | The library row is a parallel definition of a lap, and filters are stringly typed | open. First half is the residue of #1 (row still carries the pair). Second half (`eventKind == "none"`, `EventTag.kind: String`) untouched. Split: identity half goes with `refactor/lap-row`; `EventKind`/`EventFilter` with the opportunistic pass. |
+| 9 | Glossary and code disagree on three terms | resolved in the glossary rewrite, except the track name: glossary says *Track id* and avoids *circuit id*, while code and ADR 0002 say `circuitId`. Settled in the docs truth-up branch: rename code to `trackId`/`trackLabel` (the field is dead and unwired, so the rename is free now and a schema migration later). `GhostLap` rename (→ `LoadedLap`/`LapWithSamples`) still open. |
 
 ### What was already sound
 
@@ -54,7 +54,7 @@ Problem. The identifier resolves a lap to an official circuit id plus a display 
 
 Evidence. `TrackCatalog.kt:24` returns only `analyze(samples).name`. `LapSummary.kt:54` defines `trackKey` from the label. `LibraryScreen.kt:224` and `LapPlayerScreen.kt:175` gate compare on it. `SessionStore.rename` rewrites it.
 
-Decision. Persist `circuitId` and `circuitLabel`, key grouping on the id, fall back to the normalised label only when no signature matched. ADR 0002.
+Decision. Persist `trackId` and `trackLabel`, key grouping on the id, fall back to the normalised label only when no signature matched. ADR 0002.
 
 ### 4. Session versus lap
 
@@ -116,6 +116,6 @@ Note: spec `docs/specs/2026-11-10-pocket-sim-engineer.md` §9.2 and §9.5 still 
 
 1. Docs: ADR 0001, 0002, 0003 and the glossary. Done.
 2. Branch `refactor/lap-record`: identity, flatten, migration, archive format 2, replay state, app call sites, `AGENTS.md` and spec §9.2 and §9.5. Done (merged).
-3. Branch for `circuitId`. Open.
+3. Branch for `trackId` (circuit-id work). Open.
 4. Branch for nullable steering and codec version 2. Open.
 5. Opportunistic: `LapClock`, detector state, `EventKind`, `LoadedLap`. Open.

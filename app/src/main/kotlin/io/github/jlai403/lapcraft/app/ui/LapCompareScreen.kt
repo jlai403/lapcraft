@@ -755,5 +755,5 @@ private suspend fun loadLap(
         .getOrDefault(emptyList())
     val dir = store.lapDir(LapId(sessionId))
     val clip = File(dir, "replay.mp4").takeIf { it.isFile }
-    CompareLap(sessionId, lapIndex, record.circuitLabel, record.toLapMetadata(), samples, clip)
+    CompareLap(sessionId, lapIndex, record.trackLabel, record.toLapMetadata(), samples, clip)
 }
