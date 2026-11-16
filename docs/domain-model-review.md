@@ -10,7 +10,7 @@ Scope: the whole model, `core` plus how the app consumes it. Method: read the pe
 
 | # | Finding | Status |
 |---|---|---|
-| 1 | Lap identity is a `(sessionId, lapIndex)` pair used in about 20 places | done: `LapId` everywhere. `LapSummary`, `Screen`, `CaptureState.Saved` and the library key all carry a `LapId`; `sameLap` and the hardcoded index are gone. `LapMetadata`/`index` remains only as the legacy migration shape. |
+| 1 | Lap identity is a `(sessionId, lapIndex)` pair used in about 20 places | done: `LapId` everywhere. `LapSummary`, `Screen`, `CaptureState.Saved` and the library key all carry a `LapId`; `sameLap` and the hardcoded index are gone. `LapMetadata`/`index` is gone; `LapView` is the UI projection, and the legacy decode types live under `core/session/legacy/` for `LayoutMigration` only. |
 | 2 | Replay readiness is encoded in four overlapping fields with four derived read rules | done: fixed media names, state derived from the directory |
 | 3 | Track identity is an editable display string | done: `trackId` is populated at capture (via `TrackCatalog.match`), carried through `LapSummary`, and keys grouping, compare eligibility, fastest-per-track and the ghost. `renameTrack` changes only the label. `TrackNamer` backfills empty ids (VERSION 2). Archives keep the id. |
 | 4 | The session no longer describes anything the app does | done: flattened to one directory per lap (ADR 0001) |

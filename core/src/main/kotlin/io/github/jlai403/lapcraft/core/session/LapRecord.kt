@@ -22,22 +22,8 @@ data class LapRecord(
     val endTickNanos: Long = 0L,
     val sampleRateHz: Int = 60,
     val leadInMs: Int = 0,
-    val syncOffsetMs: Int = 0,
     val driverPsnId: String? = null,
     val event: EventTag? = null,
 )
 
-fun LapRecord.toLapMetadata(): LapMetadata = LapMetadata(
-    index = 1,
-    lapTimeMs = lapTimeMs,
-    startNanos = startTickNanos,
-    endNanos = endTickNanos,
-    sampleCount = 0,
-    videoFile = "",
-    leadInMs = leadInMs,
-    syncOffsetMs = syncOffsetMs,
-    needsCut = false,
-    sourceFile = null,
-    driverPsnId = driverPsnId,
-    event = event,
-)
+// toLapView() lives in LapView.kt

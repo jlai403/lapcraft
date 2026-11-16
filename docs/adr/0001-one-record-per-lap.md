@@ -2,7 +2,7 @@
 
 Status: accepted, implemented
 
-The app captures, reviews, exports and deletes one lap at a time, but storage still follows the screen-capture era: `sessions/<id>/session.json` holds a list of laps, each lap's record is written twice, to the session file and to `laps/lap-NNN.json`, and a lap can only be addressed as a `(sessionId, lapIndex)` pair. Store each lap as its own directory, `files/laps/<lapId>/`, holding `lap.json`, `lap.gt7lap`, and media under fixed names. The directory name is the lap id. `sessions/` survives only as a legacy layout that the first launch migrates and imports continue to accept.
+The app captures, reviews, exports and deletes one lap at a time, but storage still follows the screen-capture era: `sessions/<id>/session.json` holds a list of laps, each lap's record is written twice, to the session file and to `laps/lap-NNN.json`, and a lap can only be addressed as a `(sessionId, lapIndex)` pair. Store each lap as its own directory, `files/laps/<lapId>/`, holding `lap.json`, `lap.gt7lap`, and media under fixed names. The directory name is the lap id. `sessions/` is migrated once by `LayoutMigration` (convert-and-delete); no `SessionStore` or `SessionWriter` remains. Legacy decode types are quarantined under `core/session/legacy/`.
 
 ## Considered options
 

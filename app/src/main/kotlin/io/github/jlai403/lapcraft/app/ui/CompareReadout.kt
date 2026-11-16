@@ -24,13 +24,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import io.github.jlai403.lapcraft.core.model.Sample
-import io.github.jlai403.lapcraft.core.session.LapMetadata
+import io.github.jlai403.lapcraft.core.session.LapView
 import kotlin.math.abs
 
 @Composable
 internal fun CompareReadoutRow(
     samples: List<Sample>,
-    lap: LapMetadata,
+    lap: LapView,
     cursorMs: Int,
     imperial: Boolean,
     modifier: Modifier = Modifier,

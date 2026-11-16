@@ -64,10 +64,10 @@ import io.github.jlai403.lapcraft.core.clip.SyncValidator
 import io.github.jlai403.lapcraft.core.clip.TrackProgress
 import io.github.jlai403.lapcraft.core.clip.TrimPlan
 import io.github.jlai403.lapcraft.core.model.Sample
-import io.github.jlai403.lapcraft.core.session.LapMetadata
+import io.github.jlai403.lapcraft.core.session.LapView
 import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LapStore
-import io.github.jlai403.lapcraft.core.session.toLapMetadata
+import io.github.jlai403.lapcraft.core.session.toLapView
 import io.github.jlai403.lapcraft.app.catalog.lapStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -113,7 +113,7 @@ fun ImportSyncScreen(
         }
     }
 
-    var lap by remember { mutableStateOf<LapMetadata?>(null) }
+    var lap by remember { mutableStateOf<LapView?>(null) }
     var samples by remember { mutableStateOf<List<Sample>>(emptyList()) }
     var sourceFile by remember { mutableStateOf<File?>(null) }
     var durationMs by remember { mutableLongStateOf(0L) }
@@ -184,7 +184,7 @@ fun ImportSyncScreen(
             error = "Lap not found."
             return@LaunchedEffect
         }
-        val loaded = record.toLapMetadata()
+        val loaded = record.toLapView()
         val dir = store.lapDir(lapId)
         hadClip = File(dir, "replay.mp4").isFile
         lap = loaded
@@ -800,7 +800,7 @@ private fun MetricLine(label: String, value: String) {
     }
 }
 
-private fun trimRange(lap: LapMetadata?, anchorMs: Long?, offsetMs: Long?, durationMs: Long) =
+private fun trimRange(lap: LapView?, anchorMs: Long?, offsetMs: Long?, durationMs: Long) =
     if (lap != null && anchorMs != null && offsetMs != null && offsetMs >= 0) {
         TrimPlan.forSync(LapClock.forLapStart(anchorMs - offsetMs, lap.lapTimeMs), durationMs)
     } else {

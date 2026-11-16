@@ -1,4 +1,4 @@
-package io.github.jlai403.lapcraft.core.session
+package io.github.jlai403.lapcraft.core.session.legacy
 
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString

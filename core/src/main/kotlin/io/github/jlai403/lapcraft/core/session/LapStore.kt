@@ -16,14 +16,12 @@ open class LapStore(
 ) {
     private val lapsDir: File get() = File(rootDir, "laps")
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true; prettyPrint = true }
-    private val marker: File get() = File(lapsDir, ".layout-v2")
-
-    init { ensureMigrated() }
+    init { LayoutMigration.migrate(rootDir, carName) }
 
     fun lapDir(id: LapId): File = File(lapsDir, id.value)
 
     fun list(): List<LapId> {
-        ensureMigrated()
+        LayoutMigration.migrate(rootDir, carName)
         return (lapsDir.listFiles() ?: emptyArray())
             .filter { it.isDirectory && !it.name.startsWith(".") }
             .map { LapId(it.name) }
@@ -31,7 +29,7 @@ open class LapStore(
     }
 
     fun load(id: LapId): LapRecord? {
-        ensureMigrated()
+        LayoutMigration.migrate(rootDir, carName)
         val file = File(lapDir(id), "lap.json")
         if (!file.isFile) return null
         return runCatching { json.decodeFromString<LapRecord>(file.readText()) }.getOrNull()
@@ -84,16 +82,9 @@ open class LapStore(
         return updated
     }
 
-    fun setSyncOffset(id: LapId, offsetMs: Int): LapRecord? {
-        val record = load(id) ?: return null
-        val updated = record.copy(syncOffsetMs = offsetMs)
-        save(id, updated)
-        return updated
-    }
-
     fun attachClip(id: LapId, leadInMs: Int): LapRecord? {
         val record = load(id) ?: return null
-        val updated = record.copy(leadInMs = leadInMs, syncOffsetMs = 0)
+        val updated = record.copy(leadInMs = leadInMs)
         save(id, updated)
         val dir = lapDir(id)
         File(dir, "source.mp4").delete()
@@ -119,7 +110,7 @@ open class LapStore(
     }
 
     fun summaries(): List<LapSummary> {
-        ensureMigrated()
+        LayoutMigration.migrate(rootDir, carName)
         return list().mapNotNull { id ->
             val record = load(id) ?: return@mapNotNull null
             val dir = lapDir(id)
@@ -160,74 +151,6 @@ open class LapStore(
         File(dir, "source.mp4").delete()
         File(dir, "raw.mp4").delete()
         deleteScrubArtifacts(dir)
-    }
-
-    private fun ensureMigrated() {
-        if (marker.isFile) return
-        synchronized(this) {
-            if (marker.isFile) return
-            migrateLegacy()
-            lapsDir.mkdirs()
-            marker.writeText("2")
-        }
-    }
-
-    private fun migrateLegacy() {
-        val legacySessions = File(rootDir, "sessions")
-        if (!legacySessions.isDirectory) return
-        lapsDir.mkdirs()
-        for (sessionDir in legacySessions.listFiles().orEmpty().filter { it.isDirectory && !it.name.startsWith(".") }) {
-            val sessionFile = File(sessionDir, "session.json")
-            if (!sessionFile.isFile) continue
-            val session = runCatching { SessionJsonCodec.decodeSession(sessionFile.readText()) }.getOrNull() ?: continue
-            for (lap in session.laps) {
-                val newId = if (session.laps.size == 1) session.sessionId else "${session.sessionId}-l${lap.index}"
-                val newDir = File(lapsDir, newId)
-                if (newDir.exists()) continue
-                newDir.mkdirs()
-                val srcTelemetry = File(sessionDir, "laps/lap-%03d.gt7lap".format(lap.index))
-                if (srcTelemetry.isFile) srcTelemetry.copyTo(File(newDir, "lap.gt7lap"), overwrite = true)
-                when {
-                    lap.needsCut && lap.videoFile.isNotBlank() -> {
-                        val src = File(sessionDir, lap.videoFile)
-                        if (src.isFile) src.copyTo(File(newDir, "source.mp4"), overwrite = true)
-                    }
-                    lap.videoFile.isNotBlank() && lap.videoFile == session.rawFile -> {
-                        val src = File(sessionDir, lap.videoFile)
-                        if (src.isFile) src.copyTo(File(newDir, "raw.mp4"), overwrite = true)
-                    }
-                    lap.videoFile.isNotBlank() -> {
-                        val src = File(sessionDir, lap.videoFile)
-                        if (src.isFile) src.copyTo(File(newDir, "replay.mp4"), overwrite = true)
-                    }
-                }
-                lap.sourceFile?.takeIf { it.isNotBlank() }?.let { rel ->
-                    val src = File(sessionDir, rel)
-                    if (src.isFile) src.copyTo(File(newDir, "source.mp4"), overwrite = true)
-                }
-                val record = LapRecord(
-                    schemaVersion = 2,
-                    capturedAt = session.createdAt,
-                    lapTimeMs = lap.lapTimeMs,
-                    lapTimeSource = LapTimeSource.Reported,
-                    trackId = "",
-                    trackLabel = session.trackLabel,
-                    carCode = session.carCode,
-                    carName = session.carName,
-                    startTickNanos = lap.startNanos,
-                    endTickNanos = lap.endNanos,
-                    leadInMs = lap.leadInMs,
-                    syncOffsetMs = lap.syncOffsetMs,
-                    driverPsnId = lap.driverPsnId,
-                    event = lap.event,
-                )
-                AtomicFiles.writeText(File(newDir, "lap.json"), json.encodeToString(record))
-            }
-        }
-        val legacy = File(rootDir, "sessions.legacy-v1")
-        if (!legacy.exists() && legacySessions.exists()) {
-            legacySessions.renameTo(legacy)
-        }
     }
 
     private fun parseInstant(value: String): Instant =

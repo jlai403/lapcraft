@@ -4,7 +4,7 @@ import io.github.jlai403.lapcraft.app.service.TelemetryEvent
 import io.github.jlai403.lapcraft.core.capture.CaptureState
 import io.github.jlai403.lapcraft.core.model.Sample
 import io.github.jlai403.lapcraft.core.session.LapId
-import io.github.jlai403.lapcraft.core.session.LapMetadata
+import io.github.jlai403.lapcraft.core.session.LapView
 import kotlin.math.roundToInt
 import java.time.Instant
 import java.time.ZoneId
@@ -64,20 +64,20 @@ sealed interface Screen {
     data object Settings : Screen
 }
 
-fun Sample.lapTimeMs(lap: LapMetadata): Int =
+fun Sample.lapTimeMs(lap: LapView): Int =
     ((timeNanos - lap.startNanos) / 1_000_000L).toInt()
 
-fun List<Sample>.lapWindow(lap: LapMetadata): List<Sample> =
+fun List<Sample>.lapWindow(lap: LapView): List<Sample> =
     filter { it.timeNanos >= lap.startNanos && it.timeNanos <= lap.endNanos }
 
-fun List<Sample>.windowEndingAt(lap: LapMetadata, timeMs: Int, durationMs: Int): List<Sample> =
+fun List<Sample>.windowEndingAt(lap: LapView, timeMs: Int, durationMs: Int): List<Sample> =
     filter {
         val sampleMs = it.lapTimeMs(lap)
         sampleMs >= 0 && sampleMs <= lap.lapTimeMs &&
             sampleMs >= timeMs - durationMs && sampleMs <= timeMs
     }
 
-fun List<Sample>.sampleAt(lap: LapMetadata, timeMs: Int): Sample? {
+fun List<Sample>.sampleAt(lap: LapView, timeMs: Int): Sample? {
     if (isEmpty()) return null
     val index = binarySearchBy(timeMs) { it.lapTimeMs(lap) }
     if (index >= 0) return this[index]

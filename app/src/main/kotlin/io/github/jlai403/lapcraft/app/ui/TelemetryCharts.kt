@@ -43,7 +43,7 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.dp
 import io.github.jlai403.lapcraft.core.clip.TrackProgress
 import io.github.jlai403.lapcraft.core.model.Sample
-import io.github.jlai403.lapcraft.core.session.LapMetadata
+import io.github.jlai403.lapcraft.core.session.LapView
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
@@ -76,7 +76,7 @@ internal fun chartWindowLabel(windowMs: Int): String = "\u00b1${windowMs / 2000}
 @Composable
 internal fun ChartColumn(
     samples: List<Sample>,
-    lap: LapMetadata,
+    lap: LapView,
     cursorMs: Int,
     imperial: Boolean = false,
     showSpeed: Boolean = true,
@@ -368,7 +368,7 @@ private fun upperBound(times: IntArray, value: Int): Int {
 @Composable
 internal fun TrackMap(
     samples: List<Sample>,
-    lap: LapMetadata,
+    lap: LapView,
     cursorMs: Int,
     ghost: LoadedLap? = null,
     showGhost: Boolean = true,
@@ -709,7 +709,7 @@ private data class CompareMetric(
 @Composable
 internal fun CompareCharts(
     samples: List<Sample>,
-    lap: LapMetadata,
+    lap: LapView,
     reference: LoadedLap?,
     cursorMs: Int,
     imperial: Boolean,

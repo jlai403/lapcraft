@@ -1,7 +1,7 @@
 package io.github.jlai403.lapcraft.app.ui
 
 import io.github.jlai403.lapcraft.core.model.Sample
-import io.github.jlai403.lapcraft.core.session.LapMetadata
+import io.github.jlai403.lapcraft.core.session.LapView
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -102,13 +102,11 @@ class UiStateTest {
 
     @Test
     fun `trailing window keeps only the past`() {
-        val longLap = LapMetadata(
+        val longLap = LapView(
             index = 1,
             lapTimeMs = 5_000,
             startNanos = 0,
             endNanos = 5_000_000_000L,
-            sampleCount = 6,
-            videoFile = "",
             leadInMs = 0,
         )
         val window = listOf(0, 1_000, 2_000, 3_000, 4_000, 5_000)
@@ -165,13 +163,11 @@ class UiStateTest {
     )
 
     private companion object {
-        val lap = LapMetadata(
+        val lap = LapView(
             index = 1,
             lapTimeMs = 2_000,
             startNanos = 0,
             endNanos = 2_000_000_000,
-            sampleCount = 2,
-            videoFile = "",
             leadInMs = 0,
         )
     }

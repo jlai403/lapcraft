@@ -1,7 +1,7 @@
 package io.github.jlai403.lapcraft.app.ui
 
 import io.github.jlai403.lapcraft.core.model.Sample
-import io.github.jlai403.lapcraft.core.session.LapMetadata
+import io.github.jlai403.lapcraft.core.session.LapView
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -84,13 +84,11 @@ class LapEventsTest {
                 .copy(steering = steer)
         }
 
-    private val lap = LapMetadata(
+    private val lap = LapView(
         index = 1,
         lapTimeMs = 5_000,
         startNanos = 0,
         endNanos = 5_000_000_000L,
-        sampleCount = 0,
-        videoFile = "",
         leadInMs = 0,
     )
 

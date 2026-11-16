@@ -1,6 +1,6 @@
 package io.github.jlai403.lapcraft.app.ui
 
-import io.github.jlai403.lapcraft.core.session.LapMetadata
+import io.github.jlai403.lapcraft.core.session.LapView
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -26,13 +26,11 @@ class LapStatsTest {
         assertEquals(null, lapStats(listOf(SessionFixtures.sample(0)), lap))
     }
 
-    private val lap = LapMetadata(
+    private val lap = LapView(
         index = 1,
         lapTimeMs = 2_000,
         startNanos = 0,
         endNanos = 2_000_000_000L,
-        sampleCount = 3,
-        videoFile = "",
         leadInMs = 0,
     )
 }
