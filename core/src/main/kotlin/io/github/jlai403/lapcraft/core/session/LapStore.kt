@@ -82,16 +82,9 @@ open class LapStore(
         return updated
     }
 
-    fun setSyncOffset(id: LapId, offsetMs: Int): LapRecord? {
-        val record = load(id) ?: return null
-        val updated = record.copy(syncOffsetMs = offsetMs)
-        save(id, updated)
-        return updated
-    }
-
     fun attachClip(id: LapId, leadInMs: Int): LapRecord? {
         val record = load(id) ?: return null
-        val updated = record.copy(leadInMs = leadInMs, syncOffsetMs = 0)
+        val updated = record.copy(leadInMs = leadInMs)
         save(id, updated)
         val dir = lapDir(id)
         File(dir, "source.mp4").delete()

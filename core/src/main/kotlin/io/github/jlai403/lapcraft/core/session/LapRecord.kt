@@ -22,7 +22,6 @@ data class LapRecord(
     val endTickNanos: Long = 0L,
     val sampleRateHz: Int = 60,
     val leadInMs: Int = 0,
-    val syncOffsetMs: Int = 0,
     val driverPsnId: String? = null,
     val event: EventTag? = null,
 )

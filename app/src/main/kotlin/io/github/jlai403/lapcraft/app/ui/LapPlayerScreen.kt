@@ -312,7 +312,7 @@ fun LapPlayerScreen(
         frameStepMs = probe.frameMs
         frameDurationUs = probe.frameDurationUs
         val start = lap?.let {
-            LapClock.forTrimmedLap(it.leadInMs, it.syncOffsetMs, it.lapTimeMs).clipMs(0)
+            LapClock.forTrimmedLap(it.leadInMs, it.lapTimeMs).clipMs(0)
         } ?: 0L
         val ready = start.coerceIn(0L, probe.durationMs.coerceAtLeast(0L))
         withContext(Dispatchers.Main) {
@@ -335,7 +335,7 @@ fun LapPlayerScreen(
     fun seekLap(targetMs: Long) {
         val active = lap ?: return
         val clamped = targetMs.coerceIn(0L, active.lapTimeMs.toLong())
-        seekClip(LapClock.forTrimmedLap(active.leadInMs, active.syncOffsetMs, active.lapTimeMs).clipMs(clamped.toInt()))
+        seekClip(LapClock.forTrimmedLap(active.leadInMs, active.lapTimeMs).clipMs(clamped.toInt()))
     }
 
     val displayedUs = scrubTargetMs?.times(1_000)
@@ -343,7 +343,7 @@ fun LapPlayerScreen(
     val displayedMs = scrubTargetMs
         ?: if (renderedUs >= 0) renderedUs / 1_000 else positionMs
     val cursorMs = lap?.let {
-        LapClock.forTrimmedLap(it.leadInMs, it.syncOffsetMs, it.lapTimeMs).telemetryMs(displayedMs)
+        LapClock.forTrimmedLap(it.leadInMs, it.lapTimeMs).telemetryMs(displayedMs)
     } ?: 0
 
     fun stepFrames(frames: Int) {
@@ -370,9 +370,9 @@ fun LapPlayerScreen(
 
     fun scrubTarget(baseUs: Long, frames: Int): Long? {
         val active = lap ?: return null
-        val startMs = LapClock.forTrimmedLap(active.leadInMs, active.syncOffsetMs, active.lapTimeMs).clipMs(0)
+        val startMs = LapClock.forTrimmedLap(active.leadInMs, active.lapTimeMs).clipMs(0)
             .coerceAtLeast(0)
-        val endMs = LapClock.forTrimmedLap(active.leadInMs, active.syncOffsetMs, active.lapTimeMs).clipMs(active.lapTimeMs)
+        val endMs = LapClock.forTrimmedLap(active.leadInMs, active.lapTimeMs).clipMs(active.lapTimeMs)
             .coerceAtMost(durationMs.coerceAtLeast(0))
         return frameStepTargetMs(baseUs, frames, frameDurationUs)
             .coerceIn(startMs, endMs.coerceAtLeast(startMs))

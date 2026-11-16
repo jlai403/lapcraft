@@ -192,7 +192,6 @@ object LibraryArchive {
                 startTickNanos = lap.startNanos,
                 endTickNanos = lap.endNanos,
                 leadInMs = lap.leadInMs,
-                syncOffsetMs = lap.syncOffsetMs,
                 driverPsnId = lap.driverPsnId,
                 event = lap.event,
             )
@@ -307,7 +306,6 @@ object LibraryArchive {
             startTickNanos = lap.startNanos,
             endTickNanos = lap.endNanos,
             leadInMs = lap.leadInMs,
-            syncOffsetMs = lap.syncOffsetMs,
             driverPsnId = lap.driverPsnId,
             event = lap.event,
         )
