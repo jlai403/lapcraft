@@ -306,7 +306,8 @@ fun LapPlayerScreen(
         }
     }
 
-    LaunchedEffect(videoVersion) {
+    LaunchedEffect(videoVersion, lap?.leadInMs) {
+        val active = lap ?: return@LaunchedEffect
         val file = videoFile ?: return@LaunchedEffect
         renderedUs = -1L
         scrubTargetMs = null
@@ -315,10 +316,12 @@ fun LapPlayerScreen(
         frameStepMs = probe.frameMs
         frameDurationUs = probe.frameDurationUs
         frameTimeline = withContext(Dispatchers.IO) { readFrameTimes(file) }
-        val start = lap?.let {
-            LapClock.forTrimmedLap(it.leadInMs, it.lapTimeMs).clipMs(0)
-        } ?: 0L
-        val ready = start.coerceIn(0L, probe.durationMs.coerceAtLeast(0L))
+        val start = LapClock.forTrimmedLap(active.leadInMs, active.lapTimeMs).clipMs(0)
+        val ready = if (probe.durationMs > 0) {
+            start.coerceIn(0L, probe.durationMs)
+        } else {
+            start
+        }
         withContext(Dispatchers.Main) {
             player.setMediaItem(MediaItem.fromUri(Uri.fromFile(file)))
             player.seekTo(ready)
@@ -817,3 +820,8 @@ fun LapPlayerScreen(
     }
 }
 
+
+internal fun initialClipMs(leadInMs: Int, lapTimeMs: Int, durationMs: Long): Long {
+    val start = LapClock.forTrimmedLap(leadInMs, lapTimeMs).clipMs(0)
+    return if (durationMs > 0) start.coerceIn(0L, durationMs) else start
+}
