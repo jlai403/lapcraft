@@ -14,6 +14,7 @@ import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.swipeRight
 import androidx.test.core.app.ApplicationProvider
 import io.github.jlai403.lapcraft.core.profile.DriverProfile
+import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
 import org.junit.Assert.assertEquals
@@ -46,7 +47,7 @@ class LibraryScreenTest {
         SessionFixtures.install(context, SessionFixtures.session(lapTimesMs = listOf(90_000, 91_500)))
 
         compose.setContent {
-            LapCraftTheme { LibraryScreen(onOpenLap = { _, _ -> }) }
+            LapCraftTheme { LibraryScreen(onOpenLap = { _ -> }) }
         }
 
         compose.waitUntil(TIMEOUT) {
@@ -62,7 +63,7 @@ class LibraryScreenTest {
         var opened: Pair<String, Int>? = null
 
         compose.setContent {
-            LapCraftTheme { LibraryScreen(onOpenLap = { id, index -> opened = id to index }) }
+            LapCraftTheme { LibraryScreen(onOpenLap = { id -> opened = id.value to 1 }) }
         }
 
         compose.waitUntil(TIMEOUT) {
@@ -78,7 +79,7 @@ class LibraryScreenTest {
         SessionFixtures.install(context, SessionFixtures.session(lapTimesMs = listOf(90_000, 91_500)))
 
         compose.setContent {
-            LapCraftTheme { LibraryScreen(onOpenLap = { _, _ -> }) }
+            LapCraftTheme { LibraryScreen(onOpenLap = { _ -> }) }
         }
 
         compose.waitUntil(TIMEOUT) {
@@ -103,7 +104,7 @@ class LibraryScreenTest {
         )
 
         compose.setContent {
-            LapCraftTheme { LibraryScreen(onOpenLap = { _, _ -> }) }
+            LapCraftTheme { LibraryScreen(onOpenLap = { _ -> }) }
         }
 
         compose.waitUntil(TIMEOUT) {
@@ -145,7 +146,7 @@ class LibraryScreenTest {
         )
 
         compose.setContent {
-            LapCraftTheme { LibraryScreen(onOpenLap = { _, _ -> }) }
+            LapCraftTheme { LibraryScreen(onOpenLap = { _ -> }) }
         }
 
         compose.waitUntil(TIMEOUT) {
@@ -169,7 +170,7 @@ class LibraryScreenTest {
         )
 
         compose.setContent {
-            LapCraftTheme { LibraryScreen(onOpenLap = { _, _ -> }) }
+            LapCraftTheme { LibraryScreen(onOpenLap = { _ -> }) }
         }
 
         compose.waitUntil(TIMEOUT) {
@@ -184,7 +185,7 @@ class LibraryScreenTest {
 
         compose.setContent {
             LapCraftTheme {
-                LibraryScreen(onOpenLap = { _, _ -> }, onOpenRecord = { record++ })
+                LibraryScreen(onOpenLap = { _ -> }, onOpenRecord = { record++ })
             }
         }
 
@@ -205,7 +206,7 @@ class LibraryScreenTest {
         SettingsStore(context).previewEmptyLibrary = true
 
         compose.setContent {
-            LapCraftTheme { LibraryScreen(onOpenLap = { _, _ -> }) }
+            LapCraftTheme { LibraryScreen(onOpenLap = { _ -> }) }
         }
 
         compose.waitUntil(TIMEOUT) {
@@ -228,7 +229,7 @@ class LibraryScreenTest {
         var opened = 0
 
         compose.setContent {
-            LapCraftTheme { LibraryScreen(onOpenLap = { _, _ -> opened++ }) }
+            LapCraftTheme { LibraryScreen(onOpenLap = { _ -> opened++ }) }
         }
 
         compose.waitUntil(TIMEOUT) {
@@ -248,7 +249,7 @@ class LibraryScreenTest {
         var opened = 0
 
         compose.setContent {
-            LapCraftTheme { LibraryScreen(onOpenLap = { _, _ -> opened++ }) }
+            LapCraftTheme { LibraryScreen(onOpenLap = { _ -> opened++ }) }
         }
 
         compose.waitUntil(TIMEOUT) {
@@ -267,7 +268,7 @@ class LibraryScreenTest {
         DriverProfileStore(context).setOwner(DriverProfile("skino2024", "Skino", "GB"))
 
         compose.setContent {
-            LapCraftTheme { LibraryScreen(onOpenLap = { _, _ -> }) }
+            LapCraftTheme { LibraryScreen(onOpenLap = { _ -> }) }
         }
 
         compose.onNodeWithTag("library-profile-menu").performClick()
@@ -282,7 +283,7 @@ class LibraryScreenTest {
 
         compose.setContent {
             LapCraftTheme {
-                LibraryScreen(onOpenLap = { _, _ -> }, onOpenSettings = { edits++ })
+                LibraryScreen(onOpenLap = { _ -> }, onOpenSettings = { edits++ })
             }
         }
 
@@ -299,7 +300,7 @@ class LibraryScreenTest {
         SessionFixtures.install(context, SessionFixtures.session(lapTimesMs = listOf(90_000, 91_500)))
 
         compose.setContent {
-            LapCraftTheme { LibraryScreen(onOpenLap = { _, _ -> }) }
+            LapCraftTheme { LibraryScreen(onOpenLap = { _ -> }) }
         }
 
         compose.waitUntil(TIMEOUT) {
@@ -323,8 +324,8 @@ class LibraryScreenTest {
         compose.setContent {
             LapCraftTheme {
                 LibraryScreen(
-                    onOpenLap = { _, _ -> },
-                    onCompare = { a, b, c, d -> compared = listOf(a, b, c, d) },
+                    onOpenLap = { _ -> },
+                    onCompare = { a, b -> compared = listOf(a, b) },
                 )
             }
         }
@@ -338,7 +339,7 @@ class LibraryScreenTest {
         compose.onNodeWithText("1:31.000").performClick()
         compose.onNodeWithTag("library-compare-go").performClick()
 
-        assertEquals(listOf<Any>("session-1", 1, "session-2", 1), compared)
+        assertEquals(listOf(LapId("session-1"), LapId("session-2")), compared)
     }
 
     private companion object {

@@ -3,6 +3,7 @@ package io.github.jlai403.lapcraft.app.ui
 import io.github.jlai403.lapcraft.app.service.TelemetryEvent
 import io.github.jlai403.lapcraft.core.capture.CaptureState
 import io.github.jlai403.lapcraft.core.model.Sample
+import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LapMetadata
 import kotlin.math.roundToInt
 import java.time.Instant
@@ -47,17 +48,14 @@ fun formatEventTime(epochMs: Long): String =
 
 sealed interface Screen {
     data object Library : Screen
-    data class Player(val sessionId: String, val lapIndex: Int) : Screen
+    data class Player(val lapId: LapId) : Screen
     data class Compare(
-        val primarySessionId: String,
-        val primaryLapIndex: Int,
-        val referenceSessionId: String,
-        val referenceLapIndex: Int,
+        val primaryLapId: LapId,
+        val referenceLapId: LapId,
     ) : Screen
     data class ImportPick(val uri: String) : Screen
     data class ImportSync(
-        val sessionId: String,
-        val lapIndex: Int,
+        val lapId: LapId,
         val sourceUri: String?,
         val returnToLibrary: Boolean = false,
         val returnToCompare: Compare? = null,

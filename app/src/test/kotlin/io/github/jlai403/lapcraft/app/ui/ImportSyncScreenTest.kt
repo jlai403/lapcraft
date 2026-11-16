@@ -16,6 +16,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.test.core.app.ApplicationProvider
 import io.github.jlai403.lapcraft.app.settings.ReplayPreset
+import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
 import org.junit.Rule
 import org.junit.Test
@@ -40,8 +41,7 @@ class ImportSyncScreenTest {
         compose.setContent {
             LapCraftTheme {
                 ImportSyncScreen(
-                    sessionId = "session-1",
-                    lapIndex = 1,
+                    lapId = LapId("session-1"),
                     sourceUri = null,
                     onDone = {},
                     onCancel = {},
@@ -62,8 +62,7 @@ class ImportSyncScreenTest {
         compose.setContent {
             LapCraftTheme {
                 ImportSyncScreen(
-                    sessionId = "session-1",
-                    lapIndex = 1,
+                    lapId = LapId("session-1"),
                     sourceUri = null,
                     onDone = {},
                     onCancel = {},
@@ -84,8 +83,7 @@ class ImportSyncScreenTest {
         compose.setContent {
             LapCraftTheme {
                 ImportSyncScreen(
-                    sessionId = "session-1",
-                    lapIndex = 1,
+                    lapId = LapId("session-1"),
                     sourceUri = null,
                     onDone = {},
                     onCancel = {},
@@ -113,8 +111,7 @@ class ImportSyncScreenTest {
         compose.setContent {
             LapCraftTheme {
                 ImportSyncScreen(
-                    sessionId = "session-1",
-                    lapIndex = 1,
+                    lapId = LapId("session-1"),
                     sourceUri = null,
                     onDone = {},
                     onCancel = {},
@@ -142,8 +139,7 @@ class ImportSyncScreenTest {
         compose.setContent {
             LapCraftTheme {
                 ImportSyncScreen(
-                    sessionId = "session-1",
-                    lapIndex = 1,
+                    lapId = LapId("session-1"),
                     sourceUri = null,
                     onDone = {},
                     onCancel = {},
@@ -172,8 +168,7 @@ class ImportSyncScreenTest {
         compose.setContent {
             LapCraftTheme {
                 ImportSyncScreen(
-                    sessionId = "session-1",
-                    lapIndex = 1,
+                    lapId = LapId("session-1"),
                     sourceUri = null,
                     onDone = {},
                     onCancel = {},

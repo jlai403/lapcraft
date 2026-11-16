@@ -65,7 +65,7 @@ fun App(
     BackHandler(enabled = screen != Screen.Library && screen !is Screen.ImportSync) {
         val current = screen
         screen = when (current) {
-            is Screen.Compare -> Screen.Player(current.primarySessionId, current.primaryLapIndex)
+            is Screen.Compare -> Screen.Player(current.primaryLapId)
             else -> Screen.Library
         }
     }
@@ -80,39 +80,33 @@ fun App(
                 Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
                     when (val current = screen) {
                         Screen.Library -> LibraryScreen(
-                            onOpenLap = { id, index -> screen = Screen.Player(id, index) },
+                            onOpenLap = { lapId -> screen = Screen.Player(lapId) },
                             onOpenRecord = { screen = Screen.Record },
-                            onOpenSync = { id, index, uri ->
-                                screen = Screen.ImportSync(id, index, uri, returnToLibrary = true)
+                            onOpenSync = { lapId, uri ->
+                                screen = Screen.ImportSync(lapId, uri, returnToLibrary = true)
                             },
                             onOpenSettings = { screen = Screen.Settings },
-                            onCompare = { primaryId, primaryIndex, referenceId, referenceIndex ->
-                                screen = Screen.Compare(
-                                    primaryId,
-                                    primaryIndex,
-                                    referenceId,
-                                    referenceIndex,
-                                )
+                            onCompare = { primaryLapId, referenceLapId ->
+                                screen = Screen.Compare(primaryLapId, referenceLapId)
                             },
                         )
 
                         is Screen.ImportPick -> ImportPickScreen(
                             uri = current.uri,
-                            onPick = { id, index ->
-                                screen = Screen.ImportSync(id, index, current.uri)
+                            onPick = { lapId ->
+                                screen = Screen.ImportSync(lapId, current.uri)
                             },
                             onClose = { screen = Screen.Library },
                         )
 
                         is Screen.ImportSync -> ImportSyncScreen(
-                            sessionId = current.sessionId,
-                            lapIndex = current.lapIndex,
+                            lapId = current.lapId,
                             sourceUri = current.sourceUri,
                             onDone = {
                                 screen = current.returnToCompare ?: if (current.returnToLibrary) {
                                     Screen.Library
                                 } else {
-                                    Screen.Player(current.sessionId, current.lapIndex)
+                                    Screen.Player(current.lapId)
                                 }
                             },
                             onCancel = {
@@ -121,32 +115,24 @@ fun App(
                         )
 
                         is Screen.Player -> LapPlayerScreen(
-                            sessionId = current.sessionId,
-                            lapIndex = current.lapIndex,
+                            lapId = current.lapId,
                             onBack = { screen = Screen.Library },
                             onImportSync = {
-                                screen = Screen.ImportSync(current.sessionId, current.lapIndex, it)
+                                screen = Screen.ImportSync(current.lapId, it)
                             },
-                            onCompare = { primaryId, primaryIndex, referenceId, referenceIndex ->
-                                screen = Screen.Compare(
-                                    primaryId,
-                                    primaryIndex,
-                                    referenceId,
-                                    referenceIndex,
-                                )
+                            onCompare = { primaryLapId, referenceLapId ->
+                                screen = Screen.Compare(primaryLapId, referenceLapId)
                             },
                         )
 
                         is Screen.Compare -> LapCompareScreen(
-                            primarySessionId = current.primarySessionId,
-                            primaryLapIndex = current.primaryLapIndex,
-                            referenceSessionId = current.referenceSessionId,
-                            referenceLapIndex = current.referenceLapIndex,
+                            primaryLapId = current.primaryLapId,
+                            referenceLapId = current.referenceLapId,
                             onBack = {
-                                screen = Screen.Player(current.primarySessionId, current.primaryLapIndex)
+                                screen = Screen.Player(current.primaryLapId)
                             },
-                            onAddClip = { id, index ->
-                                screen = Screen.ImportSync(id, index, null, returnToCompare = current)
+                            onAddClip = { lapId ->
+                                screen = Screen.ImportSync(lapId, null, returnToCompare = current)
                             },
                         )
 
@@ -157,7 +143,7 @@ fun App(
                             onDisconnect = onDisconnect,
                             onCapture = onCapture,
                             onCancelCapture = onCancelCapture,
-                            onOpenLap = { id, index -> screen = Screen.Player(id, index) },
+                            onOpenLap = { lapId -> screen = Screen.Player(lapId) },
                         )
 
                         Screen.Settings -> SettingsScreen(

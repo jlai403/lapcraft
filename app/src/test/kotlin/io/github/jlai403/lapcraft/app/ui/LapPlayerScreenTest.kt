@@ -14,6 +14,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.test.core.app.ApplicationProvider
 import io.github.jlai403.lapcraft.core.profile.DriverProfile
+import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
 import org.junit.Assert.assertEquals
@@ -50,8 +51,7 @@ class LapPlayerScreenTest {
         compose.setContent {
             LapCraftTheme {
                 LapPlayerScreen(
-                    sessionId = "session-1",
-                    lapIndex = 1,
+                    lapId = LapId("session-1"),
                     onBack = {},
                     onImportSync = {},
                 )
@@ -77,8 +77,7 @@ class LapPlayerScreenTest {
         compose.setContent {
             LapCraftTheme {
                 LapPlayerScreen(
-                    sessionId = "session-1",
-                    lapIndex = 1,
+                    lapId = LapId("session-1"),
                     onBack = {},
                     onImportSync = {},
                 )
@@ -101,8 +100,7 @@ class LapPlayerScreenTest {
         compose.setContent {
             LapCraftTheme {
                 LapPlayerScreen(
-                    sessionId = "session-1",
-                    lapIndex = 1,
+                    lapId = LapId("session-1"),
                     onBack = {},
                     onImportSync = {},
                 )
@@ -124,8 +122,7 @@ class LapPlayerScreenTest {
         compose.setContent {
             LapCraftTheme {
                 LapPlayerScreen(
-                    sessionId = "session-1",
-                    lapIndex = 1,
+                    lapId = LapId("session-1"),
                     onBack = {},
                     onImportSync = {},
                 )
@@ -148,8 +145,7 @@ class LapPlayerScreenTest {
         compose.setContent {
             LapCraftTheme {
                 LapPlayerScreen(
-                    sessionId = "session-1",
-                    lapIndex = 1,
+                    lapId = LapId("session-1"),
                     onBack = {},
                     onImportSync = {},
                 )
@@ -169,8 +165,7 @@ class LapPlayerScreenTest {
         compose.setContent {
             LapCraftTheme {
                 LapPlayerScreen(
-                    sessionId = "session-1",
-                    lapIndex = 1,
+                    lapId = LapId("session-1"),
                     onBack = {},
                     onImportSync = {},
                 )
@@ -199,8 +194,7 @@ class LapPlayerScreenTest {
         compose.setContent {
             LapCraftTheme {
                 LapPlayerScreen(
-                    sessionId = "session-1",
-                    lapIndex = 1,
+                    lapId = LapId("session-1"),
                     onBack = {},
                     onImportSync = {},
                 )
@@ -231,8 +225,7 @@ class LapPlayerScreenTest {
         compose.setContent {
             LapCraftTheme {
                 LapPlayerScreen(
-                    sessionId = "session-1",
-                    lapIndex = 1,
+                    lapId = LapId("session-1"),
                     onBack = {},
                     onImportSync = {},
                 )
@@ -261,8 +254,7 @@ class LapPlayerScreenTest {
         compose.setContent {
             LapCraftTheme {
                 LapPlayerScreen(
-                    sessionId = "session-1",
-                    lapIndex = 1,
+                    lapId = LapId("session-1"),
                     onBack = {},
                     onImportSync = {},
                 )
@@ -288,7 +280,7 @@ class LapPlayerScreenTest {
 
         compose.setContent {
             LapCraftTheme {
-                LapPlayerScreen("session-1", 1, onBack = {}, onImportSync = {})
+                LapPlayerScreen(LapId("session-1"), onBack = {}, onImportSync = {})
             }
         }
 
@@ -304,7 +296,7 @@ class LapPlayerScreenTest {
 
         compose.setContent {
             LapCraftTheme {
-                LapPlayerScreen("session-1", 1, onBack = {}, onImportSync = {})
+                LapPlayerScreen(LapId("session-1"), onBack = {}, onImportSync = {})
             }
         }
 
@@ -324,7 +316,7 @@ class LapPlayerScreenTest {
 
         compose.setContent {
             LapCraftTheme {
-                LapPlayerScreen("session-1", 1, onBack = {}, onImportSync = {})
+                LapPlayerScreen(LapId("session-1"), onBack = {}, onImportSync = {})
             }
         }
 
@@ -347,7 +339,7 @@ class LapPlayerScreenTest {
 
         compose.setContent {
             LapCraftTheme {
-                LapPlayerScreen("session-1", 1, onBack = {}, onImportSync = {})
+                LapPlayerScreen(LapId("session-1"), onBack = {}, onImportSync = {})
             }
         }
 
@@ -370,11 +362,10 @@ class LapPlayerScreenTest {
         compose.setContent {
             LapCraftTheme {
                 LapPlayerScreen(
-                    sessionId = "session-1",
-                    lapIndex = 1,
+                    lapId = LapId("session-1"),
                     onBack = {},
                     onImportSync = {},
-                    onCompare = { a, b, c, d -> compared = listOf(a, b, c, d) },
+                    onCompare = { a, b -> compared = listOf(a, b) },
                 )
             }
         }
@@ -387,7 +378,7 @@ class LapPlayerScreenTest {
         compose.onNodeWithText("Compare with").assertExists()
         compose.onNodeWithText("1:31.000").performClick()
 
-        assertEquals(listOf<Any>("session-1", 1, "session-2", 1), compared)
+        assertEquals(listOf(LapId("session-1"), LapId("session-2")), compared)
     }
 
     private companion object {

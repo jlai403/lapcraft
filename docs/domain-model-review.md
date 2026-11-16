@@ -10,14 +10,14 @@ Scope: the whole model, `core` plus how the app consumes it. Method: read the pe
 
 | # | Finding | Status |
 |---|---|---|
-| 1 | Lap identity is a `(sessionId, lapIndex)` pair used in about 20 places | partly done: `LapId` + per-lap directories landed in `refactor/lap-record`. The pair survives in `LapSummary`, `Screen`, `CaptureState.Saved` (hardcoded index `1` in `RecordScreen`) and the hand-built library key. Finish in `refactor/lap-row`. |
+| 1 | Lap identity is a `(sessionId, lapIndex)` pair used in about 20 places | done: `LapId` everywhere. `LapSummary`, `Screen`, `CaptureState.Saved` and the library key all carry a `LapId`; `sameLap` and the hardcoded index are gone. `LapMetadata`/`index` remains only as the legacy migration shape. |
 | 2 | Replay readiness is encoded in four overlapping fields with four derived read rules | done: fixed media names, state derived from the directory |
 | 3 | Track identity is an editable display string | accepted, ADR 0002. *Not* merely open: `LapRecord.circuitId`/`circuitLabel` already exist and are written empty by `LapSaver`, `LapStore` migration, and `LibraryArchive` (four call sites). The field is dead schema; no code reads it. Branch `feat/circuit-id` (rename to `trackId`/`trackLabel` first, see #9). |
 | 4 | The session no longer describes anything the app does | done: flattened to one directory per lap (ADR 0001) |
 | 5 | Two independent clip-to-lap time mappings | open, recommendation below. Defer until the sync screen is next touched. |
 | 6 | Missing steering is stored as `0f` | accepted, ADR 0003. Open branch `feat/steering-codec-v2`. |
 | 7 | Three time bases share `Ms` and `Nanos` names, and lap time has two sources | partly accepted. *Per-lap wall clock is resolved by the flatten*: `LapSaver` writes `capturedAt` per lap, so `LapSort.Newest` orders across laps. Remaining scope is only `LapDetector`'s `currentLapStartNanos`/`currentLapStartObserved` → sealed `CurrentLap` state. |
-| 8 | The library row is a parallel definition of a lap, and filters are stringly typed | open. First half is the residue of #1 (row still carries the pair). Second half (`eventKind == "none"`, `EventTag.kind: String`) untouched. Split: identity half goes with `refactor/lap-row`; `EventKind`/`EventFilter` with the opportunistic pass. |
+| 8 | The library row is a parallel definition of a lap, and filters are stringly typed | partly done: identity half landed in `refactor/lap-row` (`LapSummary` is now `lapId` + a projection of `LapRecord`). Remaining: `eventKind == "none"` and `EventTag.kind: String` → sealed `EventKind`/`EventFilter`. |
 | 9 | Glossary and code disagree on three terms | resolved in the glossary rewrite, except the track name: glossary says *Track id* and avoids *circuit id*, while code and ADR 0002 say `circuitId`. Settled in the docs truth-up branch: rename code to `trackId`/`trackLabel` (the field is dead and unwired, so the rename is free now and a schema migration later). `GhostLap` rename (→ `LoadedLap`/`LapWithSamples`) still open. |
 
 ### What was already sound

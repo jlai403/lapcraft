@@ -4,8 +4,7 @@ import java.time.Instant
 
 /** One row in the flat library. A session holds one lap for new captures; legacy sessions may hold several. */
 data class LapSummary(
-    val sessionId: String,
-    val lapIndex: Int,
+    val lapId: LapId,
     val lapTimeMs: Int,
     val createdAt: String,
     val trackLabel: String,
@@ -54,8 +53,6 @@ fun List<LapSummary>.fastestPerTrack(): Map<String, LapSummary> =
 val LapSummary.trackKey: String
     get() = trackLabel.trim().lowercase()
 
-fun LapSummary.sameLap(other: LapSummary): Boolean =
-    sessionId == other.sessionId && lapIndex == other.lapIndex
 
 private fun parseInstant(value: String): Instant =
     runCatching { Instant.parse(value) }.getOrDefault(Instant.EPOCH)

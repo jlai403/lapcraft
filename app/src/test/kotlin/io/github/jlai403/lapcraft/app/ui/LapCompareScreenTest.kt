@@ -13,6 +13,7 @@ import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
 import io.github.jlai403.lapcraft.core.clip.TrackProgress
+import io.github.jlai403.lapcraft.core.session.LapId
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
@@ -54,14 +55,12 @@ class LapCompareScreenTest {
         )
     }
 
-    private fun setCompareScreen(onAddClip: (String, Int) -> Unit = { _, _ -> }) {
+    private fun setCompareScreen(onAddClip: (LapId) -> Unit = { _ -> }) {
         compose.setContent {
             LapCraftTheme {
                 LapCompareScreen(
-                    primarySessionId = "primary",
-                    primaryLapIndex = 1,
-                    referenceSessionId = "reference",
-                    referenceLapIndex = 1,
+                    primaryLapId = LapId("primary"),
+                    referenceLapId = LapId("reference"),
                     onBack = {},
                     onAddClip = onAddClip,
                 )
@@ -121,7 +120,7 @@ class LapCompareScreenTest {
     fun `a lap without a clip offers to add one`() {
         installLaps(referenceClip = false)
         var added: Pair<String, Int>? = null
-        setCompareScreen { id, index -> added = id to index }
+        setCompareScreen { id -> added = id.toString() to 1 }
 
         compose.waitUntil(TIMEOUT) {
             compose.onAllNodesWithText("No clip yet").fetchSemanticsNodes().isNotEmpty()

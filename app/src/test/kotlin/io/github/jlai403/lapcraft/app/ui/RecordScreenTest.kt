@@ -13,6 +13,7 @@ import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import io.github.jlai403.lapcraft.app.service.TelemetryEvent
 import io.github.jlai403.lapcraft.core.capture.CaptureState
+import io.github.jlai403.lapcraft.core.session.LapId
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -34,7 +35,7 @@ class RecordScreenTest {
         onConnect: (String) -> Unit = {},
         onCapture: () -> Unit = {},
         onCancelCapture: () -> Unit = {},
-        onOpenLap: (String, Int) -> Unit = { _, _ -> },
+        onOpenLap: (LapId) -> Unit = { _ -> },
     ) {
         compose.setContent {
             LapCraftTheme {
@@ -123,9 +124,9 @@ class RecordScreenTest {
                 packetsPerSecond = 59.8,
                 lastPacketAgeMs = 12,
                 lapStartObserved = true,
-                capture = CaptureState.Saved(sessionId = "lap-7", lapTimeMs = 159_831),
+                capture = CaptureState.Saved(lapId = LapId("lap-7"), lapTimeMs = 159_831),
             ),
-            onOpenLap = { id, index -> opened = id to index },
+            onOpenLap = { id -> opened = id.toString() to 1 },
         )
 
         compose.onNodeWithText("Saved 2:39.831").assertExists()

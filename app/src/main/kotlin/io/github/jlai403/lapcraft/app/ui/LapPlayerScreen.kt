@@ -81,7 +81,7 @@ import io.github.jlai403.lapcraft.core.session.LapRecord
 import io.github.jlai403.lapcraft.core.session.toLapMetadata
 import io.github.jlai403.lapcraft.core.session.LapStore
 import io.github.jlai403.lapcraft.app.catalog.CarCatalog
-import io.github.jlai403.lapcraft.app.catalog.sessionStore
+import io.github.jlai403.lapcraft.app.catalog.lapStore
 import io.github.jlai403.lapcraft.core.session.trackKey
 import io.github.jlai403.lapcraft.core.track.TrackCandidate
 import kotlinx.coroutines.Dispatchers
@@ -95,15 +95,14 @@ import kotlin.math.roundToLong
 @OptIn(UnstableApi::class)
 @Composable
 fun LapPlayerScreen(
-    sessionId: String,
-    lapIndex: Int,
+    lapId: LapId,
     onBack: () -> Unit,
     onImportSync: (String?) -> Unit,
-    onCompare: (String, Int, String, Int) -> Unit = { _, _, _, _ -> },
+    onCompare: (LapId, LapId) -> Unit = { _, _ -> },
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val store = remember { sessionStore(context) }
+    val store = remember { lapStore(context) }
     val settings = remember { SettingsStore(context) }
     val profileStore = remember { DriverProfileStore(context) }
     val namer = remember { TrackNamer(store, TrackCatalog(context)) }
@@ -127,33 +126,32 @@ fun LapPlayerScreen(
             cachedEvents = EventCache(context).events()
         }
     }
-    val id = LapId(sessionId)
-    val session by produceState<LapRecord?>(null, sessionId, sessionReload) {
-        value = withContext(Dispatchers.IO) { store.load(id) }
+    val session by produceState<LapRecord?>(null, lapId, sessionReload) {
+        value = withContext(Dispatchers.IO) { store.load(lapId) }
     }
     val lap = session?.toLapMetadata()
-    val samples by produceState<List<Sample>>(emptyList(), sessionId) {
+    val samples by produceState<List<Sample>>(emptyList(), lapId) {
         value = withContext(Dispatchers.IO) {
-            runCatching { store.readSamples(id) }.getOrDefault(emptyList())
+            runCatching { store.readSamples(lapId) }.getOrDefault(emptyList())
         }
     }
-    val summary by produceState<LapSummary?>(null, sessionId, sessionReload) {
+    val summary by produceState<LapSummary?>(null, lapId, sessionReload) {
         value = withContext(Dispatchers.IO) {
-            store.summaries().firstOrNull { it.sessionId == sessionId }
+            store.summaries().firstOrNull { it.lapId == lapId }
         }
     }
-    val ghost by produceState<GhostLap?>(null, sessionId, sessionReload) {
+    val ghost by produceState<GhostLap?>(null, lapId, sessionReload) {
         value = withContext(Dispatchers.IO) {
             val laps = store.summaries()
-            val current = laps.firstOrNull { it.sessionId == sessionId } ?: return@withContext null
+            val current = laps.firstOrNull { it.lapId == lapId } ?: return@withContext null
             val best = laps
                 .filter {
-                    it.trackLabel == current.trackLabel && it.sessionId != sessionId
+                    it.trackLabel == current.trackLabel && it.lapId != lapId
                 }
                 .minByOrNull { it.lapTimeMs } ?: return@withContext null
-            val bestLap = store.load(LapId(best.sessionId)) ?: return@withContext null
+            val bestLap = store.load(best.lapId) ?: return@withContext null
             val bestSamples = runCatching {
-                store.readSamples(LapId(best.sessionId))
+                store.readSamples(best.lapId)
             }.getOrDefault(emptyList())
             if (bestSamples.isEmpty()) null else GhostLap(bestLap.toLapMetadata(), bestSamples)
         }
@@ -161,14 +159,14 @@ fun LapPlayerScreen(
 
     val compareCandidates by produceState<List<LapSummary>>(
         emptyList(),
-        sessionId,
+        lapId,
         sessionReload,
     ) {
         value = withContext(Dispatchers.IO) {
             val laps = store.summaries()
-            val current = laps.firstOrNull { it.sessionId == sessionId } ?: return@withContext emptyList()
+            val current = laps.firstOrNull { it.lapId == lapId } ?: return@withContext emptyList()
             laps.filter {
-                it.trackKey == current.trackKey && it.sessionId != sessionId
+                it.trackKey == current.trackKey && it.lapId != lapId
             }.sortedBy { it.lapTimeMs }
         }
     }
@@ -177,9 +175,9 @@ fun LapPlayerScreen(
             .associateWith { profileStore.profile(it) }
     }
 
-    val lapDir = store.lapDir(LapId(sessionId))
+    val lapDir = store.lapDir(lapId)
     val videoFile = File(lapDir, "replay.mp4").takeIf { it.isFile }
-    val player = remember(sessionId, lapIndex) {
+    val player = remember(lapId) {
         ExoPlayer.Builder(context).build().apply {
             setSeekParameters(SeekParameters.EXACT)
         }
@@ -244,7 +242,7 @@ fun LapPlayerScreen(
         if (file == null) {
             message = "No video yet"
         } else {
-            Sharing.shareFile(context, file, "video/mp4", "Share lap $lapIndex")
+            Sharing.shareFile(context, file, "video/mp4", "Share lap")
         }
     }
 
@@ -253,10 +251,10 @@ fun LapPlayerScreen(
         scope.launch {
             runCatching {
                 withContext(Dispatchers.IO) {
-                    Sharing.exportCsv(context, store, LapId(sessionId))
+                    Sharing.exportCsv(context, store, lapId)
                 }
             }.onSuccess {
-                Sharing.shareFile(context, it, "text/csv", "Export lap $lapIndex")
+                Sharing.shareFile(context, it, "text/csv", "Export lap")
             }.onFailure {
                 message = "CSV export failed: ${it.message}"
             }
@@ -270,7 +268,7 @@ fun LapPlayerScreen(
         if (session?.trackLabel == TrackNamer.UNKNOWN) {
             scope.launch {
                 val found = withContext(Dispatchers.IO) {
-                    runCatching { namer.candidates(LapId(sessionId)) }.getOrDefault(emptyList())
+                    runCatching { namer.candidates(lapId) }.getOrDefault(emptyList())
                 }
                 if (editing) candidates = found
             }
@@ -440,7 +438,7 @@ fun LapPlayerScreen(
                             text = { Text("Share screenshot") },
                             onClick = {
                                 menuOpen = false
-                                shareScreenshot(context, "Share lap $lapIndex") { message = it }
+                                shareScreenshot(context, "Share lap") { message = it }
                             },
                         )
                         DropdownMenuItem(
@@ -541,7 +539,7 @@ fun LapPlayerScreen(
                         )
                     }
                 }
-                if (File(store.lapDir(LapId(sessionId)), "source.mp4").isFile) {
+                if (File(store.lapDir(lapId), "source.mp4").isFile) {
                     Text(
                         "Newer clip waiting to be synced.",
                         style = MaterialTheme.typography.bodySmall,
@@ -550,7 +548,7 @@ fun LapPlayerScreen(
                 }
             } else {
                 SectionCard(title = "Replay") {
-                    if (File(store.lapDir(LapId(sessionId)), "source.mp4").isFile) {
+                    if (File(store.lapDir(lapId), "source.mp4").isFile) {
                         Text(
                             "Clip imported — sync not finished",
                             style = MaterialTheme.typography.titleMedium,
@@ -699,7 +697,7 @@ fun LapPlayerScreen(
                     editing = false
                     scope.launch {
                         val renamed = withContext(Dispatchers.IO) {
-                            runCatching { store.renameTrack(LapId(sessionId), name) }.getOrNull()
+                            runCatching { store.renameTrack(lapId, name) }.getOrNull()
                         }
                         if (renamed == null) message = "Track name could not be saved."
                         sessionReload++
@@ -709,7 +707,7 @@ fun LapPlayerScreen(
                     scope.launch {
                         val updated = withContext(Dispatchers.IO) {
                             runCatching {
-                                store.setDriver(LapId(sessionId), profile?.psnId)
+                                store.setDriver(lapId, profile?.psnId)
                             }.getOrNull()
                         }
                         if (updated == null) {
@@ -742,7 +740,7 @@ fun LapPlayerScreen(
                         scope.launch {
                             val reencoded = runCatching {
                                 LapReencoder(store, VideoTranscoder(context))
-                                    .reencode(LapId(sessionId))
+                                    .reencode(lapId)
                             }.getOrDefault(false)
                             reencoding = false
                             reencodeResult = reencoded
@@ -754,7 +752,7 @@ fun LapPlayerScreen(
                 onAssignEvent = { tag ->
                     scope.launch {
                         withContext(Dispatchers.IO) {
-                            runCatching { store.setEvent(LapId(sessionId), tag) }
+                            runCatching { store.setEvent(lapId, tag) }
                         }
                         sessionReload++
                     }
@@ -785,10 +783,8 @@ fun LapPlayerScreen(
                                 .clickable {
                                     compareOpen = false
                                     onCompare(
-                                        sessionId,
-                                        lapIndex,
-                                        candidate.sessionId,
-                                        candidate.lapIndex,
+                                        lapId,
+                                        candidate.lapId,
                                     )
                                 }
                                 .padding(vertical = 10.dp),

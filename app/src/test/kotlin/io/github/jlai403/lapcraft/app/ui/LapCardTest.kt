@@ -12,6 +12,7 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.swipeRight
 import io.github.jlai403.lapcraft.core.profile.DriverProfile
+import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LapSummary
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -30,8 +31,7 @@ class LapCardTest {
     val compose = createComposeRule()
 
     private val lap = LapSummary(
-        sessionId = "session-1",
-        lapIndex = 1,
+        lapId = LapId("session-1"),
         lapTimeMs = 90_000,
         createdAt = "2026-11-11T10:00:00Z",
         trackLabel = "Suzuka",
