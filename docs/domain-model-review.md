@@ -60,7 +60,7 @@ Decision. Persist `trackId` and `trackLabel`, key grouping on the id, fall back 
 
 Problem. The spec still describes a session as a capture run owning laps, but capture has been one lap at a time since `4a61138`, and every new session holds exactly one lap. What remains session-scoped is the circuit, the car, the creation time, and a set of fields from the raw-recording era: `rawFile`, `audioFile`, `keepRaw`, `rawDeleted`, `recordingStartNanos`, and a second `syncOffsetMs` that nothing reads.
 
-Evidence. `docs/specs/2026-11-10-pocket-sim-engineer.md:56` ("one session containing one lap; legacy multi-lap sessions remain readable"). `SessionWriter.kt:52` writes the session offset into each lap. `LapSaver.kt:34` writes `rawFile = ""`. The lap record is also written twice, to `session.json:laps[]` and to `laps/lap-NNN.json`, and `LibraryArchive.importStaged` (`:174-186`) resolves the disagreement in favour of the file copy without documenting it.
+Evidence. `docs/specs/2026-11-10-lapcraft.md:56` ("one session containing one lap; legacy multi-lap sessions remain readable"). `SessionWriter.kt:52` writes the session offset into each lap. `LapSaver.kt:34` writes `rawFile = ""`. The lap record is also written twice, to `session.json:laps[]` and to `laps/lap-NNN.json`, and `LibraryArchive.importStaged` (`:174-186`) resolves the disagreement in favour of the file copy without documenting it.
 
 Decision. Flatten. One directory per lap, `files/laps/<lapId>/`. Re-adding a capture run later is a nullable `captureRunId` per lap. ADR 0001.
 
@@ -107,15 +107,17 @@ Recommendation. Make the row a projection of the lap record once the flatten lan
 
 - Value objects inside `Sample` (`Position`, `Tyres`, `Pedals`). The codec and interpolation would both change for readability alone.
 - Renaming `SessionStore` and the `sessions/` directory without the layout migration. Superseded by the flatten.
-- Dropping `packetId` from the sample file. It is wire dedupe only, but the saving is four bytes a sample and the codec change is already taken by ADR 0003. Fold it in there if convenient, otherwise leave it.
+- `packetId` is no longer persisted (codec v2); it remains on the in-memory `Sample` for live dedupe in `LapDetector`.
 - An ADR for exact seeks. The reasoning already sits in `AGENTS.md` and `DESIGN.md`, and nothing is about to change it.
 
-Note: spec `docs/specs/2026-11-10-pocket-sim-engineer.md` §9.2 and §9.5 still describe the legacy session layout and have not been rewritten for the flatten.
+Note: spec rewritten for the flatten in the docs cleanup; legacy layout remains documented as read-only in §9.5.
 
 ### Follow-up order agreed
 
 1. Docs: ADR 0001, 0002, 0003 and the glossary. Done.
 2. Branch `refactor/lap-record`: identity, flatten, migration, archive format 2, replay state, app call sites, `AGENTS.md` and spec §9.2 and §9.5. Done (merged).
 3. Branch for `trackId`. Done (merged).
-4. Branch for nullable steering and codec version 2. Open.
-5. Opportunistic: `LapClock`, detector state, `EventKind`, `LoadedLap`. Open.
+4. Branch for nullable steering and codec version 2. Done (merged).
+5. Opportunistic: `LapClock`, detector state, `EventKind`, `LoadedLap`. Done (merged).
+
+All findings closed as of 2026-11-16.
