@@ -78,7 +78,7 @@ import io.github.jlai403.lapcraft.core.session.LapSummary
 
 import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LapRecord
-import io.github.jlai403.lapcraft.core.session.toLapMetadata
+import io.github.jlai403.lapcraft.core.session.toLapView
 import io.github.jlai403.lapcraft.core.session.LapStore
 import io.github.jlai403.lapcraft.app.catalog.CarCatalog
 import io.github.jlai403.lapcraft.app.catalog.lapStore
@@ -129,7 +129,7 @@ fun LapPlayerScreen(
     val session by produceState<LapRecord?>(null, lapId, sessionReload) {
         value = withContext(Dispatchers.IO) { store.load(lapId) }
     }
-    val lap = session?.toLapMetadata()
+    val lap = session?.toLapView()
     val samples by produceState<List<Sample>>(emptyList(), lapId) {
         value = withContext(Dispatchers.IO) {
             runCatching { store.readSamples(lapId) }.getOrDefault(emptyList())
@@ -153,7 +153,7 @@ fun LapPlayerScreen(
             val bestSamples = runCatching {
                 store.readSamples(best.lapId)
             }.getOrDefault(emptyList())
-            if (bestSamples.isEmpty()) null else LoadedLap(bestLap.toLapMetadata(), bestSamples)
+            if (bestSamples.isEmpty()) null else LoadedLap(bestLap.toLapView(), bestSamples)
         }
     }
 

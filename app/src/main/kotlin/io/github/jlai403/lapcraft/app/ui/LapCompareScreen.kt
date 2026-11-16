@@ -68,10 +68,10 @@ import io.github.jlai403.lapcraft.app.settings.SettingsStore
 import io.github.jlai403.lapcraft.core.clip.TrackProgress
 import io.github.jlai403.lapcraft.core.model.Sample
 import io.github.jlai403.lapcraft.core.clip.LapClock
-import io.github.jlai403.lapcraft.core.session.LapMetadata
+import io.github.jlai403.lapcraft.core.session.LapView
 import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LapStore
-import io.github.jlai403.lapcraft.core.session.toLapMetadata
+import io.github.jlai403.lapcraft.core.session.toLapView
 import io.github.jlai403.lapcraft.app.catalog.lapStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -85,7 +85,7 @@ internal val COMPARE_MAP_PANE_WIDTH = 320.dp
 private data class CompareLap(
     val lapId: LapId,
     val trackLabel: String,
-    val lap: LapMetadata,
+    val lap: LapView,
     val samples: List<Sample>,
     val clip: File?,
 )
@@ -739,5 +739,5 @@ private suspend fun loadLap(
         .getOrDefault(emptyList())
     val dir = store.lapDir(lapId)
     val clip = File(dir, "replay.mp4").takeIf { it.isFile }
-    CompareLap(lapId, record.trackLabel, record.toLapMetadata(), samples, clip)
+    CompareLap(lapId, record.trackLabel, record.toLapView(), samples, clip)
 }

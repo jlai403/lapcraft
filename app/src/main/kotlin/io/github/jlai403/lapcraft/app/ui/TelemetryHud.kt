@@ -14,14 +14,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import io.github.jlai403.lapcraft.core.model.Sample
-import io.github.jlai403.lapcraft.core.session.LapMetadata
+import io.github.jlai403.lapcraft.core.session.LapView
 
 private const val TRAILING_WINDOW_MS = 2_000
 
 @Composable
 internal fun TelemetryHud(
     window: List<Sample>,
-    lap: LapMetadata,
+    lap: LapView,
     cursorMs: Int,
     modifier: Modifier = Modifier,
 ) {

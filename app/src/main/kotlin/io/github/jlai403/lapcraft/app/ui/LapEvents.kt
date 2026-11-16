@@ -1,7 +1,7 @@
 package io.github.jlai403.lapcraft.app.ui
 
 import io.github.jlai403.lapcraft.core.model.Sample
-import io.github.jlai403.lapcraft.core.session.LapMetadata
+import io.github.jlai403.lapcraft.core.session.LapView
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
@@ -17,7 +17,7 @@ private const val TURN_STEERING = 0.35f
 private const val TURN_CURVATURE = 0.08f
 private const val TURN_WINDOW_MS = 250
 
-internal fun lapEvents(window: List<Sample>, lap: LapMetadata): List<LapEvent> {
+internal fun lapEvents(window: List<Sample>, lap: LapView): List<LapEvent> {
     if (window.isEmpty()) return emptyList()
     val events = mutableListOf<LapEvent>()
     val lastTime = mutableMapOf<LapEventType, Int>()
@@ -78,7 +78,7 @@ internal fun lapEvents(window: List<Sample>, lap: LapMetadata): List<LapEvent> {
     return events.sortedBy { it.timeMs }
 }
 
-private fun curvatureAt(window: List<Sample>, lap: LapMetadata): FloatArray {
+private fun curvatureAt(window: List<Sample>, lap: LapView): FloatArray {
     val times = IntArray(window.size) { window[it].lapTimeMs(lap) }
     fun heading(from: Int, to: Int): Float = atan2(
         (window[to].positionZ - window[from].positionZ).toDouble(),

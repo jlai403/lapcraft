@@ -9,13 +9,13 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import io.github.jlai403.lapcraft.core.model.Sample
-import io.github.jlai403.lapcraft.core.session.LapMetadata
+import io.github.jlai403.lapcraft.core.session.LapView
 import kotlin.math.ceil
 
 @Composable
 internal fun TelemetrySparkline(
     window: List<Sample>,
-    lap: LapMetadata,
+    lap: LapView,
     valueOf: (Sample) -> Float,
     maxValue: Float,
     color: Color,

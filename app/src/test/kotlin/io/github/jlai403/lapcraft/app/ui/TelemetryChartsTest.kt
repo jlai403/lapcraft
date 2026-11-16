@@ -7,7 +7,7 @@ import androidx.compose.ui.test.onNodeWithText
 import io.github.jlai403.lapcraft.core.clip.TrackProgress
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import io.github.jlai403.lapcraft.core.session.LapMetadata
+import io.github.jlai403.lapcraft.core.session.LapView
 import org.junit.Rule
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -148,13 +148,11 @@ class TelemetryChartsTest {
     }
 
 
-    private val lap = LapMetadata(
+    private val lap = LapView(
         index = 1,
         lapTimeMs = 90_000,
         startNanos = 0,
         endNanos = 90_000_000_000L,
-        sampleCount = 2,
-        videoFile = "",
         leadInMs = 0,
     )
 

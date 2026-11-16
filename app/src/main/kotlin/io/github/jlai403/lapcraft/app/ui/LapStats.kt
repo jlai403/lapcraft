@@ -1,9 +1,9 @@
 package io.github.jlai403.lapcraft.app.ui
 
 import io.github.jlai403.lapcraft.core.model.Sample
-import io.github.jlai403.lapcraft.core.session.LapMetadata
+import io.github.jlai403.lapcraft.core.session.LapView
 
-internal data class LoadedLap(val lap: LapMetadata, val samples: List<Sample>)
+internal data class LoadedLap(val lap: LapView, val samples: List<Sample>)
 
 internal data class LapStats(
     val lapTimeMs: Int,
@@ -14,7 +14,7 @@ internal data class LapStats(
     val fullThrottleMs: Int,
 )
 
-internal fun lapStats(window: List<Sample>, lap: LapMetadata): LapStats? {
+internal fun lapStats(window: List<Sample>, lap: LapView): LapStats? {
     if (window.size < 2) return null
     var top = window.first().speedMps
     var min = top
