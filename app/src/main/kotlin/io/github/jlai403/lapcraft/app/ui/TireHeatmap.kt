@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 
 private val TireHot = AccentRed
 
-/** Cold blue at 60 °C, optimal green at 90 °C, hot red at 120 °C. */
 internal fun tireTemperatureColor(celsius: Float): Color = when {
     celsius <= 60f -> AccentCyan
     celsius >= 120f -> TireHot

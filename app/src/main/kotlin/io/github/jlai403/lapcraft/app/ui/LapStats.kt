@@ -3,7 +3,6 @@ package io.github.jlai403.lapcraft.app.ui
 import io.github.jlai403.lapcraft.core.model.Sample
 import io.github.jlai403.lapcraft.core.session.LapMetadata
 
-/** A lap with its samples decoded, used for overlays and comparison. */
 internal data class LoadedLap(val lap: LapMetadata, val samples: List<Sample>)
 
 internal data class LapStats(
@@ -85,7 +84,6 @@ internal fun lapStatsComparison(
 private fun percent(partMs: Int, wholeMs: Int): Int =
     if (wholeMs <= 0) 0 else partMs * 100 / wholeMs
 
-/** Human-readable file size for the lap data summary. */
 internal fun formatBytes(bytes: Long): String = when {
     bytes >= 1_000_000_000 -> "%.2f GB".format(bytes / 1_000_000_000.0)
     bytes >= 1_000_000 -> "%.1f MB".format(bytes / 1_000_000.0)

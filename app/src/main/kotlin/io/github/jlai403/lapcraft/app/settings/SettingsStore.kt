@@ -10,7 +10,6 @@ class SettingsStore(context: Context) {
         get() = prefs.getString(KEY_IP, "").orEmpty()
         private set(value) = prefs.edit().putString(KEY_IP, value).apply()
 
-    /** Saves a valid dotted-quad address and returns false without changing the stored value. */
     fun savePs5Ip(raw: String): Boolean {
         val normalized = Ipv4.normalize(raw) ?: return false
         ps5Ip = normalized
@@ -21,27 +20,22 @@ class SettingsStore(context: Context) {
         get() = prefs.getBoolean(KEY_IMPERIAL, false)
         set(value) = prefs.edit().putBoolean(KEY_IMPERIAL, value).apply()
 
-    /** Haptic ticks while dragging the frame ruler. */
     var hapticsEnabled: Boolean
         get() = prefs.getBoolean(KEY_HAPTICS, true)
         set(value) = prefs.edit().putBoolean(KEY_HAPTICS, value).apply()
 
-    /** Playback rate used when a replay opens; changes on the lap screen last one session. */
     var defaultPlaybackSpeed: Float
         get() = prefs.getFloat(KEY_PLAYBACK_SPEED, 1f)
         set(value) = prefs.edit().putFloat(KEY_PLAYBACK_SPEED, value).apply()
 
-    /** Show speed, gear, and pedal sparklines over the replay. */
     var telemetryHud: Boolean
         get() = prefs.getBoolean(KEY_TELEMETRY_HUD, true)
         set(value) = prefs.edit().putBoolean(KEY_TELEMETRY_HUD, value).apply()
 
-    /** Time shown either side of the cursor on the telemetry charts, in seconds. */
     var chartWindowSeconds: Int
         get() = prefs.getInt(KEY_CHART_WINDOW, 5).coerceIn(2, 10)
         set(value) = prefs.edit().putInt(KEY_CHART_WINDOW, value.coerceIn(2, 10)).apply()
 
-    /** How new replay clips are compressed; defaults to the balanced profile. */
     var replayPreset: ReplayPreset
         get() = enumPref(KEY_REPLAY_PRESET, ReplayPreset.Balanced)
         set(value) = prefs.edit().putString(KEY_REPLAY_PRESET, value.name).apply()
@@ -62,7 +56,6 @@ class SettingsStore(context: Context) {
         get() = enumPref(KEY_REPLAY_CODEC, ReplayCodec.Hevc)
         set(value) = prefs.edit().putString(KEY_REPLAY_CODEC, value.name).apply()
 
-    /** The resolved encoder profile for new imports. */
     fun replayProfile(): ReplayProfile = replayProfile(
         preset = replayPreset,
         keyframes = replayKeyframes,
@@ -74,22 +67,18 @@ class SettingsStore(context: Context) {
     private inline fun <reified T : Enum<T>> enumPref(key: String, default: T): T =
         runCatching { enumValueOf<T>(prefs.getString(key, null).orEmpty()) }.getOrDefault(default)
 
-    /** Developer preview: show the empty library while laps stay on disk. */
     var previewEmptyLibrary: Boolean
         get() = prefs.getBoolean(KEY_PREVIEW_EMPTY, false)
         set(value) = prefs.edit().putBoolean(KEY_PREVIEW_EMPTY, value).apply()
 
-    /** Developer tools: exposes maintenance actions such as re-encoding a clip. */
     var developerTools: Boolean
         get() = prefs.getBoolean(KEY_DEVELOPER_TOOLS, false)
         set(value) = prefs.edit().putBoolean(KEY_DEVELOPER_TOOLS, value).apply()
 
-    /** Last track-identification backfill this install completed. */
     var trackIdentificationVersion: Int
         get() = prefs.getInt(KEY_TRACK_ID_VERSION, 0)
         set(value) = prefs.edit().putInt(KEY_TRACK_ID_VERSION, value).apply()
 
-    /** Tag laps with Daily Races, Time Trials, and World Series rounds. */
     var eventTags: Boolean
         get() = prefs.getBoolean(KEY_EVENT_TAGS, false)
         set(value) = prefs.edit().putBoolean(KEY_EVENT_TAGS, value).apply()

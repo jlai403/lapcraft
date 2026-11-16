@@ -15,10 +15,6 @@ import java.nio.charset.StandardCharsets
 
 class ProfileNotFoundException : IOException("No GT GridStats profile found for that PSN ID.")
 
-/**
- * Reads a GT GridStats driver profile. With an API key it uses the JSON API
- * (DR/SR included); without one it falls back to the public HTML page.
- */
 class GridStatsProfileClient(
     private val apiKey: () -> String? = { null },
 ) {

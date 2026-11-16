@@ -10,7 +10,6 @@ import java.nio.ByteBuffer
 
 data class TrimResult(val output: File, val startOffsetMs: Int)
 
-/** Cuts a replay to the lap range by copying samples, starting at the preceding video keyframe. */
 class ClipTrimmer {
     fun trim(source: File, output: File, range: TrimRange): TrimResult? {
         if (!source.isFile || range.endMs <= range.startMs) return null
@@ -112,7 +111,6 @@ class ClipTrimmer {
         return result
     }
 
-    /** Replaces an existing clip without losing it if the rename fails. */
     private fun swap(temp: File, output: File): Boolean {
         val backup = File(output.absolutePath + ".bak")
         backup.delete()

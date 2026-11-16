@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-/** F1-style wheel that turns with the recorded steering angle. */
 @Composable
 internal fun SteeringWheel(
     steering: Float,
@@ -76,7 +75,7 @@ internal fun SteeringWheel(
     }
 }
 
-/** Compose rotates clockwise for positive degrees; GT7 signs a left turn positive. */
+// Compose rotates clockwise for positive degrees; GT7 signs a left turn positive.
 internal fun steeringWheelDegrees(steering: Float): Float =
     -steering.coerceIn(-1f, 1f) * 180f
 

@@ -7,10 +7,6 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-/**
- * The local profile book: one owner used as the default, plus every driver
- * fetched or entered for a specific lap.
- */
 class DriverProfileStore(context: Context) {
     private val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
     private val json = Json {
@@ -56,7 +52,6 @@ class DriverProfileStore(context: Context) {
         }
     }
 
-    /** Optional GT GridStats API key, stored locally and never exported. */
     var apiKey: String?
         get() = prefs.getString(KEY_API_KEY, null)?.takeIf { it.isNotBlank() }
         set(value) {

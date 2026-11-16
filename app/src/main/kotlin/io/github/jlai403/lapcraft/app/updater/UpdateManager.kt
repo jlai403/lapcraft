@@ -20,11 +20,6 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
 
-/**
- * Checks the rolling `debug-latest` release for a newer build, downloads it,
- * and hands it to the system installer. Android always asks the user before
- * replacing the app; nothing here can install silently.
- */
 object UpdateManager {
     private const val PREVIEW_MANIFEST =
         "https://github.com/jlai403/lapcraft/releases/download/preview-latest/latest.json"

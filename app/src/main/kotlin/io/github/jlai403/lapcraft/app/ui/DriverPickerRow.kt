@@ -27,10 +27,6 @@ import io.github.jlai403.lapcraft.core.profile.DriverProfile
 import io.github.jlai403.lapcraft.app.profile.DriverProfileLinks
 import io.github.jlai403.lapcraft.app.profile.countryFlagEmoji
 
-/**
- * The driver identity row. Pass [onOpenLink] to make the name open the public
- * profile links for the assigned PSN ID.
- */
 @Composable
 internal fun DriverPickerRow(
     driverPsnId: String?,

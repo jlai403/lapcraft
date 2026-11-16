@@ -4,11 +4,6 @@ import io.github.jlai403.lapcraft.core.model.Sample
 import kotlin.math.hypot
 import kotlin.math.roundToInt
 
-/**
- * Cumulative distance along the racing line, expressed as a percentage of the lap.
- * Time and progress are interpolated between samples, so both directions are
- * continuous: a one-frame cursor step never jumps the reference lap.
- */
 object TrackProgress {
     private const val MAX_STEP_M = 200.0
     private const val PATH_STEP_M = 2.5
@@ -16,24 +11,20 @@ object TrackProgress {
     private const val WINDOW_AHEAD_M = 30.0
     private const val OFF_PATH_M = 50.0
 
-    /** A lap's distance table, built once and reused for every cursor move. */
     class Table internal constructor(
         private val timesMs: IntArray,
         private val cumulative: DoubleArray,
         private val totalMeters: Double,
     ) {
-        /** Track progress of one sample, 0–100. */
         fun percentOfSample(index: Int): Float =
             ((cumulative[index] / totalMeters) * 100.0).toFloat().coerceIn(0f, 100f)
 
-        /** Track progress at a lap-relative time, interpolated between samples. */
         fun percentAt(timeMs: Int): Float {
             if (timeMs <= timesMs.first()) return 0f
             if (timeMs >= timesMs.last()) return 100f
             return percentAtDistance(distanceAt(insertionIndex(timeMs), timeMs))
         }
 
-        /** Lap-relative time at a track progress, interpolated between samples. */
         fun timeAtPercent(percent: Float, lapTimeMs: Int): Int {
             if (percent <= 0f) return 0
             if (percent >= 100f) return lapTimeMs
@@ -46,7 +37,6 @@ object TrackProgress {
             return ms.roundToInt().coerceIn(0, lapTimeMs)
         }
 
-        /** First sample index at or after [timeMs]; always within 1 until size. */
         private fun insertionIndex(timeMs: Int): Int {
             var low = 0
             var high = timesMs.size
@@ -65,7 +55,6 @@ object TrackProgress {
             return cumulative[prev] + (cumulative[high] - cumulative[prev]) * fraction
         }
 
-        /** First sample index whose cumulative distance reaches [target]; at least 1. */
         private fun insertionDistance(target: Double): Int {
             var low = 0
             var high = cumulative.size
@@ -80,7 +69,6 @@ object TrackProgress {
             ((distance / totalMeters) * 100.0).toFloat().coerceIn(0f, 100f)
     }
 
-    /** Distance table for [samples], or null when the lap never moved. */
     fun table(samples: List<Sample>, lapStartNanos: Long): Table? {
         if (samples.size < 2) return null
         val times = IntArray(samples.size)
@@ -112,10 +100,6 @@ object TrackProgress {
         lapTimeMs: Int,
     ): Int = table(samples, lapStartNanos)?.timeAtPercent(percent, lapTimeMs) ?: 0
 
-    /**
-     * Puts [reference] on [primary]'s driven path, so the same corner is compared with the same
-     * corner even when the two lines differ. Null when either lap cannot form a path.
-     */
     fun align(primary: List<Sample>, reference: List<Sample>, referenceStart: Long): Alignment? {
         val path = Path.of(primary) ?: return null
         if (reference.size < 2) return null
@@ -143,15 +127,12 @@ object TrackProgress {
         return Alignment(axis, times)
     }
 
-    /** Where each reference sample sits on the primary path, and the way back to its clock. */
     class Alignment internal constructor(
         private val axis: FloatArray,
         private val timesMs: IntArray,
     ) {
-        /** Position of reference sample [index] along the primary lap's path, 0–100. */
         fun axisPercentOfSample(index: Int): Float = axis[index]
 
-        /** Reference lap time at a position along the primary lap's path. */
         fun referenceTimeAt(percent: Float, lapTimeMs: Int): Int {
             if (axis.isEmpty()) return 0
             if (percent <= axis[0]) return timesMs[0]
@@ -170,7 +151,6 @@ object TrackProgress {
         }
     }
 
-    /** A lap's driven positions resampled every [PATH_STEP_M] metres. */
     private class Path(
         private val xs: DoubleArray,
         private val zs: DoubleArray,
@@ -178,13 +158,7 @@ object TrackProgress {
     ) {
         val total: Double get() = metres.last()
 
-        /**
-         * Distance along the path of the point closest to (x, z), searched between
-         * [WINDOW_BEHIND_M] behind and [WINDOW_AHEAD_M] plus twice [advance] ahead of
-         * [fromMetres], so a track that crosses itself cannot capture the car on the
-         * other branch. A window result further than [OFF_PATH_M] off the path is kept
-         * unless the whole path holds a point at least twice as close.
-         */
+        // A window result further than OFF_PATH_M off the path is kept unless the whole path holds a point at least twice as close, so a self-crossing track cannot capture the car on the other branch.
         fun project(x: Double, z: Double, fromMetres: Double, advance: Double): Double {
             val near = nearest(
                 x = x,
@@ -222,7 +196,6 @@ object TrackProgress {
             return best
         }
 
-        /** Index of the segment holding [at], clamped to the path. */
         private fun segmentAt(at: Double): Int {
             var low = 0
             var high = xs.size - 2

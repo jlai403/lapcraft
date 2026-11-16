@@ -2,7 +2,6 @@ package io.github.jlai403.lapcraft.core.io
 
 import java.io.File
 
-/** Writes through a sibling temp file so a process death cannot leave a truncated target. */
 object AtomicFiles {
     fun writeText(file: File, text: String) = writeBytes(file, text.toByteArray())
 

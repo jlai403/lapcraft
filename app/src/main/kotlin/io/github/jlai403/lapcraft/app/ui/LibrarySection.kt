@@ -36,7 +36,6 @@ private sealed interface Transfer {
     data class Failed(val text: String) : Transfer
 }
 
-/** Backup and restore for the whole library, used to carry laps across a package change. */
 @Composable
 internal fun LibrarySection() {
     val context = LocalContext.current

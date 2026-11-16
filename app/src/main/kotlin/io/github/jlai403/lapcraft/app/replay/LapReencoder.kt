@@ -19,11 +19,6 @@ import kotlin.math.roundToInt
 
 private const val TAG = "LapReencode"
 
-/**
- * Re-encodes one lap clip in place with a short GOP. Resolution, codec and bitrate
- * follow the source; the old clip, its temporaries and its scrub cache are removed
- * only after the new file has replaced it.
- */
 @OptIn(UnstableApi::class)
 class LapReencoder(
     private val store: LapStore,
@@ -83,7 +78,6 @@ class LapReencoder(
                 }
             }
         } catch (_: Exception) {
-            // Keep the defaults; the transcoder reports a failure and the clip is unchanged.
         } finally {
             runCatching { extractor.release() }
         }
@@ -95,7 +89,6 @@ class LapReencoder(
             width = width,
             height = height,
             videoMime = mime,
-            // Keyframes every 0.1 s cost more bits than the clip they replace.
             videoBitrate = (sourceBitrate * 1.35f).roundToInt(),
             iFrameIntervalSeconds = ReplayKeyframes.Frame.seconds,
             audio = if (hasAudio) ReplayAudio.Stereo else ReplayAudio.Remove,
@@ -103,7 +96,6 @@ class LapReencoder(
         )
     }
 
-    /** Counts sync samples, which is the clip's keyframe count. */
     private fun syncSamples(file: File): Int {
         val extractor = MediaExtractor()
         return try {

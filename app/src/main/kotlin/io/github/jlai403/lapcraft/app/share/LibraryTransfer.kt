@@ -14,7 +14,6 @@ import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/** Moves library archives between app storage and a SAF document the user picked. */
 object LibraryTransfer {
     suspend fun export(
         context: Context,
@@ -40,7 +39,6 @@ object LibraryTransfer {
         val report = input.use { LibraryArchive.import(rootDir, it, onProgress) }
         val store = DriverProfileStore(context)
         for (profile in report.profiles) store.save(profile)
-        // Best-effort backfill for laps whose profile was not in the archive (older builds).
         val psns = LapStore(rootDir).summaries().mapNotNull { it.driverPsnId }.distinct()
         for (psn in psns) {
             if (store.profile(psn) != null) continue

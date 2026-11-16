@@ -134,8 +134,7 @@ object LapTelemetryCodec {
             )
         }
 
-        // For version 1 files, apply the legacy heuristic: if every steering value is zero,
-        // treat them as "not recorded" so old packet-A laps keep their current behaviour.
+        // v1 has no presence byte; an all-zero steering column is treated as absent.
         return if (version == VERSION_V1) {
             val hasAny = samples.any { it.steering != null && it.steering != 0f }
             if (hasAny) samples else samples.map { it.copy(steering = null) }

@@ -11,7 +11,6 @@ object TrackIdentifier {
     const val CENTRE_TOLERANCE_M = 120.0
     const val EXTENT_TOLERANCE = 0.20
 
-    /** Path points are thinned to 20 m, so a 25 m radius spans any racing line through a corner. */
     const val PATH_CELL_M = 20.0
     const val COVERAGE_RADIUS_M = 25.0
     const val MIN_COVERAGE = 0.90
@@ -20,7 +19,6 @@ object TrackIdentifier {
     const val DIRECTION_SAMPLES = 80
     const val MAX_CANDIDATES = 5
 
-    /** Returns null for a partial lap or a path with no usable movement. */
     fun signature(samples: List<Sample>): TrackSignature? {
         if (samples.size < MIN_SAMPLES) return null
 
@@ -58,11 +56,6 @@ object TrackIdentifier {
         )
     }
 
-    /**
-     * Names the only circuit the lap followed, or returns the candidates worth asking about.
-     * A box and length alone collide (Road Atlanta / Watkins Glen, Monza / No Chicane); the
-     * racing line separates them, and a backwards lap maps to the reverse configuration.
-     */
     fun match(lap: TrackSignature, candidates: List<TrackSignature>): TrackMatch {
         if (lap.path.size < 2) return matchByBoxOnly(lap, candidates)
 
@@ -118,7 +111,6 @@ object TrackIdentifier {
         return Scored(name, candidate.officialId, coverage(lap.path, candidate.path))
     }
 
-    /** Share of lap positions within [COVERAGE_RADIUS_M] of the candidate's racing line. */
     fun coverage(lap: List<TrackPoint>, path: List<TrackPoint>): Double {
         val grid = HashMap<Pair<Int, Int>, MutableList<Int>>()
         path.forEachIndexed { index, point ->
@@ -147,7 +139,6 @@ object TrackIdentifier {
         return covered.toDouble() / lap.size
     }
 
-    /** +1 when the lap runs the line's way, -1 the other way, 0 when it does not follow it. */
     fun direction(lap: List<TrackPoint>, path: List<TrackPoint>): Double {
         if (lap.size < 2 || path.size < 8) return 0.0
         val grid = HashMap<Pair<Int, Int>, MutableList<Int>>()

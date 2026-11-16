@@ -11,13 +11,6 @@ data class LapBoundary(
     val lapTimeSource: LapTimeSource = LapTimeSource.Reported,
 )
 
-/**
- * The lap currently in progress, as the detector knows it. A [FromLine] start means the
- * detector observed the start/finish crossing that began it; a [MidLap] start means it
- * joined the lap part way through (first sample, or after a GT7 reset). [None] means no
- * sample has been seen yet. The start and the observed flag are carried together so a
- * reader can never observe a start from one lap with an observed flag from another.
- */
 sealed interface CurrentLap {
     data object None : CurrentLap
     data class FromLine(val startNanos: Long) : CurrentLap
@@ -29,7 +22,6 @@ class LapDetector {
     private var lastPacketId: Int? = null
     private var lastTimeNanos: Long = Long.MIN_VALUE
 
-    /** The lap currently in progress. */
     @Volatile
     var currentLap: CurrentLap = CurrentLap.None
         private set
@@ -66,7 +58,6 @@ class LapDetector {
                 val reported = sample.lastLapTimeMs
                 val lapTimeMs = if (reported > 0) reported else measuredMs
                 val source = if (reported > 0) LapTimeSource.Reported else LapTimeSource.Measured
-                // A clock jump, or arming mid-lap, means this lap has no complete telemetry.
                 val complete = reported <= 0 ||
                     abs(measuredMs - reported) <= LAP_SPAN_TOLERANCE_MS
                 if (complete && lapTimeMs in MIN_PLAUSIBLE_LAP_MS..MAX_PLAUSIBLE_LAP_MS) {

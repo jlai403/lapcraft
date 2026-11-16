@@ -5,7 +5,6 @@ import io.github.jlai403.lapcraft.core.events.EventKind
 
 import java.time.Instant
 
-/** One row in the flat library. A session holds one lap for new captures; legacy sessions may hold several. */
 data class LapSummary(
     val lapId: LapId,
     val lapTimeMs: Int,
@@ -49,13 +48,11 @@ fun List<LapSummary>.applySort(sort: LapSort): List<LapSummary> = when (sort) {
     LapSort.Event -> sortedWith(compareBy({ it.event?.label.orEmpty() }, { parseInstant(it.createdAt) }))
 }
 
-/** Quickest lap for each track label. A track with one lap keeps it; callers decide if that counts. */
 fun List<LapSummary>.fastestPerTrack(): Map<String, LapSummary> =
     groupBy { it.trackKey }.mapValues { (_, laps) ->
         laps.minWith(compareBy({ it.lapTimeMs }, { parseInstant(it.createdAt) }))
     }
 
-/** Track labels are user-editable, so compare them trimmed and case-insensitively. */
 val LapSummary.trackKey: String
     get() = trackId.ifBlank { trackLabel.trim().lowercase() }
 

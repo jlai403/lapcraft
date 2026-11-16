@@ -18,7 +18,6 @@ import io.github.jlai403.lapcraft.core.session.LapMetadata
 
 private const val TRAILING_WINDOW_MS = 2_000
 
-/** Throttle and brake over the last two seconds before the cursor. */
 @Composable
 internal fun TelemetryHud(
     window: List<Sample>,

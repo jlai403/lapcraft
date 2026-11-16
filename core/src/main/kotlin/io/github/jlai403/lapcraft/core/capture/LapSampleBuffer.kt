@@ -3,10 +3,6 @@ package io.github.jlai403.lapcraft.core.capture
 import io.github.jlai403.lapcraft.core.lap.LapBoundary
 import io.github.jlai403.lapcraft.core.model.Sample
 
-/**
- * Keeps the samples for the lap in progress. The telemetry thread adds samples while the
- * service thread may request a capture, so every access is synchronized.
- */
 class LapSampleBuffer {
     private val samples = ArrayList<Sample>()
 
@@ -23,10 +19,6 @@ class LapSampleBuffer {
         return samples.filter { it.timeNanos in start..boundary.endNanos }
     }
 
-    /**
-     * A sample before the line proves the app saw the start crossing. If the oldest sample is
-     * the boundary start itself, the lap was already in progress when the app connected.
-     */
     @Synchronized
     fun covers(boundary: LapBoundary): Boolean =
         samples.firstOrNull()?.let { it.timeNanos < boundary.startNanos } == true

@@ -15,7 +15,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 
-/** One replay source button that opens Files or the PlayStation App. */
 @Composable
 internal fun ReplaySourcePill(
     text: String,

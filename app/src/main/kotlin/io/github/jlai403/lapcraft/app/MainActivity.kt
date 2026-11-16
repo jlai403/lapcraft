@@ -129,7 +129,6 @@ class MainActivity : ComponentActivity() {
     private fun connect(raw: String) {
         if (!settings.savePs5Ip(raw)) return
         // Start the foreground service while the activity is definitely visible.
-        // Requesting the permission first pauses us and Android rejects the start.
         Log.i("LapCraft", "connect requested · ${settings.ps5Ip}")
         startTelemetry(settings.ps5Ip)
         requestNotificationPermission()

@@ -5,11 +5,9 @@ import java.io.File
 import kotlin.math.roundToLong
 
 data class ClipProbe(val durationMs: Long, val frameDurationUs: Long) {
-    /** Visual ruler spacing; stepping uses the exact [frameDurationUs]. */
     val frameMs: Long get() = (frameDurationUs / 1_000).coerceAtLeast(1L)
 }
 
-/** Reads the clip duration and the presentation length of one video frame. */
 fun probeClip(file: File): ClipProbe {
     val retriever = MediaMetadataRetriever()
     return try {

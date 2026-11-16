@@ -8,7 +8,6 @@ import io.github.jlai403.lapcraft.core.session.SessionMetadata
 import io.github.jlai403.lapcraft.core.session.SessionStore
 import java.io.File
 
-/** Builds on-disk sessions so UI tests exercise the real store and codecs. */
 object SessionFixtures {
 
     fun session(

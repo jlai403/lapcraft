@@ -2,7 +2,6 @@ package io.github.jlai403.lapcraft.app.settings
 
 import androidx.media3.common.MimeTypes
 
-/** How new replay clips are stored. Defaults are the balanced, quality-first profile. */
 enum class ReplayPreset(val label: String) {
     Original("Original"),
     Balanced("Balanced"),
@@ -32,7 +31,6 @@ enum class ReplayCodec(val label: String, val mime: String) {
     H264("H.264", MimeTypes.VIDEO_H264),
 }
 
-/** Encoder settings resolved from the user's choices. */
 data class ReplayProfile(
     val transcode: Boolean,
     val width: Int,
@@ -71,7 +69,6 @@ fun replayProfile(
     )
 }
 
-/** Caption for the selected preset, used under the settings control. */
 fun presetCaption(preset: ReplayPreset): String = when (preset) {
     ReplayPreset.Original ->
         "Stores the trimmed clip as-is. Largest files, no quality loss, slowest scrubbing."
@@ -81,10 +78,8 @@ fun presetCaption(preset: ReplayPreset): String = when (preset) {
         "720p HEVC ~3 Mbps at 60 fps. Replays ~75% smaller, slightly softer, fastest scrubbing."
 }
 
-/** Keyframe intervals at or below this pay the short-GOP size premium. */
 private const val SHORT_GOP_SECONDS = 0.2f
 
-/** Percent of the baseline estimate a short-GOP clip needs for its extra keyframes. */
 private const val SHORT_GOP_PERCENT = 135L
 
 fun keyframesCaption(keyframes: ReplayKeyframes): String = when (keyframes) {
@@ -110,12 +105,10 @@ fun codecCaption(codec: ReplayCodec): String = when (codec) {
     ReplayCodec.H264 -> "Larger files, but plays on older devices without HEVC."
 }
 
-/** Rough stored size for a trimmed clip; encoders vary with scene complexity. */
 fun estimateReplayBytes(profile: ReplayProfile, durationMs: Long): Long {
     if (!profile.transcode || durationMs <= 0) return 0
     val audioBits = if (profile.audio == ReplayAudio.Remove) 0 else profile.audioBitrate
     val bytes = (profile.videoBitrate.toLong() + audioBits) * durationMs / 8_000L
-    // Short GOPs spend extra bits on keyframes, which the bitrate alone does not show.
     return if (profile.iFrameIntervalSeconds <= SHORT_GOP_SECONDS) {
         bytes * SHORT_GOP_PERCENT / 100
     } else {
@@ -123,7 +116,6 @@ fun estimateReplayBytes(profile: ReplayProfile, durationMs: Long): Long {
     }
 }
 
-/** Estimates the trimmed original from the source size and the trim fraction. */
 fun estimatedOriginalBytes(sourceBytes: Long, trimmedMs: Long, sourceDurationMs: Long): Long {
     if (sourceBytes <= 0 || sourceDurationMs <= 0 || trimmedMs <= 0) return 0
     return sourceBytes * trimmedMs / sourceDurationMs

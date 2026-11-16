@@ -34,7 +34,6 @@ import io.github.jlai403.lapcraft.core.session.applySort
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/** Shown after a share from the PS App: the user picks which lap this replay belongs to. */
 @Composable
 fun ImportPickScreen(
     uri: String,

@@ -92,8 +92,6 @@ class LibraryArchiveTest {
 
     @Test
     fun `stored clip is not deflated but telemetry is`() {
-        // A compressible clip payload makes the level choice visible: deflate would shrink it,
-        // while level 0 keeps it at (slightly above) its original size.
         writeSession("s1", laps = listOf(1), videoBytes = ByteArray(256 * 1024) { 7 })
         writeSessionFile("s1", "laps/lap-001.gt7lap", ByteArray(256 * 1024) { 1 })
         val file = File(temp, "library.zip")

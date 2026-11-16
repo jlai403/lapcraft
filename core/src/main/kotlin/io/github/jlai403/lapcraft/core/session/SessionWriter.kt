@@ -74,7 +74,6 @@ class SessionWriter(
     @Synchronized
     fun laps(): List<LapMetadata> = laps.toList()
 
-    /** Replaces a lap after remux, keeping session.json and lap JSON in sync. */
     @Synchronized
     fun updateLap(lap: LapMetadata) {
         val index = laps.indexOfFirst { it.index == lap.index }

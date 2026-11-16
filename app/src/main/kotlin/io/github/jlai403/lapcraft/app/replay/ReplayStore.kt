@@ -8,7 +8,6 @@ object ReplayStore {
     fun sourceFile(sessionDir: File, lapIndex: Int): File =
         File(sessionDir, "source.mp4")
 
-    /** Copies a shared or picked video next to the lap. Returns false and leaves nothing behind on failure. */
     fun copy(context: Context, uri: Uri, destination: File): Boolean {
         val temp = File(destination.absolutePath + ".tmp")
         return try {

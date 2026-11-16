@@ -131,7 +131,6 @@ fun ImportSyncScreen(
     var anchorSuggested by remember { mutableStateOf(false) }
     var started by remember { mutableStateOf(false) }
     var tipsOpen by remember { mutableStateOf(false) }
-    // The frame the finger asked for; the decoder may land a few frames behind it.
     var scrubTargetMs by remember { mutableStateOf<Long?>(null) }
     var scrubbing by remember { mutableStateOf(false) }
 
@@ -212,8 +211,6 @@ fun ImportSyncScreen(
         }
         sourceFile = file
         val probe = withContext(Dispatchers.IO) { probeClip(file) }
-        // A clip must cover at least one lap plus the lead-in; fall back to that
-        // so the controls stay usable when the platform cannot report a duration.
         val floor = loaded.lapTimeMs + loaded.leadInMs.toLong()
         durationMs = maxOf(probe.durationMs, floor)
         frameStepMs = probe.frameMs
@@ -274,8 +271,6 @@ fun ImportSyncScreen(
 
     val currentLap = lap
     val anchor = anchorMs
-    // While the ruler is under a finger, show the requested frame rather than the
-    // last one the decoder managed to render.
     val displayedUs = scrubTargetMs?.times(1_000)
         ?: if (renderedUs >= 0) renderedUs else positionMs * 1_000
     val displayedMs = scrubTargetMs
@@ -573,7 +568,6 @@ fun ImportSyncScreen(
                                         val compact = File(output.absolutePath + ".compact.mp4")
                                         if (transcoder.transcode(output, compact, profile)) {
                                             if (output.delete() && compact.renameTo(output)) {
-                                                // Keep the compacted file; fall through to attach.
                                             } else {
                                                 compact.delete()
                                                 compactFailed = true

@@ -71,20 +71,17 @@ import kotlin.math.floor
 
 internal const val TRANSPORT_MS = 10_000L
 
-/** Playback rates offered in Settings and the lap footer. */
 internal val PLAYBACK_SPEEDS = listOf(0.5f, 1f, 1.5f, 2f)
 
 internal fun playbackSpeedLabel(speed: Float): String =
     if (speed % 1f == 0f) "%.0f×".format(speed) else "%.1f×".format(speed)
 
-/** The next rate in [PLAYBACK_SPEEDS]; clamps at the ends. */
 internal fun steppedPlaybackSpeed(speed: Float, direction: Int): Float {
     val current = PLAYBACK_SPEEDS.indexOf(speed).takeIf { it >= 0 }
         ?: PLAYBACK_SPEEDS.indexOf(1f)
     return PLAYBACK_SPEEDS[(current + direction).coerceIn(0, PLAYBACK_SPEEDS.lastIndex)]
 }
 
-/** The next rate in [PLAYBACK_SPEEDS], wrapping at the end. */
 internal fun nextPlaybackSpeed(speed: Float): Float {
     val current = PLAYBACK_SPEEDS.indexOf(speed).takeIf { it >= 0 }
         ?: PLAYBACK_SPEEDS.indexOf(1f)
@@ -93,7 +90,6 @@ internal fun nextPlaybackSpeed(speed: Float): Float {
 
 private val FrameStepWidth = 6.dp
 
-/** Turns horizontal drag pixels into whole frames, carrying the remainder and the drag total. */
 internal class FrameSteps(private var pxPerFrame: Float) {
     private var pendingPx = 0f
 
@@ -156,7 +152,6 @@ private fun TransportButton(
     }
 }
 
-/** Sticky playback controls for the lap screen. */
 @Composable
 internal fun PlaybackFooter(
     cursorMs: Int,
@@ -415,7 +410,6 @@ private fun SpeedStepper(speed: Float, onSpeedChange: (Float) -> Unit) {
     }
 }
 
-/** Fine steps need tighter padding than a full-width pill to keep the labels on one line. */
 @Composable
 internal fun StepButton(
     text: String,
@@ -428,9 +422,7 @@ internal fun StepButton(
 ) {
     val haptics = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
-    // pointerInput is only restarted when its keys change or the handler's class changes;
-    // the handler is a fixed class, so the gesture coroutine would otherwise keep calling
-    // the first captured onClick forever. Read through rememberUpdatedState to stay live.
+    // pointerInput restarts only when its keys or the handler's class change; read callbacks through rememberUpdatedState so they stay live.
     val currentOnClick by rememberUpdatedState(onClick)
     val currentHapticsEnabled by rememberUpdatedState(hapticsEnabled)
     OutlinedButton(
@@ -484,15 +476,6 @@ internal fun StepButton(
 }
 
 
-/**
- * A fixed needle over a horizontally scrolling ruler. Each 6 dp of travel is one
- * video frame. The ruler only scrubs: a tap does nothing at all, and a horizontal
- * drag past the touch slop steps frames from where the drag began. The strip
- * follows the finger, so dragging right rewinds and dragging left moves forward.
- * The ruler reports how far the drag has travelled in total, so callers can seek
- * from the playhead they held when the drag started, and reports the end of the
- * drag so callers can settle the playhead.
- */
 @Composable
 internal fun FrameRuler(
     valueMs: Long,
@@ -519,7 +502,6 @@ internal fun FrameRuler(
     val pxPerFrame = pxPerFrameState.floatValue
     val accumulator = remember { FrameSteps(pxPerFrame) }
     val haptics = LocalHapticFeedback.current
-    // The pointer coroutine outlives recomposition, so never capture the callbacks directly.
     val currentOnScrubStart by rememberUpdatedState(onScrubStart)
     val currentOnScrub by rememberUpdatedState(onScrub)
     val currentOnScrubEnd by rememberUpdatedState(onScrubEnd)
@@ -568,14 +550,12 @@ internal fun FrameRuler(
                 if (!enabled) return@pointerInput
                 awaitEachGesture {
                     val down = awaitFirstDown(requireUnconsumed = false)
-                    // A tap is inert: no seek, no pause, no haptic. Only a drag starts a scrub.
                     val crossed = awaitTouchSlopOrCancellation(down.id) { change, _ ->
                         change.consume()
                     } ?: return@awaitEachGesture
 
                     accumulator.reset()
                     currentOnScrubStart()
-                    // Count the travel up to the slop crossing, so the whole drag moves frames.
                     val startFrames = accumulator.framesFor(-(crossed.position.x - down.position.x))
                     if (startFrames != 0) {
                         if (currentHapticsEnabled) {
@@ -597,8 +577,6 @@ internal fun FrameRuler(
                             event.changes.forEach { it.consume() }
                         } else if (!zoomed && pan.x != 0f) {
                             event.changes.forEach { it.consume() }
-                            // The needle is fixed, so the ruler is a physical strip:
-                            // dragging right pulls earlier frames under the needle.
                             val frames = accumulator.framesFor(-pan.x)
                             if (frames != 0) {
                                 if (currentHapticsEnabled) {
@@ -715,10 +693,6 @@ internal fun formatRulerLabel(ms: Long): String {
     return "%d:%02d.%d".format(minutes, seconds, tenths % 10)
 }
 
-/**
- * Seeks into the target frame, not before it: a frame's presentation time in
- * microseconds is rounded up to the next millisecond.
- */
 internal fun frameStepTargetMs(positionUs: Long, frames: Int, frameDurationUs: Long): Long {
     val targetUs = positionUs + frames * frameDurationUs
     return if (targetUs <= 0) 0 else (targetUs + 999) / 1_000

@@ -51,7 +51,6 @@ class SessionStore(
         return updated
     }
 
-    /** Sync offset is per session; lap files mirror it so exports stay consistent. */
     fun setSyncOffset(sessionId: String, offsetMs: Int): SessionMetadata? {
         val metadata = load(sessionId) ?: return null
         val updatedLaps = metadata.laps.map { it.copy(syncOffsetMs = offsetMs) }
@@ -76,7 +75,6 @@ class SessionStore(
         return LapTelemetryCodec.decode(file.readBytes())
     }
 
-    /** Flat lap rows for the library. New captures have one lap; legacy sessions may have more. */
     fun summaries(): List<LapSummary> = list().flatMap { session ->
         val dir = sessionDir(session.sessionId)
         session.laps.map { lap ->
@@ -190,17 +188,12 @@ class SessionStore(
     private fun parseInstant(value: String): Instant =
         runCatching { Instant.parse(value) }.getOrDefault(Instant.EPOCH)
 
-    /**
-     * Removes a lap clip with its temporaries and scrub cache. Used when a clip is
-     * replaced or the lap is deleted; the metadata is the caller's responsibility.
-     */
     fun deleteReplayArtifacts(dir: File, videoFile: String) {
         if (videoFile.isBlank()) return
         File(dir, videoFile).delete()
         deleteScrubArtifacts(dir, videoFile)
     }
 
-    /** Removes a lap's scrub cache and clip temporaries, leaving the clip itself in place. */
     fun deleteScrubArtifacts(dir: File, videoFile: String) {
         if (videoFile.isBlank()) return
         listOf(".tmp", ".bak", ".compact.mp4", ".reencode.mp4").forEach { suffix ->

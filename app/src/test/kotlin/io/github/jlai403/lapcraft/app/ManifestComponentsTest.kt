@@ -6,12 +6,6 @@ import org.w3c.dom.Element
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 
-/**
- * The manifest resolves relative component names against the Gradle namespace,
- * while the Kotlin sources live a package deeper (`…lapcraft.app`).
- * A mismatch makes `startService` fail at runtime with "not found", which only
- * shows up in logcat. This test fails the build instead.
- */
 class ManifestComponentsTest {
     @Test
     fun `every manifest component resolves to a class`() {

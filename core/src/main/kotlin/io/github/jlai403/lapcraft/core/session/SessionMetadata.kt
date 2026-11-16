@@ -8,7 +8,6 @@ data class SessionMetadata(
     val sessionId: String,
     val createdAt: String,
     val trackLabel: String,
-    /** `System.nanoTime()` immediately before the first captured frame; 0 for older sessions. */
     val recordingStartNanos: Long = 0,
     val carCode: Int,
     val carName: String,

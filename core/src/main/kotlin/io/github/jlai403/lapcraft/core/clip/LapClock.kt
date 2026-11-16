@@ -1,14 +1,5 @@
 package io.github.jlai403.lapcraft.core.clip
 
-/**
- * Maps clip time to lap time for one clip of one lap.
- *
- * [startFrameMs] is the clip time at which the lap starts. For a trimmed replay that is the
- * lead-in; for a source clip it is the anchor minus the lap time. [syncOffsetMs] is a playback
- * nudge that shifts telemetry later (positive) or earlier (negative). The trim range is the
- * start frame to the end of the lap and deliberately ignores the nudge, because the cut point
- * is the start frame, not the nudged playback position.
- */
 data class LapClock(
     val startFrameMs: Long,
     val lapTimeMs: Int,

@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LapSummary
 
-/** Picks which laps go into a library archive. Everything is selected by default. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ExportLapsSheet(

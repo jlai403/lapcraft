@@ -6,10 +6,6 @@ import io.github.jlai403.lapcraft.core.events.EventTag
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/**
- * One lap. Facts only; nothing about the container it used to live in, and nothing
- * that can be derived from the directory (which files exist decides replay state).
- */
 @Serializable
 data class LapRecord(
     val schemaVersion: Int = 2,

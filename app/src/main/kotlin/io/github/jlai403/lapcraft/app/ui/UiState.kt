@@ -70,7 +70,6 @@ fun Sample.lapTimeMs(lap: LapMetadata): Int =
 fun List<Sample>.lapWindow(lap: LapMetadata): List<Sample> =
     filter { it.timeNanos >= lap.startNanos && it.timeNanos <= lap.endNanos }
 
-/** Samples from [durationMs] before [timeMs] through [timeMs], clamped to the lap. */
 fun List<Sample>.windowEndingAt(lap: LapMetadata, timeMs: Int, durationMs: Int): List<Sample> =
     filter {
         val sampleMs = it.lapTimeMs(lap)
@@ -78,11 +77,6 @@ fun List<Sample>.windowEndingAt(lap: LapMetadata, timeMs: Int, durationMs: Int):
             sampleMs >= timeMs - durationMs && sampleMs <= timeMs
     }
 
-/**
- * The sample at [timeMs], interpolated between the two samples that bracket it.
- * Values that only step (gear) come from the nearest sample. Times outside the
- * window clamp to its ends.
- */
 fun List<Sample>.sampleAt(lap: LapMetadata, timeMs: Int): Sample? {
     if (isEmpty()) return null
     val index = binarySearchBy(timeMs) { it.lapTimeMs(lap) }
@@ -125,7 +119,6 @@ fun formatDate(iso: String): String = runCatching {
         .format(Instant.parse(iso))
 }.getOrDefault(iso)
 
-/** Short feed-style date, e.g. `Nov 11`. */
 fun shortDateLabel(iso: String): String = runCatching {
     DateTimeFormatter.ofPattern("MMM d")
         .withZone(ZoneId.systemDefault())
@@ -140,7 +133,6 @@ fun lapTimeLabel(ms: Int): String {
     return "%d:%02d.%03d".format(minutes, seconds, millis)
 }
 
-/** Clip and lap timeline label with millisecond precision; zero prints as `0:00.000`. */
 fun formatMillis(ms: Long): String {
     if (ms < 0) return "-"
     val minutes = ms / 60_000

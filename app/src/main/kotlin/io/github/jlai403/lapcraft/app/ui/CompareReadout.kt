@@ -27,7 +27,6 @@ import io.github.jlai403.lapcraft.core.model.Sample
 import io.github.jlai403.lapcraft.core.session.LapMetadata
 import kotlin.math.abs
 
-/** One line under a compared video: pedal bars, tyre temperatures, and the steering angle. */
 @Composable
 internal fun CompareReadoutRow(
     samples: List<Sample>,

@@ -195,7 +195,6 @@ fun LapPlayerScreen(
     var message by remember { mutableStateOf<String?>(null) }
     var playing by remember { mutableStateOf(false) }
     var playbackSpeed by remember { mutableFloatStateOf(settings.defaultPlaybackSpeed) }
-    // The frame the finger asked for; the decoder may land a few frames behind it.
     var scrubTargetMs by remember { mutableStateOf<Long?>(null) }
     var scrubbing by remember { mutableStateOf(false) }
     var menuOpen by remember { mutableStateOf(false) }
@@ -306,7 +305,6 @@ fun LapPlayerScreen(
 
     LaunchedEffect(videoVersion) {
         val file = videoFile ?: return@LaunchedEffect
-        // The old clip's last frame and scrub target must not leak into the new one.
         renderedUs = -1L
         scrubTargetMs = null
         val probe = withContext(Dispatchers.IO) { probeClip(file) }
@@ -340,8 +338,6 @@ fun LapPlayerScreen(
         seekClip(LapClock.forTrimmedLap(active.leadInMs, active.syncOffsetMs, active.lapTimeMs).clipMs(clamped.toInt()))
     }
 
-    // While the ruler is under a finger, show the requested frame rather than the
-    // last one the decoder managed to render.
     val displayedUs = scrubTargetMs?.times(1_000)
         ?: if (renderedUs >= 0) renderedUs else positionMs * 1_000
     val displayedMs = scrubTargetMs

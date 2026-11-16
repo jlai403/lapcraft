@@ -28,11 +28,6 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.coroutines.cancellation.CancellationException
 
-/**
- * Re-encodes a trimmed lap clip with the user's replay profile. Runs on the main
- * looper because Media3 Transformer requires it; returns false on any failure so
- * the caller can keep the uncompressed clip.
- */
 @OptIn(UnstableApi::class)
 class VideoTranscoder(private val context: Context) {
     suspend fun transcode(source: File, output: File, profile: ReplayProfile): Boolean =

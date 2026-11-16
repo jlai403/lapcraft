@@ -54,13 +54,11 @@ import io.github.jlai403.lapcraft.app.profile.countryFlagEmoji
 import io.github.jlai403.lapcraft.core.session.LapSummary
 import kotlin.math.roundToInt
 
-/** Compare-mode selection shown on a library row. */
 internal enum class LapPick(val label: String) {
     Primary("Primary"),
     Reference("Reference"),
 }
 
-/** One lap. Tap opens it, right swipe edits, left swipe asks to delete. Long press and the accessibility actions expose the same two edits. */
 @Composable
 internal fun LapCard(
     lap: LapSummary,
@@ -80,8 +78,6 @@ internal fun LapCard(
     var dragging by remember { mutableStateOf(false) }
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
-    // Snap under the finger, spring back to zero on release. A plain state target
-    // cannot race a late drag event the way a queued snapTo could.
     val offset by animateFloatAsState(
         targetValue = dragOffset,
         animationSpec = if (dragging) snap() else spring(stiffness = Spring.StiffnessMediumLow),
