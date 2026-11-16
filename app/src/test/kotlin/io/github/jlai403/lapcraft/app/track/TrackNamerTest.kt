@@ -1,62 +1,55 @@
 package io.github.jlai403.lapcraft.app.track
 
-import android.app.Application
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
+import io.github.jlai403.lapcraft.core.lap.LapTimeSource
 import io.github.jlai403.lapcraft.core.model.Sample
-import io.github.jlai403.lapcraft.core.session.LapMetadata
-import io.github.jlai403.lapcraft.core.session.LapTelemetryCodec
-import io.github.jlai403.lapcraft.core.session.SessionMetadata
 import io.github.jlai403.lapcraft.core.session.LapId
+import io.github.jlai403.lapcraft.core.session.LapRecord
 import io.github.jlai403.lapcraft.core.session.LapStore
-import io.github.jlai403.lapcraft.core.session.SessionStore
+import io.github.jlai403.lapcraft.core.session.LapTelemetryCodec
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35], application = Application::class)
+@Config(sdk = [34])
 class TrackNamerTest {
     @Test
     fun `backfills an unknown legacy lap`() {
-        val context = RuntimeEnvironment.getApplication()
-        val legacyStore = SessionStore(context.filesDir)
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val store = LapStore(context.filesDir)
         val samples = roadAtlantaLap()
-        val lap = LapMetadata(
-            index = 1,
-            lapTimeMs = 95_000,
-            startNanos = samples.first().timeNanos,
-            endNanos = samples.last().timeNanos,
-            sampleCount = samples.size,
-            videoFile = "",
-            leadInMs = 0,
-        )
-        legacyStore.save(
-            SessionMetadata(
-                sessionId = "legacy",
-                createdAt = "2026-11-10T10:00:00Z",
+        val lapId = LapId("legacy")
+        store.save(
+            lapId,
+            LapRecord(
+                schemaVersion = 3,
+                capturedAt = "2026-11-10T10:00:00Z",
+                lapTimeMs = 95_000,
+                lapTimeSource = LapTimeSource.Reported,
+                trackId = "",
                 trackLabel = TrackNamer.UNKNOWN,
                 carCode = 3474,
                 carName = "Car #3474",
-                rawFile = "",
-                laps = listOf(lap),
+                startTickNanos = samples.first().timeNanos,
+                endTickNanos = samples.last().timeNanos,
+                leadInMs = 0,
             ),
         )
-        File(legacyStore.sessionDir("legacy"), "laps").mkdirs()
-        File(legacyStore.sessionDir("legacy"), "laps/lap-001.gt7lap")
-            .writeBytes(LapTelemetryCodec.encode(samples))
+        store.writeSamples(lapId, samples)
 
-        val store = LapStore(context.filesDir)
         val renamed = runBlocking {
             TrackNamer(store, TrackCatalog(context)).identifyUnknownLaps()
         }
 
         assertEquals(1, renamed)
-        assertEquals("Michelin Raceway Road Atlanta", store.load(LapId("legacy"))?.trackLabel)
+        assertEquals("Michelin Raceway Road Atlanta", store.load(lapId)?.trackLabel)
     }
 
     private fun roadAtlantaLap(): List<Sample> {
@@ -91,3 +84,4 @@ class TrackNamerTest {
         }
     }
 }
+

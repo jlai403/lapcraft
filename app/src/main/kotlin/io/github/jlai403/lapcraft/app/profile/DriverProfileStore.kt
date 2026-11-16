@@ -82,23 +82,7 @@ class DriverProfileStore(context: Context) {
     private fun ownerPsnId(): String? {
         val current = prefs.getString(KEY_OWNER, null)?.trim().orEmpty()
         if (current.isNotEmpty()) return current
-        return migrateLegacyOwner()?.psnId
-    }
-
-    private fun migrateLegacyOwner(): DriverProfile? {
-        val psnId = prefs.getString(KEY_LEGACY_PSN, null)?.trim().orEmpty()
-        if (psnId.isEmpty()) return null
-        val nickname = prefs.getString(KEY_LEGACY_NICKNAME, null)?.trim().orEmpty().ifEmpty { psnId }
-        val countryCode = prefs.getString(KEY_LEGACY_COUNTRY, null)
-        val profile = normalize(DriverProfile(psnId, nickname, countryCode))
-        save(profile)
-        prefs.edit()
-            .putString(KEY_OWNER, profile.psnId)
-            .remove(KEY_LEGACY_PSN)
-            .remove(KEY_LEGACY_NICKNAME)
-            .remove(KEY_LEGACY_COUNTRY)
-            .apply()
-        return profile
+        return null
     }
 
     private fun readProfiles(): List<DriverProfile> {

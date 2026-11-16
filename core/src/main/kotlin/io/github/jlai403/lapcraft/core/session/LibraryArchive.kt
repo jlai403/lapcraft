@@ -35,7 +35,6 @@ data class LibraryManifest(
 
 object LibraryArchive {
     const val FORMAT = 2
-    const val LEGACY_FORMAT = 1
     private const val MANIFEST = "library.json"
     private const val ITEM_ROOT = "library"
     private const val BUFFER = 64 * 1024
@@ -50,6 +49,7 @@ object LibraryArchive {
         out: OutputStream,
         onProgress: (Long, Long) -> Unit = { _, _ -> },
     ): ExportReport {
+        LayoutMigration.migrate(rootDir, { null })
         val entries = laps.mapNotNull { resolve(rootDir, it) }
         val profilesJson = if (profiles.isEmpty()) null else json.encodeToString(profiles)
         val total = entries.sumOf { it.bytes } + (profilesJson?.length?.toLong() ?: 0)
@@ -87,6 +87,7 @@ object LibraryArchive {
         onProgress: (Long, Long) -> Unit = { _, _ -> },
     ): ImportReport {
         val lapsDir = File(rootDir, "laps").apply { mkdirs() }
+        LayoutMigration.migrate(rootDir, { null })
         sweepStaging(lapsDir)
         val staging = File(lapsDir, ".import-${UUID.randomUUID()}")
         var manifest: LibraryManifest? = null
@@ -132,8 +133,8 @@ object LibraryArchive {
                 }
             }
             val parsed = requireNotNull(manifest) { "Unsupported library format: missing $MANIFEST" }
-            require(parsed.format == FORMAT || parsed.format == LEGACY_FORMAT) {
-                "Unsupported library format ${parsed.format}; expected $FORMAT or $LEGACY_FORMAT"
+            require(parsed.format == FORMAT) {
+                "Unsupported library format ${parsed.format}; expected $FORMAT"
             }
 
             staging.listFiles().orEmpty().forEach { dir ->
@@ -169,57 +170,6 @@ object LibraryArchive {
             val target = File(lapsDir, id)
             if (target.exists()) return false
             dir.renameTo(target)
-            true
-        } else if (File(dir, "session.json").isFile) {
-            val session = runCatching { SessionJsonCodec.decodeSession(File(dir, "session.json").readText()) }.getOrNull() ?: return false
-            val incoming = runCatching { SessionJsonCodec.decodeLap(File(dir, "lap.json").readText()) }.getOrNull() ?: return false
-            val telemetryRel = "laps/lap-%03d.gt7lap".format(incoming.index)
-            if (!File(dir, telemetryRel).isFile) return false
-            val lap = incoming.copy(
-                videoFile = incoming.videoFile.takeIf { it.isNotBlank() }?.let { keepClip(dir, it) }.orEmpty(),
-                sourceFile = incoming.sourceFile?.let { keepClip(dir, it) },
-            )
-            val raw = session.rawFile.takeIf { it.isNotBlank() }?.let { keepClip(dir, it) }
-            val record = LapRecord(
-                schemaVersion = 2,
-                capturedAt = session.createdAt,
-                lapTimeMs = lap.lapTimeMs,
-                lapTimeSource = LapTimeSource.Reported,
-                trackId = "",
-                trackLabel = session.trackLabel,
-                carCode = session.carCode,
-                carName = session.carName,
-                startTickNanos = lap.startNanos,
-                endTickNanos = lap.endNanos,
-                leadInMs = lap.leadInMs,
-                driverPsnId = lap.driverPsnId,
-                event = lap.event,
-            )
-            val target = File(lapsDir, id)
-            if (target.exists()) return false
-            target.mkdirs()
-            File(dir, telemetryRel).copyTo(File(target, "lap.gt7lap"), overwrite = true)
-            when {
-                lap.needsCut && lap.videoFile.isNotBlank() -> {
-                    File(dir, lap.videoFile).takeIf { it.isFile }?.copyTo(File(target, "source.mp4"), overwrite = true)
-                }
-                lap.videoFile.isNotBlank() && lap.videoFile == session.rawFile -> {
-                    File(dir, lap.videoFile).takeIf { it.isFile }?.copyTo(File(target, "raw.mp4"), overwrite = true)
-                }
-                lap.videoFile.isNotBlank() -> {
-                    File(dir, lap.videoFile).takeIf { it.isFile }?.copyTo(File(target, "replay.mp4"), overwrite = true)
-                }
-            }
-            lap.sourceFile?.takeIf { it.isNotBlank() }?.let { rel ->
-                File(dir, rel).takeIf { it.isFile }?.copyTo(File(target, "source.mp4"), overwrite = true)
-            }
-            raw?.let { rel ->
-                if (lap.videoFile != session.rawFile) {
-                    File(dir, rel).takeIf { it.isFile }?.copyTo(File(target, "raw.mp4"), overwrite = true)
-                }
-            }
-            AtomicFiles.writeText(File(target, "lap.json"), json.encodeToString(record))
-            dir.deleteRecursively()
             true
         } else {
             false
@@ -274,53 +224,7 @@ object LibraryArchive {
             }
             return Entry(id = id.value, lapJson = json.encodeToString(record), files = media)
         }
-        val (sessionId, index) = parseLegacyId(id.value) ?: return null
-        val dir = File(rootDir, "sessions/$sessionId")
-        val sessionFile = File(dir, "session.json")
-        if (!sessionFile.isFile) return null
-        val session = runCatching { SessionJsonCodec.decodeSession(sessionFile.readText()) }.getOrNull() ?: return null
-        val lap = session.laps.firstOrNull { it.index == index } ?: return null
-        val telemetryFile = File(dir, "laps/lap-%03d.gt7lap".format(lap.index))
-        if (!telemetryFile.isFile) return null
-        val media = LinkedHashMap<String, File>()
-        media["lap.gt7lap"] = telemetryFile
-        fun add(relative: String, file: File) { if (file.isFile) media[relative] = file }
-        when {
-            lap.needsCut && lap.videoFile.isNotBlank() -> add("source.mp4", File(dir, lap.videoFile))
-            lap.videoFile.isNotBlank() && lap.videoFile == session.rawFile -> add("raw.mp4", File(dir, lap.videoFile))
-            lap.videoFile.isNotBlank() -> add("replay.mp4", File(dir, lap.videoFile))
-        }
-        lap.sourceFile?.takeIf { it.isNotBlank() }?.let { add("source.mp4", File(dir, it)) }
-        if (session.rawFile.isNotBlank() && session.rawFile != lap.videoFile) {
-            add("raw.mp4", File(dir, session.rawFile))
-        }
-        val record = LapRecord(
-            schemaVersion = 2,
-            capturedAt = session.createdAt,
-            lapTimeMs = lap.lapTimeMs,
-            lapTimeSource = LapTimeSource.Reported,
-            trackId = "",
-            trackLabel = session.trackLabel,
-            carCode = session.carCode,
-            carName = session.carName,
-            startTickNanos = lap.startNanos,
-            endTickNanos = lap.endNanos,
-            leadInMs = lap.leadInMs,
-            driverPsnId = lap.driverPsnId,
-            event = lap.event,
-        )
-        return Entry(id = id.value, lapJson = json.encodeToString(record), files = media.map { ArchivedFile(it.key, it.value) })
-    }
-
-    private fun parseLegacyId(id: String): Pair<String, Int>? {
-        val marker = "-l"
-        val pos = id.lastIndexOf(marker)
-        return if (pos >= 0 && pos + marker.length < id.length) {
-            val index = id.substring(pos + marker.length).toIntOrNull() ?: return null
-            id.substring(0, pos) to index
-        } else {
-            id to 1
-        }
+        return null
     }
 
     private fun ZipOutputStream.writeText(name: String, text: String) {

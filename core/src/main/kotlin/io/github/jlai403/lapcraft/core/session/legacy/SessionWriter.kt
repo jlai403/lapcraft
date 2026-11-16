@@ -1,8 +1,9 @@
-package io.github.jlai403.lapcraft.core.session
+package io.github.jlai403.lapcraft.core.session.legacy
 
 import io.github.jlai403.lapcraft.core.io.AtomicFiles
 import io.github.jlai403.lapcraft.core.lap.LapBoundary
 import io.github.jlai403.lapcraft.core.model.Sample
+import io.github.jlai403.lapcraft.core.session.LapTelemetryCodec
 import java.io.File
 
 class SessionWriter(

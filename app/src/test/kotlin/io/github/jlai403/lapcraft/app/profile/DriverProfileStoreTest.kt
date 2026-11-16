@@ -64,21 +64,6 @@ class DriverProfileStoreTest {
     }
 
     @Test
-    fun `migrates the old single profile`() {
-        context.getSharedPreferences("driver_profile", Context.MODE_PRIVATE)
-            .edit()
-            .putString("psn_id", "skino2024")
-            .putString("nickname", "Skino")
-            .putString("country_code", "gb")
-            .apply()
-
-        val store = DriverProfileStore(context)
-
-        assertEquals(DriverProfile("skino2024", "Skino", "GB"), store.owner())
-        assertEquals(listOf("Skino"), store.profiles().map { it.nickname })
-    }
-
-    @Test
     fun `an owner without a cached profile falls back to the psn id`() {
         context.getSharedPreferences("driver_profile", Context.MODE_PRIVATE)
             .edit()

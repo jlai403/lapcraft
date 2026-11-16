@@ -39,7 +39,7 @@ object LayoutMigration {
         for (sessionDir in legacySessions.listFiles().orEmpty().filter { it.isDirectory && !it.name.startsWith(".") }) {
             val sessionFile = File(sessionDir, "session.json")
             if (!sessionFile.isFile) continue
-            val session = runCatching { SessionJsonCodec.decodeSession(sessionFile.readText()) }.getOrNull() ?: continue
+            val session = runCatching { io.github.jlai403.lapcraft.core.session.legacy.SessionJsonCodec.decodeSession(sessionFile.readText()) }.getOrNull() ?: continue
 
             var sessionOk = true
             for (lap in session.laps) {
@@ -141,7 +141,7 @@ object LayoutMigration {
         for (sessionDir in legacy.listFiles().orEmpty().filter { it.isDirectory && !it.name.startsWith(".") }) {
             val sessionFile = File(sessionDir, "session.json")
             val session = if (sessionFile.isFile) {
-                runCatching { SessionJsonCodec.decodeSession(sessionFile.readText()) }.getOrNull()
+                runCatching { io.github.jlai403.lapcraft.core.session.legacy.SessionJsonCodec.decodeSession(sessionFile.readText()) }.getOrNull()
             } else null
 
             val lapIds = session?.laps?.map { lap ->
