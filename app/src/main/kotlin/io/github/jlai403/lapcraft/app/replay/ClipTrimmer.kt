@@ -99,7 +99,7 @@ class ClipTrimmer {
             started = false
             if (temp.length() <= 0L) return null
             if (!swap(temp, output)) return null
-            result = TrimResult(output, ((startUs - keyframe) / 1_000).toInt())
+            result = TrimResult(output, ((startUs - keyframe + 500) / 1_000).toInt())
         } catch (_: Exception) {
             result = null
         } finally {

@@ -63,6 +63,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
+import io.github.jlai403.lapcraft.core.clip.FrameTimeline
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -725,3 +726,11 @@ internal fun frameStepTargetMs(positionUs: Long, frames: Int, frameDurationUs: L
     val targetUs = positionUs + frames * frameDurationUs
     return if (targetUs <= 0) 0 else (targetUs + 999) / 1_000
 }
+
+internal fun frameStepMs(
+    baseUs: Long,
+    frames: Int,
+    frameDurationUs: Long,
+    timeline: FrameTimeline? = null,
+): Long = timeline?.targetUs(baseUs, frames)?.let { (it + 999) / 1_000 }
+    ?: frameStepTargetMs(baseUs, frames, frameDurationUs)

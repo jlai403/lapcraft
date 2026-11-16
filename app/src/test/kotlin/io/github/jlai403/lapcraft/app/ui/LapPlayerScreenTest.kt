@@ -64,7 +64,7 @@ class LapPlayerScreenTest {
         compose.onNodeWithText("Add replay").assertExists()
         compose.onNodeWithText("Speed / Gear").assertExists()
         compose.onNodeWithText("Track map").assertExists()
-        compose.onNodeWithText("Lap 1 · 1:30.000").assertExists()
+        compose.onNodeWithText("1:30.000").assertExists()
     }
 
     @Test
@@ -108,7 +108,7 @@ class LapPlayerScreenTest {
         }
 
         compose.waitUntil(TIMEOUT) {
-            compose.onAllNodesWithText("Lap 1 · 1:30.000").fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithText("1:30.000").fetchSemanticsNodes().isNotEmpty()
         }
         compose.onNodeWithText("Add replay").assertDoesNotExist()
         compose.onNodeWithContentDescription("Frame ruler").assertExists()
@@ -173,7 +173,7 @@ class LapPlayerScreenTest {
         }
 
         compose.waitUntil(TIMEOUT) {
-            compose.onAllNodesWithText("Lap 1 · 1:30.000").fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithText("1:30.000").fetchSemanticsNodes().isNotEmpty()
         }
         compose.onNodeWithContentDescription("More").performClick()
         compose.onNodeWithText("Edit lap").performClick()
@@ -202,7 +202,7 @@ class LapPlayerScreenTest {
         }
 
         compose.waitUntil(TIMEOUT) {
-            compose.onAllNodesWithText("Lap 1 · 1:30.000").fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithText("1:30.000").fetchSemanticsNodes().isNotEmpty()
         }
         compose.onNodeWithContentDescription("Expand details").performClick()
         compose.waitUntil(TIMEOUT) {
@@ -233,7 +233,7 @@ class LapPlayerScreenTest {
         }
 
         compose.waitUntil(TIMEOUT) {
-            compose.onAllNodesWithText("Lap 1 · 1:30.000").fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithText("1:30.000").fetchSemanticsNodes().isNotEmpty()
         }
         compose.onNodeWithContentDescription("More").performClick()
         compose.onNodeWithText("Edit lap").performClick()
@@ -262,7 +262,7 @@ class LapPlayerScreenTest {
         }
 
         compose.waitUntil(TIMEOUT) {
-            compose.onAllNodesWithText("Lap 1 · 1:30.000").fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithText("1:30.000").fetchSemanticsNodes().isNotEmpty()
         }
         compose.onNodeWithText("Newer clip waiting to be synced.").assertExists()
         compose.onNodeWithContentDescription("More").performClick()
@@ -301,7 +301,7 @@ class LapPlayerScreenTest {
         }
 
         compose.waitUntil(TIMEOUT) {
-            compose.onAllNodesWithText("Lap 1 · 1:30.000").fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithText("1:30.000").fetchSemanticsNodes().isNotEmpty()
         }
         assertEquals(0, compose.onAllNodesWithTag("telemetry-hud").fetchSemanticsNodes().size)
     }
@@ -321,7 +321,7 @@ class LapPlayerScreenTest {
         }
 
         compose.waitUntil(TIMEOUT) {
-            compose.onAllNodesWithText("Lap 1 · 1:30.000").fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithText("1:30.000").fetchSemanticsNodes().isNotEmpty()
         }
         compose.onNodeWithContentDescription("Expand details").performClick()
         compose.waitUntil(TIMEOUT) {
@@ -344,7 +344,7 @@ class LapPlayerScreenTest {
         }
 
         compose.waitUntil(TIMEOUT) {
-            compose.onAllNodesWithText("Lap 1 · 1:30.000").fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithText("1:30.000").fetchSemanticsNodes().isNotEmpty()
         }
         compose.onNodeWithContentDescription("More").performClick()
         compose.onNodeWithText("Share video").assertIsNotEnabled()

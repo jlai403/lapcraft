@@ -47,6 +47,8 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
 - `ReplayCompressionControls` (`app/.../ui/`) is shared by Settings (defaults) and the sync screen (per-lap override, session-only, with a live `≈ N MB` estimate).
 - `app/.../replay/VideoTranscoder.kt` re-encodes with Media3 Transformer (`media3-transformer:1.5.1`).
   On failure the trimmed original is kept and the save shows a "Compaction failed" toast.
+- `app/.../replay/ClipFrameTimes.kt` reads a clip's real frame PTS via `MediaExtractor`; frame stepping
+  (`FrameTimeline`) and trim snapping use it, falling back to the estimated duration when unavailable.
 - `LapSummary` carries `videoBytes`, `telemetryBytes`, and `pendingBytes`, computed in
   `LapStore.summaries()`. `EditLapSheet` shows them under a `Data` section.
 - The lap player, compare screen, and sync screen all use `SeekParameters.EXACT`. `ScrubSeeker`
@@ -145,7 +147,7 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
 - `LapDetector` exposes a sealed `CurrentLap` (None/FromLine/MidLap) replacing the two volatile fields. `LapBoundary` carries `lapTimeSource`; `LapTimeSource` lives in `core/lap`.
 - `LoadedLap` (renamed from `GhostLap`) is "a lap with its samples decoded"; ghost/reference are roles.
 - Storage helpers: `lapStore(context)`; legacy sessions are migrated once by `LayoutMigration` (sessions -> laps, convert-and-delete). `LapView` is the UI projection of `LapRecord`.
-- New module file: `core/.../clip/LapClock.kt`, `core/.../clip/SyncOffset.kt`, `core/.../session/LapView.kt`, `core/.../session/LayoutMigration.kt`, `core/.../events/EventKind.kt`, `core/.../events/EventFilter.kt`, `core/.../lap/LapTimeSource.kt`.
+- New module file: `core/.../clip/LapClock.kt`, `core/.../clip/SyncOffset.kt`, `core/.../clip/FrameTimeline.kt`, `core/.../session/LapView.kt`, `core/.../session/LayoutMigration.kt`, `core/.../events/EventKind.kt`, `core/.../events/EventFilter.kt`, `core/.../lap/LapTimeSource.kt`.
 
 ## Release
 

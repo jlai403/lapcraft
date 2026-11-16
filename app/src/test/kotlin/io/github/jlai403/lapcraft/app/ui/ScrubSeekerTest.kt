@@ -75,4 +75,20 @@ class ScrubSeekerTest {
 
         assertEquals(listOf(10L), seeks)
     }
+
+    @Test
+    fun `an identical target retries after a timed out seek`() = runTest {
+        val seeks = mutableListOf<Long>()
+        val seeker = ScrubSeeker(backgroundScope, exactWaitMs = 120L) { seeks += it }
+
+        seeker.submit(10)
+        runCurrent()
+        advanceTimeBy(121)
+        runCurrent()
+
+        seeker.submit(10)
+        runCurrent()
+
+        assertEquals(listOf(10L, 10L), seeks)
+    }
 }

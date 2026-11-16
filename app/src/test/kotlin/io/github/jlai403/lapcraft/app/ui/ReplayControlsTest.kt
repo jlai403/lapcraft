@@ -1,6 +1,8 @@
 package io.github.jlai403.lapcraft.app.ui
 
+import io.github.jlai403.lapcraft.core.clip.FrameTimeline
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ReplayControlsTest {
@@ -90,5 +92,14 @@ class ReplayControlsTest {
         assertEquals(0.5f, steppedPlaybackSpeed(0.5f, -1))
         assertEquals(2f, steppedPlaybackSpeed(2f, 1))
         assertEquals(2f, steppedPlaybackSpeed(1.5f, 1))
+    }
+
+    @Test
+    fun `frameStepMs prefers the timeline when present`() {
+        val pts = LongArray(5) { it * 16_683L }
+        val tl = FrameTimeline.of(pts)!!
+        assertEquals(17, frameStepMs(0, 1, 16_683, null))
+        val stepped = frameStepMs(0, 1, 16_683, tl)
+        assertTrue(stepped > 0 && stepped < 34)
     }
 }

@@ -63,6 +63,7 @@ import io.github.jlai403.lapcraft.app.replay.LapReencoder
 import io.github.jlai403.lapcraft.app.replay.PlayStationApp
 import io.github.jlai403.lapcraft.app.replay.VideoTranscoder
 import io.github.jlai403.lapcraft.app.replay.probeClip
+import io.github.jlai403.lapcraft.app.replay.readFrameTimes
 import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
 import io.github.jlai403.lapcraft.app.profile.countryFlagEmoji
 import io.github.jlai403.lapcraft.app.share.Sharing
@@ -74,6 +75,7 @@ import io.github.jlai403.lapcraft.app.track.TrackNamer
 import io.github.jlai403.lapcraft.R
 import io.github.jlai403.lapcraft.core.model.Sample
 import io.github.jlai403.lapcraft.core.clip.LapClock
+import io.github.jlai403.lapcraft.core.clip.FrameTimeline
 import io.github.jlai403.lapcraft.core.session.LapSummary
 
 import io.github.jlai403.lapcraft.core.session.LapId
@@ -191,6 +193,7 @@ fun LapPlayerScreen(
     var durationMs by remember { mutableLongStateOf(0L) }
     var frameStepMs by remember { mutableLongStateOf(33L) }
     var frameDurationUs by remember { mutableLongStateOf(33_000L) }
+    var frameTimeline by remember { mutableStateOf<FrameTimeline?>(null) }
     var scrubBaseUs by remember { mutableLongStateOf(0L) }
     var message by remember { mutableStateOf<String?>(null) }
     var playing by remember { mutableStateOf(false) }
@@ -311,6 +314,7 @@ fun LapPlayerScreen(
         durationMs = probe.durationMs
         frameStepMs = probe.frameMs
         frameDurationUs = probe.frameDurationUs
+        frameTimeline = withContext(Dispatchers.IO) { readFrameTimes(file) }
         val start = lap?.let {
             LapClock.forTrimmedLap(it.leadInMs, it.lapTimeMs).clipMs(0)
         } ?: 0L
@@ -347,7 +351,7 @@ fun LapPlayerScreen(
     } ?: 0
 
     fun stepFrames(frames: Int) {
-        val target = frameStepTargetMs(displayedUs, frames, frameDurationUs)
+        val target = frameStepMs(displayedUs, frames, frameDurationUs, frameTimeline)
             .coerceIn(0L, durationMs.coerceAtLeast(0L))
         scrubTargetMs = target
         scrubSeeker.submit(target)
@@ -374,7 +378,7 @@ fun LapPlayerScreen(
             .coerceAtLeast(0)
         val endMs = LapClock.forTrimmedLap(active.leadInMs, active.lapTimeMs).clipMs(active.lapTimeMs)
             .coerceAtMost(durationMs.coerceAtLeast(0))
-        return frameStepTargetMs(baseUs, frames, frameDurationUs)
+        return frameStepMs(baseUs, frames, frameDurationUs, frameTimeline)
             .coerceIn(startMs, endMs.coerceAtLeast(startMs))
     }
 
@@ -402,7 +406,7 @@ fun LapPlayerScreen(
     Column(modifier = Modifier.fillMaxSize()) {
         ScreenHeader(
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-            title = lap?.let { "Lap 1 · ${lapTimeLabel(it.lapTimeMs)}" } ?: "Lap",
+            title = lap?.let { lapTimeLabel(it.lapTimeMs) }.orEmpty(),
             subtitle = null,
             onBack = onBack,
             onTitleClick = { headerExpanded = !headerExpanded },

@@ -26,7 +26,8 @@ internal class ScrubSeeker(
                 lastSeeked = target
                 while (rendered.tryReceive().isSuccess) Unit
                 seek(target)
-                withTimeoutOrNull(exactWaitMs) { rendered.receive() }
+                val shown = withTimeoutOrNull(exactWaitMs) { rendered.receive() }
+                if (shown == null) lastSeeked = null   // no frame landed: allow an identical resubmit to retry
             }
         }
     }

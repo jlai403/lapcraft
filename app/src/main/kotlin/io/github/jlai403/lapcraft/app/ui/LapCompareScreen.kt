@@ -64,10 +64,12 @@ import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.ui.PlayerView
 import io.github.jlai403.lapcraft.R
 import io.github.jlai403.lapcraft.app.replay.probeClip
+import io.github.jlai403.lapcraft.app.replay.readFrameTimes
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
 import io.github.jlai403.lapcraft.core.clip.TrackProgress
 import io.github.jlai403.lapcraft.core.model.Sample
 import io.github.jlai403.lapcraft.core.clip.LapClock
+import io.github.jlai403.lapcraft.core.clip.FrameTimeline
 import io.github.jlai403.lapcraft.core.session.LapView
 import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LapStore
@@ -133,6 +135,7 @@ fun LapCompareScreen(
     var durationMs by remember { mutableLongStateOf(0L) }
     var frameStepMs by remember { mutableLongStateOf(33L) }
     var frameDurationUs by remember { mutableLongStateOf(33_000L) }
+    var frameTimeline by remember { mutableStateOf<FrameTimeline?>(null) }
     var scrubTargetMs by remember { mutableStateOf<Long?>(null) }
     var scrubbing by remember { mutableStateOf(false) }
     var scrubBaseUs by remember { mutableLongStateOf(0L) }
@@ -218,6 +221,7 @@ fun LapCompareScreen(
         durationMs = maxOf(probe.durationMs, loaded.lap.lapTimeMs + loaded.lap.leadInMs.toLong())
         frameStepMs = probe.frameMs
         frameDurationUs = probe.frameDurationUs
+        frameTimeline = withContext(Dispatchers.IO) { readFrameTimes(file) }
         val start = LapClock.forTrimmedLap(loaded.lap.leadInMs, loaded.lap.lapTimeMs).clipMs(0)
             .coerceIn(0L, durationMs)
         withContext(Dispatchers.Main) {
@@ -337,12 +341,12 @@ fun LapCompareScreen(
         val startMs = LapClock.forTrimmedLap(lap.leadInMs, lap.lapTimeMs).clipMs(0).coerceAtLeast(0)
         val endMs = LapClock.forTrimmedLap(lap.leadInMs, lap.lapTimeMs).clipMs(lap.lapTimeMs)
             .coerceAtMost(durationMs.coerceAtLeast(0))
-        return frameStepTargetMs(baseUs, frames, frameDurationUs)
+        return frameStepMs(baseUs, frames, frameDurationUs, frameTimeline)
             .coerceIn(startMs, endMs.coerceAtLeast(startMs))
     }
 
     fun stepFrames(frames: Int) {
-        val target = frameStepTargetMs(displayedUs, frames, frameDurationUs)
+        val target = frameStepMs(displayedUs, frames, frameDurationUs, frameTimeline)
             .coerceIn(0L, durationMs.coerceAtLeast(0L))
         scrubTargetMs = target
         primarySeeker.submit(target)

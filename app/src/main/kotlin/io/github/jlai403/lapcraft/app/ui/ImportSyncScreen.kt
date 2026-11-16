@@ -53,11 +53,13 @@ import io.github.jlai403.lapcraft.app.replay.ClipTrimmer
 import io.github.jlai403.lapcraft.app.replay.ReplayStore
 import io.github.jlai403.lapcraft.app.replay.VideoTranscoder
 import io.github.jlai403.lapcraft.app.replay.probeClip
+import io.github.jlai403.lapcraft.app.replay.readFrameTimes
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
 import io.github.jlai403.lapcraft.app.settings.estimateReplayBytes
 import io.github.jlai403.lapcraft.app.settings.estimatedOriginalBytes
 import io.github.jlai403.lapcraft.app.settings.replayProfile
 import io.github.jlai403.lapcraft.core.clip.LapClock
+import io.github.jlai403.lapcraft.core.clip.FrameTimeline
 import io.github.jlai403.lapcraft.core.clip.SyncCheck
 import io.github.jlai403.lapcraft.core.clip.SyncOffset
 import io.github.jlai403.lapcraft.core.clip.SyncValidator
@@ -119,6 +121,7 @@ fun ImportSyncScreen(
     var durationMs by remember { mutableLongStateOf(0L) }
     var frameStepMs by remember { mutableLongStateOf(33L) }
     var frameDurationUs by remember { mutableLongStateOf(33_000L) }
+    var frameTimeline by remember { mutableStateOf<FrameTimeline?>(null) }
     var scrubBaseUs by remember { mutableLongStateOf(0L) }
     var positionMs by remember { mutableLongStateOf(0L) }
     var renderedUs by remember { mutableLongStateOf(-1L) }
@@ -218,6 +221,7 @@ fun ImportSyncScreen(
         durationMs = maxOf(probe.durationMs, floor)
         frameStepMs = probe.frameMs
         frameDurationUs = probe.frameDurationUs
+        frameTimeline = withContext(Dispatchers.IO) { readFrameTimes(file) }
         withContext(Dispatchers.Main) {
             player.setMediaItem(MediaItem.fromUri(Uri.fromFile(file)))
             player.prepare()
@@ -256,7 +260,7 @@ fun ImportSyncScreen(
     }
 
     LaunchedEffect(previewing) {
-        val range = trimRange(lap, anchorMs, SyncOffset.parse(offsetText), durationMs)
+        val range = trimRange(lap, anchorMs, SyncOffset.parse(offsetText), durationMs, frameTimeline)
         if (!previewing || range == null) {
             return@LaunchedEffect
         }
@@ -298,7 +302,7 @@ fun ImportSyncScreen(
     }
 
     fun stepFrames(frames: Int) {
-        val target = frameStepTargetMs(displayedUs, frames, frameDurationUs)
+        val target = frameStepMs(displayedUs, frames, frameDurationUs, frameTimeline)
             .coerceIn(0L, durationMs.coerceAtLeast(0L))
         scrubTargetMs = target
         scrubSeeker.submit(target)
@@ -471,6 +475,10 @@ fun ImportSyncScreen(
                         AnchorTip(
                             "Pause on the frame where the HUD lap timer restarts near 0:00.0 — " +
                                 "that frame is the first of the lap.",
+                        )
+                        AnchorTip(
+                            "The trim snaps to that frame, so the saved clip's frame 0 is exactly " +
+                                "the one you paused on.",
                         )
                         AnchorTip(
                             "Type the timer you see into the offset (0:00.019 \u2192 0.019) so the " +
@@ -677,7 +685,7 @@ fun ImportSyncScreen(
                     scrubbing = true
                 },
                 onScrub = { frames ->
-                    val target = frameStepTargetMs(scrubBaseUs, frames, frameDurationUs)
+                    val target = frameStepMs(scrubBaseUs, frames, frameDurationUs, frameTimeline)
                         .coerceIn(0, durationMs)
                     scrubTargetMs = target
                     scrubSeeker.submit(target)
@@ -800,9 +808,9 @@ private fun MetricLine(label: String, value: String) {
     }
 }
 
-private fun trimRange(lap: LapView?, anchorMs: Long?, offsetMs: Long?, durationMs: Long) =
+private fun trimRange(lap: LapView?, anchorMs: Long?, offsetMs: Long?, durationMs: Long, frames: FrameTimeline? = null) =
     if (lap != null && anchorMs != null && offsetMs != null && offsetMs >= 0) {
-        TrimPlan.forSync(LapClock.forLapStart(anchorMs - offsetMs, lap.lapTimeMs), durationMs)
+        TrimPlan.forSync(LapClock.forLapStart(anchorMs - offsetMs, lap.lapTimeMs), durationMs, frames)
     } else {
         null
     }
