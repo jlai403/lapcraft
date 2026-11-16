@@ -14,7 +14,7 @@ Scope: the whole model, `core` plus how the app consumes it. Method: read the pe
 | 2 | Replay readiness is encoded in four overlapping fields with four derived read rules | done: fixed media names, state derived from the directory |
 | 3 | Track identity is an editable display string | done: `trackId` is populated at capture (via `TrackCatalog.match`), carried through `LapSummary`, and keys grouping, compare eligibility, fastest-per-track and the ghost. `renameTrack` changes only the label. `TrackNamer` backfills empty ids (VERSION 2). Archives keep the id. |
 | 4 | The session no longer describes anything the app does | done: flattened to one directory per lap (ADR 0001) |
-| 5 | Two independent clip-to-lap time mappings | open, recommendation below. Defer until the sync screen is next touched. |
+| 5 | Two independent clip-to-lap time mappings | done: single `LapClock` in `core/clip`, `PlaybackCursor` and `ClipSync` removed; trim range and sync validation take the clock. |
 | 6 | Missing steering is stored as `0f` | accepted, ADR 0003. Open branch `feat/steering-codec-v2`. |
 | 7 | Three time bases share `Ms` and `Nanos` names, and lap time has two sources | partly accepted. *Per-lap wall clock is resolved by the flatten*: `LapSaver` writes `capturedAt` per lap, so `LapSort.Newest` orders across laps. Remaining scope is only `LapDetector`'s `currentLapStartNanos`/`currentLapStartObserved` → sealed `CurrentLap` state. |
 | 8 | The library row is a parallel definition of a lap, and filters are stringly typed | done: identity half in `refactor/lap-row`; event half in `refactor/event-kind-and-loaded-lap` (`EventTag.kind: EventKind`, `LapFilter.event: EventFilter`, no magic `"none"` string). |
