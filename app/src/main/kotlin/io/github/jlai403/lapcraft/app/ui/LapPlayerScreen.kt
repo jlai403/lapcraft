@@ -73,7 +73,7 @@ import io.github.jlai403.lapcraft.app.track.TrackCatalog
 import io.github.jlai403.lapcraft.app.track.TrackNamer
 import io.github.jlai403.lapcraft.R
 import io.github.jlai403.lapcraft.core.model.Sample
-import io.github.jlai403.lapcraft.core.playback.PlaybackCursor
+import io.github.jlai403.lapcraft.core.clip.LapClock
 import io.github.jlai403.lapcraft.core.session.LapSummary
 
 import io.github.jlai403.lapcraft.core.session.LapId
@@ -314,7 +314,7 @@ fun LapPlayerScreen(
         frameStepMs = probe.frameMs
         frameDurationUs = probe.frameDurationUs
         val start = lap?.let {
-            PlaybackCursor.clipMs(0, it.leadInMs, it.syncOffsetMs)
+            LapClock.forTrimmedLap(it.leadInMs, it.syncOffsetMs, it.lapTimeMs).clipMs(0)
         } ?: 0L
         val ready = start.coerceIn(0L, probe.durationMs.coerceAtLeast(0L))
         withContext(Dispatchers.Main) {
@@ -337,7 +337,7 @@ fun LapPlayerScreen(
     fun seekLap(targetMs: Long) {
         val active = lap ?: return
         val clamped = targetMs.coerceIn(0L, active.lapTimeMs.toLong())
-        seekClip(PlaybackCursor.clipMs(clamped.toInt(), active.leadInMs, active.syncOffsetMs))
+        seekClip(LapClock.forTrimmedLap(active.leadInMs, active.syncOffsetMs, active.lapTimeMs).clipMs(clamped.toInt()))
     }
 
     // While the ruler is under a finger, show the requested frame rather than the
@@ -347,7 +347,7 @@ fun LapPlayerScreen(
     val displayedMs = scrubTargetMs
         ?: if (renderedUs >= 0) renderedUs / 1_000 else positionMs
     val cursorMs = lap?.let {
-        PlaybackCursor.telemetryMs(displayedMs, it.leadInMs, it.syncOffsetMs, it.lapTimeMs)
+        LapClock.forTrimmedLap(it.leadInMs, it.syncOffsetMs, it.lapTimeMs).telemetryMs(displayedMs)
     } ?: 0
 
     fun stepFrames(frames: Int) {
@@ -374,9 +374,9 @@ fun LapPlayerScreen(
 
     fun scrubTarget(baseUs: Long, frames: Int): Long? {
         val active = lap ?: return null
-        val startMs = PlaybackCursor.clipMs(0, active.leadInMs, active.syncOffsetMs)
+        val startMs = LapClock.forTrimmedLap(active.leadInMs, active.syncOffsetMs, active.lapTimeMs).clipMs(0)
             .coerceAtLeast(0)
-        val endMs = PlaybackCursor.clipMs(active.lapTimeMs, active.leadInMs, active.syncOffsetMs)
+        val endMs = LapClock.forTrimmedLap(active.leadInMs, active.syncOffsetMs, active.lapTimeMs).clipMs(active.lapTimeMs)
             .coerceAtMost(durationMs.coerceAtLeast(0))
         return frameStepTargetMs(baseUs, frames, frameDurationUs)
             .coerceIn(startMs, endMs.coerceAtLeast(startMs))

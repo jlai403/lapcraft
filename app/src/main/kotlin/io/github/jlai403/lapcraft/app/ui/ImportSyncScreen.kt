@@ -56,7 +56,7 @@ import io.github.jlai403.lapcraft.app.settings.SettingsStore
 import io.github.jlai403.lapcraft.app.settings.estimateReplayBytes
 import io.github.jlai403.lapcraft.app.settings.estimatedOriginalBytes
 import io.github.jlai403.lapcraft.app.settings.replayProfile
-import io.github.jlai403.lapcraft.core.clip.ClipSync
+import io.github.jlai403.lapcraft.core.clip.LapClock
 import io.github.jlai403.lapcraft.core.clip.SyncCheck
 import io.github.jlai403.lapcraft.core.clip.SyncValidator
 import io.github.jlai403.lapcraft.core.clip.TrackProgress
@@ -302,7 +302,7 @@ fun ImportSyncScreen(
         scrubTargetMs = target
         scrubSeeker.submit(target)
     }
-    val sync = if (currentLap != null && anchor != null) ClipSync(anchor, currentLap.lapTimeMs) else null
+    val sync = if (currentLap != null && anchor != null) LapClock.forAnchor(anchor, currentLap.lapTimeMs) else null
     val lapWindow = currentLap?.let { samples.lapWindow(it) } ?: emptyList()
     val events = remember(lapWindow, currentLap) {
         currentLap?.let { lapEvents(lapWindow, it) } ?: emptyList()
@@ -313,14 +313,14 @@ fun ImportSyncScreen(
     fun seekBrake(direction: Int) {
         val s = sync ?: return
         val target = if (direction > 0) {
-            brakeTimes.firstOrNull { it > (s.telemetryMsAt(displayedMs)) + 200 }
+            brakeTimes.firstOrNull { it > (s.telemetryMs(displayedMs)) + 200 }
         } else {
-            brakeTimes.lastOrNull { it < (s.telemetryMsAt(displayedMs)) - 200 }
+            brakeTimes.lastOrNull { it < (s.telemetryMs(displayedMs)) - 200 }
         }
-        if (target != null) seekTo(s.videoMsAt(target))
+        if (target != null) seekTo(s.clipMs(target))
     }
     val rulerEvents = remember(events, sync) {
-        sync?.let { s -> events.map { LapEvent(it.type, s.videoMsAt(it.timeMs).toInt()) } } ?: events
+        sync?.let { s -> events.map { LapEvent(it.type, s.clipMs(it.timeMs).toInt()) } } ?: events
     }
     val range = sync?.let { TrimPlan.forSync(it, durationMs) }
     val estimateMs = range?.let { (it.endMs - it.startMs).coerceAtLeast(1) }
@@ -336,7 +336,7 @@ fun ImportSyncScreen(
         0
     }
     val check = sync?.let { SyncValidator.check(it, durationMs, startTrackPercent = 0f) }
-    val telemetryMs = sync?.telemetryMsAt(displayedMs)
+    val telemetryMs = sync?.telemetryMs(displayedMs)
     val trackPercent = if (currentLap != null && telemetryMs != null) {
         TrackProgress.percentAt(samples, currentLap.startNanos, telemetryMs)
     } else {
@@ -756,7 +756,7 @@ private fun MetricLine(label: String, value: String) {
 
 private fun trimRange(lap: LapMetadata?, anchorMs: Long?, durationMs: Long) =
     if (lap != null && anchorMs != null) {
-        TrimPlan.forSync(ClipSync(anchorMs, lap.lapTimeMs), durationMs)
+        TrimPlan.forSync(LapClock.forAnchor(anchorMs, lap.lapTimeMs), durationMs)
     } else {
         null
     }
