@@ -1,6 +1,7 @@
 package io.github.jlai403.lapcraft.core.session
 
 import io.github.jlai403.lapcraft.core.events.EventTag
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /** Where a lap's time came from. GT7 reports it at the crossing; the app measures when the report is missing or implausible. */
@@ -17,8 +18,10 @@ data class LapRecord(
     val capturedAt: String,
     val lapTimeMs: Int,
     val lapTimeSource: LapTimeSource = LapTimeSource.Reported,
-    val circuitId: String = "",
-    val circuitLabel: String = "",
+    @SerialName("circuitId")
+    val trackId: String = "",
+    @SerialName("circuitLabel")
+    val trackLabel: String = "",
     val carCode: Int = 0,
     val carName: String = "",
     val startTickNanos: Long = 0L,

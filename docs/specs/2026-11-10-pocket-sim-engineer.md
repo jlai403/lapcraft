@@ -241,33 +241,32 @@ A GT7 player reviewing their own hotlaps on a Pixel-class Android phone. They ca
 
 `timeNanos`, speed m/s, throttle/brake 0–255, gear, RPM, X/Y/Z position, lap count, best/last lap time, flags, car code, fuel, tyre temperatures, packet id, steering (−1..1, positive left), current lap time.
 
-### 9.2 Session metadata (`session.json`)
+### 9.2 Lap record (`lap.json`)
 
-`schemaVersion`, `sessionId`, `createdAt`, `trackLabel`, `recordingStartNanos`, `carCode`, `carName`, `syncOffsetMs`, `rawFile`, `audioFile`, `rawDeleted`, `keepRaw`, `laps`.
+One file per lap, one directory per lap. Fields: `schemaVersion` (2), `capturedAt` (wall-clock capture time, per lap), `lapTimeMs`, `lapTimeSource` (`Reported` or `Measured`), `trackId` (official circuit id, empty when unidentified), `trackLabel` (user-editable display name, never an identity), `carCode`, `carName`, `startTickNanos`, `endTickNanos`, `sampleRateHz`, `leadInMs`, `syncOffsetMs`, `driverPsnId` (null when unassigned), `event` (optional `EventTag`).
 
-New captures use `rawFile = ""`, `rawDeleted = true`, no audio file, and one lap. Legacy fields stay for old sessions.
+Replay state is not a field. It is derived from which files exist in the lap directory: `replay.mp4` means attached, `source.mp4` means pending, neither means none. `leadInMs` and `syncOffsetMs` are the only replay-related fields.
 
-### 9.3 Lap metadata (`lap-001.json`)
+### 9.3 Binary telemetry (`lap.gt7lap`)
 
-`schemaVersion`, `index`, `lapTimeMs`, `startNanos`, `endNanos`, `sampleCount`, `videoFile`, `leadInMs`, `syncOffsetMs`, `needsCut`, `sourceFile`, `driverPsnId`.
+Versioned little-endian columnar file; one row per 60 Hz sample. Codec version 1; steering is stored as a float (0.0 means not recorded, indistinguishable from a straight wheel in version 1).
 
-`leadInMs` serializes as `videoStartOffsetMs` so existing sessions keep loading. `videoFile` is blank until a replay is attached. `sourceFile` is set while an imported clip awaits sync. `driverPsnId` is null for legacy laps and for new laps captured without an owner.
-
-### 9.4 Binary telemetry (`lap-001.gt7lap`)
-
-Versioned little-endian columnar file; one row per 60 Hz sample.
-
-### 9.5 Session directory
+### 9.4 Lap directory
 
 ```text
-files/sessions/<id>/
-├── session.json
-└── laps/
-    ├── lap-001.gt7lap
-    ├── lap-001.json
-    ├── lap-001.mp4            # trimmed replay, once attached
-    └── lap-001-source.mp4     # imported original, only during sync
+files/laps/<lapId>/
+├── lap.json
+├── lap.gt7lap
+├── replay.mp4       # trimmed replay, once attached
+├── source.mp4       # imported original, only during sync
+└── raw.mp4          # optional retained raw clip
 ```
+
+`lapId` is the directory name and the only handle to a lap. Legacy `files/sessions/<id>/` directories are migrated into this layout on first launch of the new build, then renamed to `sessions.legacy-v1`. Library archives use the same one-directory-per-lap shape (format 2) and an `id` matching `[A-Za-z0-9][A-Za-z0-9._-]{0,63}`.
+
+### 9.5 Legacy layout (read-only, migrated)
+
+`files/sessions/<id>/` held `session.json`, `laps/lap-NNN.gt7lap`, and `laps/lap-NNN.json`, plus the old per-lap `videoFile` / `sourceFile` / `needsCut` / `leadInMs` fields and the session-level `rawFile`, `audioFile`, `recordingStartNanos`, `keepRaw`, `rawDeleted`. The migration resolves the duplicate lap record in favour of the file copy and derives replay state from the fields above. No new code should write this layout.
 
 ## 10. Architecture
 

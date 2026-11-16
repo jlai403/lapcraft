@@ -267,7 +267,7 @@ fun LapPlayerScreen(
         editing = true
         candidates = null
         reencodeResult = null
-        if (session?.circuitLabel == TrackNamer.UNKNOWN) {
+        if (session?.trackLabel == TrackNamer.UNKNOWN) {
             scope.launch {
                 val found = withContext(Dispatchers.IO) {
                     runCatching { namer.candidates(LapId(sessionId)) }.getOrDefault(emptyList())
@@ -397,7 +397,7 @@ fun LapPlayerScreen(
             listOfNotNull(countryFlagEmoji(it.countryCode), it.nickname).joinToString(" ")
         }
     }
-    val subtitle = listOfNotNull(session?.circuitLabel, driverLabel).joinToString(" · ").ifBlank { null }
+    val subtitle = listOfNotNull(session?.trackLabel, driverLabel).joinToString(" · ").ifBlank { null }
     val currentStats = remember(samples, lap) {
         lap?.let { lapStats(samples.lapWindow(it), it) }
     }

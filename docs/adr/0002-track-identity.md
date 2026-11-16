@@ -2,7 +2,8 @@
 
 Status: accepted
 
-`TrackIdentifier` matches a lap against the bundled circuit signatures and returns an official circuit id with a display name, but capture stored only the name, and the library groups, filters and gates compare on the trimmed lowercase label. Renaming a lap, or landing on a different candidate name, splits one circuit into two groups and disables compare and the ghost lap. A lap record now carries `circuitId` and `circuitLabel`: the identifier's official id when a signature matched, empty otherwise. Grouping, fastest-per-track, compare eligibility and the ghost key on `circuitId`. The label stays user-editable and is used for display only.
+The Kotlin properties are `trackId`/`trackLabel`; the persisted JSON keys stay `circuitId`/`circuitLabel` via `@SerialName` so laps and archives written before the rename keep loading.
+`TrackIdentifier` matches a lap against the bundled circuit signatures and returns an official circuit id with a display name, but capture stored only the name, and the library groups, filters and gates compare on the trimmed lowercase label. Renaming a lap, or landing on a different candidate name, splits one circuit into two groups and disables compare and the ghost lap. A lap record now carries `trackId` and `trackLabel`: the identifier's official id when a signature matched, empty otherwise. Grouping, fastest-per-track, compare eligibility and the ghost key on `trackId`. The label stays user-editable and is used for display only.
 
 ## Considered options
 

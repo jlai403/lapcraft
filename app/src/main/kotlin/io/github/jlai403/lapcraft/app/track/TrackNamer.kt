@@ -17,7 +17,7 @@ class TrackNamer(
         var renamed = 0
         for (id in store.list()) {
             val record = store.load(id) ?: continue
-            if (record.circuitLabel != UNKNOWN) continue
+            if (record.trackLabel != UNKNOWN) continue
             val samples = lapSamples(id)
             if (samples.isEmpty()) continue
             val name = catalog.identify(samples) ?: continue

@@ -56,7 +56,7 @@ class TrackNamerTest {
         }
 
         assertEquals(1, renamed)
-        assertEquals("Michelin Raceway Road Atlanta", store.load(LapId("legacy"))?.circuitLabel)
+        assertEquals("Michelin Raceway Road Atlanta", store.load(LapId("legacy"))?.trackLabel)
     }
 
     private fun roadAtlantaLap(): List<Sample> {
