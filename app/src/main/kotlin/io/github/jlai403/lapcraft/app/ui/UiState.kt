@@ -106,7 +106,11 @@ fun List<Sample>.sampleAt(lap: LapMetadata, timeMs: Int): Sample? {
         positionX = a.positionX + (b.positionX - a.positionX) * t,
         positionY = a.positionY + (b.positionY - a.positionY) * t,
         positionZ = a.positionZ + (b.positionZ - a.positionZ) * t,
-        steering = a.steering + (b.steering - a.steering) * t,
+        steering = run {
+            val as_ = a.steering
+            val bs = b.steering
+            if (as_ != null && bs != null) as_ + (bs - as_) * t else as_ ?: bs
+        },
         fuel = a.fuel + (b.fuel - a.fuel) * t,
         tyreTempFL = a.tyreTempFL + (b.tyreTempFL - a.tyreTempFL) * t,
         tyreTempFR = a.tyreTempFR + (b.tyreTempFR - a.tyreTempFR) * t,

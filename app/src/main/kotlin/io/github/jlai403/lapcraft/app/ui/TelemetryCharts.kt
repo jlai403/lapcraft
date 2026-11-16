@@ -99,7 +99,7 @@ internal fun ChartColumn(
     val referenceTable = remember(referenceWindow, reference) {
         reference?.let { TrackProgress.table(referenceWindow, it.lap.startNanos) }
     }
-    val hasSteering = remember(window) { window.any { abs(it.steering) > 0.001f } }
+    val hasSteering = remember(window) { window.any { it.steering != null } }
     val current = remember(window, lap, cursorMs) { window.sampleAt(lap, cursorMs) }
     val speedColor = MaterialTheme.colorScheme.secondary
     val throttleColor = MaterialTheme.colorScheme.primary
@@ -157,7 +157,7 @@ internal fun ChartColumn(
                         imperial = imperial,
                     )
                     if (hasSteering) {
-                        SteeringWheel(steering = sample.steering)
+                        SteeringWheel(steering = sample.steering ?: 0f)
                         Text(
                             "STEER",
                             style = MaterialTheme.typography.labelSmall,

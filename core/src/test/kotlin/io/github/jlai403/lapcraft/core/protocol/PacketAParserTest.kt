@@ -1,6 +1,7 @@
 package io.github.jlai403.lapcraft.core.protocol
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -63,7 +64,7 @@ class PacketAParserTest {
 
             val sample = PacketAParser.parse(packet, receivedAtNanos = 0)
 
-            assertEquals(0.5f, sample.steering, 0.0001f, "$format")
+            assertEquals(0.5f, sample.steering!!, 0.0001f, "$format")
         }
     }
 
@@ -72,18 +73,18 @@ class PacketAParserTest {
         val overTurn = ByteArray(Gt7PacketFormat.C.size)
         ByteBuffer.wrap(overTurn).order(ByteOrder.LITTLE_ENDIAN)
             .putFloat(0x128, (PI * 2).toFloat())
-        assertEquals(1f, PacketAParser.parse(overTurn, 0).steering, 0.0001f)
+        assertEquals(1f, PacketAParser.parse(overTurn, 0).steering!!, 0.0001f)
 
         val broken = ByteArray(Gt7PacketFormat.C.size)
         ByteBuffer.wrap(broken).order(ByteOrder.LITTLE_ENDIAN)
             .putFloat(0x128, Float.NaN)
-        assertEquals(0f, PacketAParser.parse(broken, 0).steering)
+        assertNull(PacketAParser.parse(broken, 0).steering)
     }
 
     @Test
     fun `packet A has no steering field`() {
         val packet = ByteArray(Gt7Protocol.PACKET_A_SIZE)
 
-        assertEquals(0f, PacketAParser.parse(packet, receivedAtNanos = 0).steering)
+        assertNull(PacketAParser.parse(packet, receivedAtNanos = 0).steering)
     }
 }

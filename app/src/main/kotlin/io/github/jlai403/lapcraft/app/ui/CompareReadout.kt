@@ -52,7 +52,7 @@ internal fun CompareReadoutRow(
         return
     }
     val rpmMax = remember(window) { window.maxOf { it.rpm }.coerceAtLeast(1f) }
-    val hasSteering = remember(window) { window.any { abs(it.steering) > 0.001f } }
+    val hasSteering = remember(window) { window.any { it.steering != null } }
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -94,7 +94,7 @@ internal fun CompareReadoutRow(
                 modifier = Modifier.size(ReadoutHeight),
                 contentAlignment = Alignment.Center,
             ) {
-                SteeringWheel(steering = sample.steering, wheelSize = 26.dp)
+                SteeringWheel(steering = sample.steering ?: 0f, wheelSize = 26.dp)
             }
         }
     }
