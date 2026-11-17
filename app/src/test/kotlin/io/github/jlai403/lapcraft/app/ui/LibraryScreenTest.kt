@@ -343,6 +343,7 @@ class LibraryScreenTest {
         compose.onNodeWithText("1:30.000").performClick()
         compose.waitForIdle()
         compose.onNodeWithText("Primary").assertExists()
+        compose.mainClock.advanceTimeBy(500)
         compose.onNodeWithText("1:31.000").performClick()
         compose.waitForIdle()
         compose.onNodeWithTag("library-compare-go").performClick()
