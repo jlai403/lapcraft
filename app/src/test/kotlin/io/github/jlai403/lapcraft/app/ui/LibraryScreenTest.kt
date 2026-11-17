@@ -44,6 +44,8 @@ class LibraryScreenTest {
     fun clearState() {
         DriverProfileStore(context).clear()
         SettingsStore(context).previewEmptyLibrary = false
+        java.io.File(context.filesDir, "laps").deleteRecursively()
+        java.io.File(context.filesDir, "events").deleteRecursively()
     }
 
     @Test
