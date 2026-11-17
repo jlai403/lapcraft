@@ -83,10 +83,12 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
   field suggests cached events and stores free text as a manual Championship tag. `LapView.event` /
   `LapSummary.event`; `LapFilter`/`LapSort` event dimensions.
 - Library grouping: `LapSummary.eventGroups` (`core/events/EventGroups.kt`) orders current events,
-  the `No event` group, then lapsed ones; `EventTag.status` (`EventStatus.kt`) resolves current /
+  the `No event` group (current-week untagged laps), then lapsed ones (lapsed events plus untagged
+  laps captured before the current ISO week); `EventTag.status` (`EventStatus.kt`) resolves current /
   upcoming / lapsed / unknown. `EventTag.startMs`/`endMs` are snapshotted at tag time, so a lapsed
   event keeps its window after the schedule refresh; auto tags without a window fall back to cache
-  membership, manual tags without one stay `Unknown`. `LibraryEventSection.kt` renders
+  membership, manual tags without one stay `Unknown` unless their newest lap predates the week, in
+  which case they are lapsed. `LibraryEventSection.kt` renders
   `CurrentEventHeader` (title + `series · dates · class · track · laps · Best`) and the
   `PastEventsHeader` collapse row. Wrap each lazy row in `key(lap.lapId.value)` and avoid
   `Modifier.padding`/extra conditionals before `LapCard`: both trigger a Compose closure hoist that

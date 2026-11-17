@@ -187,7 +187,7 @@ The start and end timestamps copied onto a tag when it is assigned, so the libra
 _Avoid_: schedule, dates
 
 **Lapsed event**:
-An event whose window has ended. Lapsed events collect under `Past events` in the library. An auto tag without a window counts as lapsed once its id leaves the event cache.
+An event whose window has ended. Lapsed events collect under `Past events` in the library. An auto tag without a window counts as lapsed once its id leaves the event cache. Untagged laps captured before the current ISO week (and manual tags whose newest lap predates it) also count as lapsed.
 _Avoid_: expired, old event
 
 **Auto tag**:
