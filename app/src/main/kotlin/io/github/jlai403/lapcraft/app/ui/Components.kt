@@ -292,8 +292,24 @@ fun SectionCard(
 }
 
 @Composable
-fun SectionLabel(text: String, modifier: Modifier = Modifier) {
-    Text(
+fun WarningBanner(text: String, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(22.dp))
+            .background(MaterialTheme.colorScheme.errorContainer)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+    ) {
+        Text(
+            text,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onErrorContainer,
+        )
+    }
+}
+
+@Composable
+fun SectionLabel(text: String, modifier: Modifier = Modifier) {    Text(
         text.uppercase(),
         modifier = modifier,
         style = MaterialTheme.typography.labelMedium,

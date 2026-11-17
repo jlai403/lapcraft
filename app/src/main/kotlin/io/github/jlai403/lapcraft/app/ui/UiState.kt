@@ -12,7 +12,6 @@ import java.time.format.DateTimeFormatter
 
 data class CaptureUiState(
     val ps5Ip: String = "",
-    val status: String = "Waiting for telemetry",
     val telemetryRunning: Boolean = false,
     val telemetryError: String? = null,
     val connected: Boolean = false,
@@ -36,7 +35,6 @@ data class CaptureUiState(
     val lastLapTimeMs: Int = 0,
     val lapStartObserved: Boolean = false,
     val capture: CaptureState = CaptureState.Idle,
-    val notice: String? = null,
     val events: List<TelemetryEvent> = emptyList(),
     val completedLaps: Int = 0,
 )

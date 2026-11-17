@@ -30,14 +30,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import io.github.jlai403.lapcraft.app.settings.SettingsStore
 import io.github.jlai403.lapcraft.app.updater.UpdateManager
 
 @Composable
 fun App(
     capture: CaptureUiState,
-    onSaveIp: (String) -> Unit,
-    onConnect: (String) -> Unit,
+    onConnect: () -> Unit,
     onDisconnect: () -> Unit,
     onCapture: () -> Unit,
     onCancelCapture: () -> Unit,
@@ -49,6 +50,8 @@ fun App(
     onInstallUpdate: () -> Unit,
 ) {
     var screen by remember { mutableStateOf<Screen>(Screen.Library) }
+    val context = LocalContext.current
+    val settings = remember(context) { SettingsStore(context) }
     val activeTab = when (screen) {
         Screen.Library -> 0
         Screen.Record -> 1
@@ -138,12 +141,13 @@ fun App(
 
                         Screen.Record -> RecordScreen(
                             state = capture,
-                            onSaveIp = onSaveIp,
+                            imperial = settings.imperialUnits,
                             onConnect = onConnect,
                             onDisconnect = onDisconnect,
                             onCapture = onCapture,
                             onCancelCapture = onCancelCapture,
                             onOpenLap = { lapId -> screen = Screen.Player(lapId) },
+                            onOpenSettings = { screen = Screen.Settings },
                         )
 
                         Screen.Settings -> SettingsScreen(

@@ -5,12 +5,9 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
-import androidx.compose.ui.test.performTextClearance
-import androidx.compose.ui.test.performTextInput
 import io.github.jlai403.lapcraft.app.service.TelemetryEvent
 import io.github.jlai403.lapcraft.core.capture.CaptureState
 import io.github.jlai403.lapcraft.core.session.LapId
@@ -31,8 +28,8 @@ class RecordScreenTest {
 
     private fun content(
         state: CaptureUiState,
-        onSaveIp: (String) -> Unit = {},
-        onConnect: (String) -> Unit = {},
+        onConnect: () -> Unit = {},
+        onOpenSettings: () -> Unit = {},
         onCapture: () -> Unit = {},
         onCancelCapture: () -> Unit = {},
         onOpenLap: (LapId) -> Unit = { _ -> },
@@ -41,17 +38,17 @@ class RecordScreenTest {
             LapCraftTheme {
                 RecordScreen(
                     state = state,
-                    onSaveIp = onSaveIp,
                     onConnect = onConnect,
                     onDisconnect = {},
                     onCapture = onCapture,
                     onCancelCapture = onCancelCapture,
                     onOpenLap = onOpenLap,
+                    onOpenSettings = onOpenSettings,
                 )
             }
         }
         compose.waitUntil(TIMEOUT) {
-            compose.onAllNodesWithText("GT7 STREAM").fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithText("STREAM").fetchSemanticsNodes().isNotEmpty()
         }
     }
 
@@ -89,7 +86,7 @@ class RecordScreenTest {
         )
 
         compose.onNodeWithText("Capture this lap").performScrollTo().assertIsNotEnabled()
-        compose.onNodeWithText("Cross the start line to begin a lap.").assertExists()
+        compose.onNodeWithText("Cross the start line, then capture.").assertExists()
     }
 
     @Test
@@ -108,9 +105,26 @@ class RecordScreenTest {
             onCancelCapture = { cancelled++ },
         )
 
-        compose.onNodeWithText("Capturing lap — finishes at the next line").assertExists()
+        compose.onNodeWithText("Capturing · ends at the next line").assertExists()
         compose.onNodeWithText("Cancel").performScrollTo().performClick()
         assertEquals(1, cancelled)
+    }
+
+    @Test
+    fun `disconnect stays disabled while capturing`() {
+        content(
+            state = CaptureUiState(
+                ps5Ip = "192.168.1.50",
+                telemetryRunning = true,
+                connected = true,
+                packetsPerSecond = 59.8,
+                lastPacketAgeMs = 12,
+                lapStartObserved = true,
+                capture = CaptureState.Capturing,
+            ),
+        )
+
+        compose.onNodeWithText("Disconnect").performScrollTo().assertIsNotEnabled()
     }
 
     @Test
@@ -129,30 +143,41 @@ class RecordScreenTest {
             onOpenLap = { id -> opened = id.toString() to 1 },
         )
 
-        compose.onNodeWithText("Saved 2:39.831").assertExists()
+        compose.onNodeWithText("Lap saved").assertExists()
+        compose.onNodeWithText("2:39.831").assertExists()
         compose.onNodeWithText("View lap").performScrollTo().performClick()
         assertEquals("lap-7" to 1, opened)
     }
 
     @Test
-    fun `saving the ip normalizes it and reports invalid input`() {
-        var saved: String? = null
+    fun `missing address points at settings`() {
+        var openedSettings = 0
         content(
-            state = CaptureUiState(),
-            onSaveIp = { saved = it },
+            state = CaptureUiState(ps5Ip = ""),
+            onOpenSettings = { openedSettings++ },
         )
 
-        compose.onNodeWithTag("ps5-ip").performScrollTo().performTextInput("192.168.001.050")
-        compose.onNodeWithText("Save IP").performScrollTo().performClick()
+        compose.onNodeWithText("Add the console address in Settings, then connect.")
+            .assertExists()
+        compose.onNodeWithText("Set address").performScrollTo().performClick()
+        assertEquals(1, openedSettings)
+    }
 
-        assertEquals("192.168.1.50", saved)
-        compose.onNodeWithText("Saved 192.168.1.50").assertExists()
+    @Test
+    fun `foreign packets warn without expanding details`() {
+        content(
+            state = CaptureUiState(
+                ps5Ip = "192.168.1.50",
+                telemetryRunning = true,
+                connected = true,
+                packetsPerSecond = 59.8,
+                lastPacketAgeMs = 12,
+                foreignPackets = 10,
+                lastForeignSource = "192.168.1.99",
+            ),
+        )
 
-        compose.onNodeWithTag("ps5-ip").performScrollTo().performTextClearance()
-        compose.onNodeWithTag("ps5-ip").performTextInput("999.1.1.1")
-        compose.onNodeWithText("Save IP").performScrollTo().performClick()
-
-        compose.onNodeWithText("Enter a valid IPv4 address").assertExists()
+        compose.onNodeWithText("Packets are arriving from", substring = true).assertExists()
     }
 
     @Test
@@ -182,9 +207,9 @@ class RecordScreenTest {
         compose.onNodeWithText("Streaming").assertExists()
         compose.onNodeWithText("Show details").performScrollTo().performClick()
 
-        compose.onNodeWithText("84213").assertExists()
-        compose.onNodeWithText("3474").assertExists()
-        compose.onNodeWithText("0x0001 · on track").assertExists()
+        compose.onNodeWithText("Subaru BRZ GT300 '21").assertExists()
+        compose.onNodeWithText("On track").assertExists()
+        compose.onNodeWithText("Gear 4 · throttle 78% · brake 0% · 7,000 rpm").assertExists()
         compose.onNodeWithText("Lap 2 complete · 1:30.456").assertExists()
     }
 

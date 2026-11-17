@@ -45,15 +45,18 @@ internal fun lapStats(window: List<Sample>, lap: LapView): LapStats? {
 }
 
 internal fun lapStatsLine(stats: LapStats, imperial: Boolean): String {
-    val factor = if (imperial) 2.23694f else 3.6f
-    val unit = if (imperial) "mph" else "km/h"
+    val unit = speedUnit(imperial)
     return "Top %.0f %s · Min %.0f · Avg %.0f".format(
-        stats.topSpeedMps * factor,
+        speedValue(stats.topSpeedMps, imperial),
         unit,
-        stats.minSpeedMps * factor,
-        stats.avgSpeedMps * factor,
+        speedValue(stats.minSpeedMps, imperial),
+        speedValue(stats.avgSpeedMps, imperial),
     )
 }
+
+internal fun speedUnit(imperial: Boolean): String = if (imperial) "mph" else "km/h"
+
+internal fun speedValue(mps: Float, imperial: Boolean): Float = mps * if (imperial) 2.23694f else 3.6f
 
 internal fun lapStatsComparison(
     current: LapStats,
@@ -62,10 +65,9 @@ internal fun lapStatsComparison(
     label: String = "ghost",
 ): String {
     if (ghost == null) return "No $label lap on this track yet."
-    val factor = if (imperial) 2.23694f else 3.6f
-    val unit = if (imperial) "mph" else "km/h"
-    val top = (current.topSpeedMps - ghost.topSpeedMps) * factor
-    val avg = (current.avgSpeedMps - ghost.avgSpeedMps) * factor
+    val unit = speedUnit(imperial)
+    val top = speedValue(current.topSpeedMps - ghost.topSpeedMps, imperial)
+    val avg = speedValue(current.avgSpeedMps - ghost.avgSpeedMps, imperial)
     val brake = percent(current.brakeTimeMs, current.lapTimeMs) -
         percent(ghost.brakeTimeMs, ghost.lapTimeMs)
     val full = percent(current.fullThrottleMs, current.lapTimeMs) -

@@ -159,13 +159,12 @@ Dialogs use Material 3 `AlertDialog`. Destructive confirmation labels are red; c
 
 ### Record
 
-- Header: “Record”, subtitle “Telemetry only · replay comes later”.
-- Status card: live dot, status text, UDP hint, then three stat chips (packets/s, lap, speed m/s).
-- “GT7 stream” card: a health line (Streaming / Waiting / stale / low rate) with pps, errors, and packet age. While not connected it adds one hint: `Tap Connect to listen for GT7 telemetry.` or, when running, `GT7 sends telemetry only while a race or time trial is on screen.` `Show details` reveals packet ID, car code, flags, inputs, accepted packets, lap-event count, the last five events, and `Copy diagnostics`; copy includes version, build number, commit, and the current metrics.
-- Warnings render in an `errorContainer` banner.
-- “Console” card with the PS5 IP field, `Save IP`, and `Connect` / `Disconnect`. The field and Save are disabled while the listener runs; Disconnect is disabled while recording.
-- `Start recording` is disabled until the stream is connected and the start line has been observed; the helper line states the next action. `Cancel` appears while capturing.
-- “How to record” card: collapsed by default; expands to the capture steps and the keep-in-mind block.
+- Header: `Record`, subtitle `Connect to GT7, then capture laps.`
+- The console address lives in Settings. The screen has two cards.
+- `Stream` card: live dot, health line (`Streaming` / `Waiting for the first packet` / `Packets stopped` / `Packet rate is low`), a summary line (`59.8 packets/s · last packet 12 ms ago`), then three stat chips (packets/s, GT7 lap, km/h or mph from Settings), and the `Connect` / `Disconnect` pill in the card header. With no saved address the pill reads `Set address` and opens Settings. `Disconnect` is disabled while a lap is capturing. While disconnected, one hint names the next step (`Connect to start listening.` or `GT7 sends telemetry only while a race or time trial is on screen.`).
+- `Show details` reveals the car name (via `CarCatalog`, falling back to the code), the track state, pedals, accepted packets and decode errors, received datagrams with the foreign count, the laps captured plus GT7's own counter, the last five events, and `Copy diagnostics`. Packet ID, flags hex and the last decode failure appear only in the copied text, which also carries version, build number and commit.
+- Warnings render in one `WarningBanner` above the cards: the service error, and packets arriving from another address. The foreign-address banner is visible without expanding details.
+- `Capture` card: `Capture this lap` is disabled until the stream is connected and the start line has been observed; the helper line states the next action. `Cancel` appears while capturing. A saved lap shows `Lap saved` with the mono lap time and `Capture another lap` / `View lap`.
 
 ### Player
 
