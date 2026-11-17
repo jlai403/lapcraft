@@ -535,11 +535,11 @@ fun LibraryScreen(
                                             driver = driver,
                                             fastest = isFastest,
                                             deltaMs = deltaMs,
-                                            onOpen = {
-                                                if (compareMode) togglePick(lap) else onOpenLap(lap.lapId)
+                                            onOpen = { target ->
+                                                if (compareMode) togglePick(target) else onOpenLap(target.lapId)
                                             },
-                                            onEdit = { edit(lap) },
-                                            onDelete = { deleting = lap },
+                                            onEdit = ::edit,
+                                            onDelete = { deleting = it },
                                             compareMode = compareMode,
                                             pick = when {
                                                 picks.getOrNull(0)?.lapId == lap.lapId -> LapPick.Primary
@@ -596,11 +596,11 @@ fun LibraryScreen(
                                                 driver = driver,
                                                 fastest = isFastest,
                                                 deltaMs = deltaMs,
-                                                onOpen = {
-                                                    if (compareMode) togglePick(lap) else onOpenLap(lap.lapId)
+                                                onOpen = { target ->
+                                                    if (compareMode) togglePick(target) else onOpenLap(target.lapId)
                                                 },
-                                                onEdit = { edit(lap) },
-                                                onDelete = { deleting = lap },
+                                                onEdit = ::edit,
+                                                onDelete = { deleting = it },
                                                 compareMode = compareMode,
                                                 pick = when {
                                                     picks.getOrNull(0)?.lapId == lap.lapId -> LapPick.Primary

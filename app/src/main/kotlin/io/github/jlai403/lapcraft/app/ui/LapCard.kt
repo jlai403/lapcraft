@@ -66,9 +66,9 @@ internal fun LapCard(
     driver: DriverProfile?,
     fastest: Boolean,
     deltaMs: Int?,
-    onOpen: () -> Unit,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit,
+    onOpen: (LapSummary) -> Unit,
+    onEdit: (LapSummary) -> Unit,
+    onDelete: (LapSummary) -> Unit,
     modifier: Modifier = Modifier,
     compareMode: Boolean = false,
     pick: LapPick? = null,
@@ -158,8 +158,8 @@ internal fun LapCard(
                                 dragging = false
                                 dragOffset = 0f
                                 when {
-                                    edit -> onEdit()
-                                    delete -> onDelete()
+                                    edit -> onEdit(lap)
+                                    delete -> onDelete(lap)
                                 }
                             },
                         )
@@ -168,11 +168,11 @@ internal fun LapCard(
                 .semantics {
                     customActions = listOf(
                         CustomAccessibilityAction("Edit lap") {
-                            onEdit()
+                            onEdit(lap)
                             true
                         },
                         CustomAccessibilityAction("Delete lap") {
-                            onDelete()
+                            onDelete(lap)
                             true
                         },
                     )
@@ -183,7 +183,7 @@ internal fun LapCard(
                     onClickLabel = if (compareMode) "Pick lap" else "Open lap",
                     onLongClickLabel = "Lap actions",
                     onLongClick = { if (!compareMode) menuOpen = true },
-                    onClick = onOpen,
+                    onClick = { onOpen(lap) },
                 )
                 .padding(horizontal = 20.dp, vertical = 14.dp),
         ) {
@@ -288,14 +288,14 @@ internal fun LapCard(
                     text = { Text("Edit lap") },
                     onClick = {
                         menuOpen = false
-                        onEdit()
+                        onEdit(lap)
                     },
                 )
                 DropdownMenuItem(
                     text = { Text("Delete lap") },
                     onClick = {
                         menuOpen = false
-                        onDelete()
+                        onDelete(lap)
                     },
                 )
             }

@@ -44,7 +44,7 @@ class LapCardTest {
     fun `shows the time track and car`() {
         compose.setContent {
             LapCraftTheme {
-                LapCard(lap, null, false, null, {}, {}, {})
+                LapCard(lap, null, false, null, { _ -> }, { _ -> }, { _ -> })
             }
         }
 
@@ -58,7 +58,7 @@ class LapCardTest {
     fun `shows the fastest badge`() {
         compose.setContent {
             LapCraftTheme {
-                LapCard(lap, null, true, null, {}, {}, {})
+                LapCard(lap, null, true, null, { _ -> }, { _ -> }, { _ -> })
             }
         }
 
@@ -69,7 +69,7 @@ class LapCardTest {
     fun `shows the delta when the lap is not the fastest`() {
         compose.setContent {
             LapCraftTheme {
-                LapCard(lap, null, false, 412, {}, {}, {})
+                LapCard(lap, null, false, 412, { _ -> }, { _ -> }, { _ -> })
             }
         }
 
@@ -82,7 +82,7 @@ class LapCardTest {
 
         compose.setContent {
             LapCraftTheme {
-                LapCard(lap.copy(driverPsnId = "friend"), friend, false, null, {}, {}, {})
+                LapCard(lap.copy(driverPsnId = "friend"), friend, false, null, { _ -> }, { _ -> }, { _ -> })
             }
         }
 
@@ -94,7 +94,7 @@ class LapCardTest {
     fun `shows the psn when the profile is unknown`() {
         compose.setContent {
             LapCraftTheme {
-                LapCard(lap.copy(driverPsnId = "friend"), null, false, null, {}, {}, {})
+                LapCard(lap.copy(driverPsnId = "friend"), null, false, null, { _ -> }, { _ -> }, { _ -> })
             }
         }
 
@@ -105,7 +105,7 @@ class LapCardTest {
     fun `says driver not set when the lap has none`() {
         compose.setContent {
             LapCraftTheme {
-                LapCard(lap, null, false, null, {}, {}, {})
+                LapCard(lap, null, false, null, { _ -> }, { _ -> }, { _ -> })
             }
         }
 
@@ -116,7 +116,7 @@ class LapCardTest {
     fun `shows a saved replay`() {
         compose.setContent {
             LapCraftTheme {
-                LapCard(lap.copy(hasReplay = true), null, false, null, {}, {}, {})
+                LapCard(lap.copy(hasReplay = true), null, false, null, { _ -> }, { _ -> }, { _ -> })
             }
         }
 
@@ -127,7 +127,7 @@ class LapCardTest {
     fun `shows a pending sync`() {
         compose.setContent {
             LapCraftTheme {
-                LapCard(lap.copy(replayPending = true), null, false, null, {}, {}, {})
+                LapCard(lap.copy(replayPending = true), null, false, null, { _ -> }, { _ -> }, { _ -> })
             }
         }
 
@@ -140,7 +140,7 @@ class LapCardTest {
 
         compose.setContent {
             LapCraftTheme {
-                LapCard(lap, null, false, null, { opened++ }, {}, {})
+                LapCard(lap, null, false, null, { _ -> opened++ }, {}, {})
             }
         }
 
@@ -152,7 +152,7 @@ class LapCardTest {
     fun `right swipe reveals edit on the left`() {
         compose.setContent {
             LapCraftTheme {
-                LapCard(lap, null, false, null, {}, {}, {})
+                LapCard(lap, null, false, null, { _ -> }, { _ -> }, { _ -> })
             }
         }
 
@@ -174,7 +174,7 @@ class LapCardTest {
     fun `left swipe reveals delete on the right`() {
         compose.setContent {
             LapCraftTheme {
-                LapCard(lap, null, false, null, {}, {}, {})
+                LapCard(lap, null, false, null, { _ -> }, { _ -> }, { _ -> })
             }
         }
 
@@ -199,7 +199,7 @@ class LapCardTest {
 
         compose.setContent {
             LapCraftTheme {
-                LapCard(lap, null, false, null, {}, { edited++ }, { deleted++ })
+                LapCard(lap, null, false, null, {}, { _ -> edited++ }, { _ -> deleted++ })
             }
         }
 
@@ -223,7 +223,7 @@ class LapCardTest {
             LapCraftTheme {
                 LazyColumn {
                     item {
-                        LapCard(lap, null, false, null, {}, {}, {})
+                        LapCard(lap, null, false, null, { _ -> }, { _ -> }, { _ -> })
                     }
                 }
             }
@@ -251,7 +251,7 @@ class LapCardTest {
 
         compose.setContent {
             LapCraftTheme {
-                LapCard(lap, null, false, null, { opened++ }, { edited++ }, {})
+                LapCard(lap, null, false, null, { _ -> opened++ }, { _ -> edited++ }, {})
             }
         }
 
@@ -270,7 +270,7 @@ class LapCardTest {
 
         compose.setContent {
             LapCraftTheme {
-                LapCard(lap, null, false, null, { opened++ }, {}, { deleted++ })
+                LapCard(lap, null, false, null, { _ -> opened++ }, {}, { _ -> deleted++ })
             }
         }
 
