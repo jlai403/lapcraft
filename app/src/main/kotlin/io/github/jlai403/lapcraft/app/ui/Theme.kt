@@ -43,6 +43,7 @@ val GeistMonoFamily = FontFamily(
     Font(R.font.geist_mono_regular, FontWeight.Normal),
     Font(R.font.geist_mono_medium, FontWeight.Medium),
     Font(R.font.geist_mono_semibold, FontWeight.SemiBold),
+    Font(R.font.geist_mono_bold, FontWeight.Bold),
 )
 
 private val SportColors = darkColorScheme(
@@ -85,13 +86,6 @@ private val SportTypography = Typography(
         fontSize = 34.sp,
         lineHeight = 40.sp,
         letterSpacing = (-0.6).sp,
-    ),
-    headlineLarge = TextStyle(
-        fontFamily = GeistSansFamily,
-        fontWeight = FontWeight.Black,
-        fontSize = 30.sp,
-        lineHeight = 36.sp,
-        letterSpacing = (-0.4).sp,
     ),
     headlineMedium = TextStyle(
         fontFamily = GeistSansFamily,

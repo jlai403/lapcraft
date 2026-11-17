@@ -14,6 +14,7 @@ import android.os.PowerManager
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
+import io.github.jlai403.lapcraft.R
 import io.github.jlai403.lapcraft.app.MainActivity
 import io.github.jlai403.lapcraft.app.capture.LapSaver
 import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
@@ -318,7 +319,7 @@ class TelemetryService : Service() {
                     "GT7 sends telemetry only while driving is on screen"
                 },
             )
-            .setSmallIcon(android.R.drawable.stat_sys_download_done)
+            .setSmallIcon(R.drawable.ic_stat_lapcraft)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setContentIntent(open)

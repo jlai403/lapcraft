@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#14171C</color>
+    <color name="ic_launcher_background">#0D1114</color>
+    <!-- Matches Ink in ui/Theme.kt: the pre-Compose window and the API 31 splash sit on the app background. -->
+    <color name="app_background">#0D1114</color>
 </resources>

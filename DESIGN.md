@@ -45,6 +45,14 @@ All tokens live in `ui/Theme.kt`. Screens must use `MaterialTheme.colorScheme.*`
 
 System bars are transparent with light icons (`enableEdgeToEdge` + `SystemBarStyle.dark`).
 
+### App icon and system chrome
+
+The launcher icon is an illustrated mascot on an orange disc. It stays on the launcher: the palette does not adopt its orange, and no mark or wordmark appears inside the app.
+
+- Adaptive icon: a full-bleed foreground over `#0D1114`, plus a vector monochrome layer (`drawable/ic_launcher_monochrome`) for Android 13 themed icons.
+- Status bar: `drawable/ic_stat_lapcraft`, a 24 dp white trace, which the telemetry notification sets as its small icon.
+- `Theme.LapCraft` paints the launch window and the API 31 splash with `#0D1114`, so cold start matches `Ink`.
+
 ## Typography
 
 Two bundled OFL families, both from [Geist](https://github.com/vercel/geist-font) v1.9.2:
@@ -52,7 +60,7 @@ Two bundled OFL families, both from [Geist](https://github.com/vercel/geist-font
 | Family | Weights | Use |
 |---|---|---|
 | **Geist Sans** | Regular, Medium, SemiBold, Bold, Black | all interface text: titles, body, labels, buttons, tabs |
-| **Geist Mono** | Regular, Medium, SemiBold | numeric values only: lap times, speed, gear, RPM, packets/s, sync offsets |
+| **Geist Mono** | Regular, Medium, SemiBold, Bold | numeric values only: lap times, speed, gear, RPM, packets/s, sync offsets |
 
 Rules:
 
@@ -63,8 +71,7 @@ Rules:
 
 | Style | Family | Size | Weight | Use |
 |---|---|---:|---|---|
-| `displaySmall` | Sans | 34 sp | Black, -0.6 tracking | reserved for future hero numbers |
-| `headlineLarge` | Sans | 30 sp | Black, -0.4 | rare, large statements |
+| `displaySmall` | Sans | 34 sp | Black, -0.6 tracking | lap time hero on a library card, set in mono by `NumericText` |
 | `headlineMedium` | Sans | 25 sp | Black, -0.3 | screen titles, `ScreenHeader` |
 | `titleLarge` | Sans | 20 sp | Bold | card titles, section numbers |
 | `titleMedium` | Sans | 16 sp | SemiBold | row titles, supporting emphasis |

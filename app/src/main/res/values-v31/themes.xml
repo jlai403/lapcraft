@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The splash attrs are API 31 only, so the variant redeclares the style with its parent. -->
+    <style name="Theme.LapCraft" parent="Theme.LapCraft.Base">
+        <item name="android:windowSplashScreenBackground">@color/app_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+    </style>
+</resources>
