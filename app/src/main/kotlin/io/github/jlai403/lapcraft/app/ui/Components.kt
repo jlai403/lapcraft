@@ -338,7 +338,3 @@ fun StatusDot(active: Boolean, modifier: Modifier = Modifier) {
     )
 }
 
-@Composable
-fun SpacerHeight(height: Int) {
-    Spacer(Modifier.height(height.dp))
-}

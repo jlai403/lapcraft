@@ -1,7 +1,5 @@
 package io.github.jlai403.lapcraft.app.ui
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,96 +20,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import io.github.jlai403.lapcraft.core.profile.DriverProfile
-import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
-import io.github.jlai403.lapcraft.app.profile.GridStatsProfileClient
 import io.github.jlai403.lapcraft.app.profile.countryFlagEmoji
-import io.github.jlai403.lapcraft.core.session.LapId
-import io.github.jlai403.lapcraft.core.session.LapStore
-import io.github.jlai403.lapcraft.app.catalog.lapStore
+import io.github.jlai403.lapcraft.core.profile.DriverProfile
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-
-@Composable
-internal fun DriverSection(
-    lapId: LapId,
-    driverPsnId: String?,
-    onChanged: () -> Unit,
-    lookupProfile: (suspend (String) -> DriverProfile)? = null,
-) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val sessionStore = remember { lapStore(context) }
-    val profileStore = remember { DriverProfileStore(context) }
-    val resolvedLookup: suspend (String) -> DriverProfile =
-        lookupProfile ?: { GridStatsProfileClient { profileStore.apiKey }.fetch(it) }
-    val owner = remember { profileStore.owner() }
-    var profiles by remember { mutableStateOf(profileStore.profiles()) }
-    var adding by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf<String?>(null) }
-    val driver = driverPsnId?.let(profileStore::profile)
-
-    fun assign(profile: DriverProfile?) {
-        scope.launch {
-            val updated = withContext(Dispatchers.IO) {
-                sessionStore.setDriver(lapId, profile?.psnId)
-            }
-            if (updated == null) {
-                error = "Driver could not be saved."
-                return@launch
-            }
-            profile?.let {
-                profileStore.save(it)
-                profiles = profileStore.profiles()
-            }
-            error = null
-            onChanged()
-        }
-    }
-
-    fun openLink(url: String) {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        if (runCatching { context.startActivity(intent) }.isFailure) {
-            error = "No app can open that link."
-        }
-    }
-
-    SectionCard(title = "Driver") {
-        DriverPickerRow(
-            driverPsnId = driverPsnId,
-            profile = driver,
-            owner = owner,
-            profiles = profiles,
-            onChange = ::assign,
-            onAddDriver = { adding = true },
-            onOpenLink = if (driverPsnId != null) { url -> openLink(url) } else null,
-        )
-        error?.let {
-            Text(
-                it,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error,
-            )
-        }
-    }
-
-    if (adding) {
-        AddDriverDialog(
-            lookupProfile = resolvedLookup,
-            onSave = {
-                adding = false
-                assign(it)
-            },
-            onDismiss = { adding = false },
-        )
-    }
-}
 
 @Composable
 internal fun AddDriverDialog(

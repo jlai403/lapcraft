@@ -14,7 +14,7 @@ class DriverRatingTest {
     fun `rating label joins DR and SR`() {
         val profile = DriverProfile("skino2024", "Skino", "GB", dr = "B", sr = "S")
 
-        assertEquals("DR B · SR S", profile.ratingLabel())
+        assertEquals("DR (B) · SR (S)", profile.ratingLabel())
     }
 
     @Test
@@ -26,7 +26,7 @@ class DriverRatingTest {
     fun `the label carries the fetch date`() {
         val profile = DriverProfile("skino2024", "Skino", "GB", dr = "B", sr = "S", fetchedAtMs = now)
 
-        assertTrue(profile.ratingWithAgeLabel()!!.startsWith("DR B · SR S · updated "))
+        assertTrue(profile.ratingWithAgeLabel()!!.startsWith("DR (B) · SR (S) · updated "))
     }
 
     @Test

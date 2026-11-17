@@ -4,16 +4,13 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,7 +18,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
@@ -37,9 +33,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
@@ -70,7 +63,6 @@ import io.github.jlai403.lapcraft.core.clip.TrimPlan
 import io.github.jlai403.lapcraft.core.model.Sample
 import io.github.jlai403.lapcraft.core.session.LapView
 import io.github.jlai403.lapcraft.core.session.LapId
-import io.github.jlai403.lapcraft.core.session.LapStore
 import io.github.jlai403.lapcraft.core.session.toLapView
 import io.github.jlai403.lapcraft.app.catalog.lapStore
 import kotlinx.coroutines.Dispatchers
@@ -738,37 +730,6 @@ fun ImportSyncScreen(
     }
 }
 
-@Composable
-private fun TrimBar(
-    startMs: Long,
-    endMs: Long,
-    durationMs: Long,
-    modifier: Modifier = Modifier,
-) {
-    val track = MaterialTheme.colorScheme.surfaceVariant
-    val lap = MaterialTheme.colorScheme.primary
-    val marker = MaterialTheme.colorScheme.onPrimary
-    Canvas(modifier.fillMaxWidth().height(10.dp)) {
-        if (durationMs <= 0 || size.width <= 0f) return@Canvas
-        val radius = CornerRadius(size.height / 2f)
-        drawRoundRect(color = track, cornerRadius = radius)
-        val left = (startMs.toFloat() / durationMs * size.width).coerceIn(0f, size.width)
-        val right = (endMs.toFloat() / durationMs * size.width).coerceIn(0f, size.width)
-        if (right - left >= 1f) {
-            drawRoundRect(
-                color = lap,
-                topLeft = Offset(left, 0f),
-                size = Size(right - left, size.height),
-                cornerRadius = radius,
-            )
-        }
-        drawCircle(
-            color = marker,
-            radius = size.height / 2.2f,
-            center = Offset(right, size.height / 2f),
-        )
-    }
-}
 
 @Composable
 private fun SyncTip(text: String) {

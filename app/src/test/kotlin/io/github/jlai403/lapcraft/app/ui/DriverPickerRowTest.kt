@@ -10,10 +10,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ApplicationProvider
-import io.github.jlai403.lapcraft.core.profile.DriverProfile
 import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
-import io.github.jlai403.lapcraft.core.session.LapId
-import io.github.jlai403.lapcraft.core.session.LapStore
+import io.github.jlai403.lapcraft.core.profile.DriverProfile
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -26,7 +24,7 @@ import org.robolectric.annotation.GraphicsMode
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], application = Application::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-class DriverSectionTest {
+class DriverPickerRowTest {
     @get:Rule
     val compose = createComposeRule()
 
@@ -39,80 +37,49 @@ class DriverSectionTest {
 
     @Test
     fun `use my profile assigns the owner`() {
-        DriverProfileStore(context).setOwner(DriverProfile("skino2024", "Skino", "GB"))
-        SessionFixtures.install(context, SessionFixtures.session(lapTimesMs = listOf(90_000)))
-        var changes = 0
+        val owner = DriverProfile("skino2024", "Skino", "GB")
+        var assigned: DriverProfile? = null
 
         compose.setContent {
             LapCraftTheme {
-                DriverSection(
-                    lapId = LapId("session-1"),
+                DriverPickerRow(
                     driverPsnId = null,
-                    onChanged = { changes++ },
+                    profile = null,
+                    owner = owner,
+                    profiles = listOf(owner),
+                    onChange = { assigned = it },
+                    onAddDriver = {},
+                    onOpenLink = null,
                 )
             }
         }
 
-        compose.waitUntil(TIMEOUT) {
-            compose.onAllNodesWithText("Use my profile").fetchSemanticsNodes().isNotEmpty()
-        }
         compose.onNodeWithTag("driver-use-owner").performClick()
-        compose.waitUntil(TIMEOUT) { changes == 1 }
-        assertEquals("skino2024", lapDriver())
+
+        assertEquals(owner, assigned)
     }
 
     @Test
-    fun `choosing a cached driver assigns it`() {
-        val profiles = DriverProfileStore(context)
-        profiles.setOwner(DriverProfile("skino2024", "Skino", "GB"))
-        profiles.save(DriverProfile("friend", "Friend", "US"))
-        SessionFixtures.install(context, SessionFixtures.session(lapTimesMs = listOf(90_000)))
+    fun `manual driver entry saves the profile`() {
+        var saved: DriverProfile? = null
 
         compose.setContent {
             LapCraftTheme {
-                DriverSection(
-                    lapId = LapId("session-1"),
-                    driverPsnId = null,
-                    onChanged = {},
+                AddDriverDialog(
+                    lookupProfile = { DriverProfile(it, it, null) },
+                    onSave = { saved = it },
+                    onDismiss = {},
                 )
             }
         }
 
-        compose.waitUntil(TIMEOUT) {
-            compose.onAllNodesWithText("Set driver").fetchSemanticsNodes().isNotEmpty()
-        }
-        compose.onNodeWithTag("driver-menu").performClick()
-        compose.onNodeWithText("Friend").performClick()
-        compose.waitUntil(TIMEOUT) { lapDriver() == "friend" }
-    }
-
-    @Test
-    fun `manual driver entry saves the profile and assigns it`() {
-        SessionFixtures.install(context, SessionFixtures.session(lapTimesMs = listOf(90_000)))
-
-        compose.setContent {
-            LapCraftTheme {
-                DriverSection(
-                    lapId = LapId("session-1"),
-                    driverPsnId = null,
-                    onChanged = {},
-                )
-            }
-        }
-
-        compose.waitUntil(TIMEOUT) {
-            compose.onAllNodesWithText("Set driver").fetchSemanticsNodes().isNotEmpty()
-        }
-        compose.onNodeWithTag("driver-menu").performClick()
-        compose.onNodeWithText("Add driver…").performClick()
         compose.onNodeWithTag("driver-add-psn").performTextInput("friend")
         compose.onNodeWithTag("driver-add-manual").performClick()
         compose.onNodeWithTag("driver-add-name").performTextInput("Friend")
         compose.onNodeWithTag("driver-add-country").performTextInput("US")
         compose.onNodeWithTag("driver-add-save").performClick()
 
-        compose.waitUntil(TIMEOUT) { lapDriver() == "friend" }
-        assertEquals("Friend", DriverProfileStore(context).profile("friend")?.nickname)
+        assertEquals(DriverProfile("friend", "Friend", "US"), saved)
     }
 
     @Test
@@ -161,10 +128,22 @@ class DriverSectionTest {
         assertEquals(0, compose.onAllNodesWithTag("driver-profile").fetchSemanticsNodes().size)
     }
 
-    private fun lapDriver(): String? =
-        LapStore(context.filesDir).load(LapId("session-1"))?.driverPsnId
+    @Test
+    fun `the saved rating is shown in the picker`() {
+        compose.setContent {
+            LapCraftTheme {
+                DriverPickerRow(
+                    driverPsnId = "friend",
+                    profile = DriverProfile("friend", "Friend", "US", dr = "B", sr = "S"),
+                    owner = null,
+                    profiles = emptyList(),
+                    onChange = {},
+                    onAddDriver = {},
+                    onOpenLink = null,
+                )
+            }
+        }
 
-    private companion object {
-        const val TIMEOUT = 10_000L
+        compose.onNodeWithText("DR (B) · SR (S)", substring = true).assertExists()
     }
 }

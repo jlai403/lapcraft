@@ -819,8 +819,3 @@ fun LapPlayerScreen(
     }
 }
 
-
-internal fun initialClipMs(leadInMs: Int, lapTimeMs: Int, durationMs: Long): Long {
-    val start = LapClock.forTrimmedLap(leadInMs, lapTimeMs).clipMs(0)
-    return if (durationMs > 0) start.coerceIn(0L, durationMs) else start
-}

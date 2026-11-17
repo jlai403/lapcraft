@@ -7,11 +7,11 @@ import java.time.format.DateTimeFormatter
 
 private val stampFormat = DateTimeFormatter.ofPattern("MMM d").withZone(ZoneId.systemDefault())
 
-/** "DR B · SR S", or null when GT GridStats never returned a rating. */
+/** "DR (B) · SR (S)", or null when GT GridStats never returned a rating. */
 fun DriverProfile.ratingLabel(): String? =
-    listOfNotNull(dr?.let { "DR $it" }, sr?.let { "SR $it" }).joinToString(" · ").ifEmpty { null }
+    listOfNotNull(dr?.let { "DR ($it)" }, sr?.let { "SR ($it)" }).joinToString(" · ").ifEmpty { null }
 
-/** "DR B · SR S · updated Nov 3", so a stale rating is visible. */
+/** "DR (B) · SR (S) · updated Nov 3", so a stale rating is visible. */
 fun DriverProfile.ratingWithAgeLabel(): String? {
     val rating = ratingLabel() ?: return null
     val stamp = fetchedAtMs ?: return rating

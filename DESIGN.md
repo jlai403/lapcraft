@@ -191,7 +191,7 @@ Dialogs use Material 3 `AlertDialog`. Destructive confirmation labels are red; c
 
 - Header: “Settings”, subtitle “Console, profile, units, and updates”.
 - Console card: IP field.
-- Driver profile card: owner PSN with `Fetch profile` / `Refresh profile` and `Remove`, the cached ratings with their fetch date (`DR B · SR S · updated Nov 3`), a `Saved drivers` list where every cached friend carries its own `Remove` (confirmed, laps keep the PSN), a `Refresh profiles (N)` action for missing or week-old ratings, and the optional GT GridStats API key (`Save key` / `Clear`).
+- Driver profile card: owner PSN with `Fetch profile` / `Refresh profile` and `Remove`, the cached ratings with their fetch date (`DR (B) · SR (S) · updated Nov 3`), a `Saved drivers` list where every cached friend carries its own `Remove` (confirmed, laps keep the PSN), a `Refresh profiles (N)` action for missing or week-old ratings, and the optional GT GridStats API key (`Save key` / `Clear`).
 - Replay compression card: `Preset` (Original / Balanced / Compact), and while not Original, `Resolution` (1080p/720p), `Codec` (HEVC/H.264), `Keyframes` (Frame 0.1 s / Fast 0.5 s / Standard 1 s / Sparse 2 s), and `Audio` (Stereo 96 kbps / Mono 64 kbps / Remove). Defaults: Balanced, 1080p, HEVC, Frame, Stereo. Each control shows a caption describing its effect; a non-default choice is prefixed `Changed:` and uses the primary colour. These are defaults; the import screen can override them per lap.
 - Display card: `Imperial units`, `Frame ruler haptics`, and `Telemetry HUD` toggle rows, plus a `Default playback speed` dropdown (0.5×/1×/1.5×/2×); haptics are on by default, HUD is on by default.
 - Updates card: channel-aware status line (`Checks the rolling debug build once a day.`, `You are on the latest build.`, `Version X (build N) is available.`), then one action: `Check for updates`, `Download X`, `Downloading N%`, `Install update`, or `Installing…`. Failures use `error` color and name the next action.
@@ -269,6 +269,7 @@ While Chiaki-Up is fullscreen the Record tab is not visible, and v0.1 has no ove
 | `ui/SettingsScreen.kt` | capture and unit settings |
 | `ui/TelemetryCharts.kt` | traces and track map |
 | `ui/EditLapSheet.kt` / `LapCard.kt` | lap editing and row presentation |
+| `ui/DriverPickerRow.kt` / `AddDriverDialog.kt` / `DriverProfileSection.kt` | driver picker, add-driver dialog, Settings profile card |
 | `res/font/` | bundled Geist Sans and Geist Mono TTF files |
 | `licenses/Geist-OFL.txt` | Geist OFL-1.1 license |
 | `MainActivity.kt` | edge-to-edge system bars, permissions, service wiring |

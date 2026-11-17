@@ -13,7 +13,4 @@ class DecodeFailureLog(private val limit: Int = 5) {
         entries.addLast(line)
         return true
     }
-
-    @Synchronized
-    fun snapshot(): List<String> = entries.toList()
 }

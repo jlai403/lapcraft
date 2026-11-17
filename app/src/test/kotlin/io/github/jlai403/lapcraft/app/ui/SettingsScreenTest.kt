@@ -140,7 +140,7 @@ class SettingsScreenTest {
             LapCraftTheme { SettingsScreen() }
         }
 
-        compose.onNodeWithText("DR B · SR S · updated", substring = true).assertExists()
+        compose.onNodeWithText("DR (B) · SR (S) · updated", substring = true).assertExists()
     }
 
     @Test

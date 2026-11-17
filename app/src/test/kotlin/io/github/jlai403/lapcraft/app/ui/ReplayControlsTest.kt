@@ -87,14 +87,6 @@ class ReplayControlsTest {
     }
 
     @Test
-    fun `playback speed steps clamp at the ends`() {
-        assertEquals(1.5f, steppedPlaybackSpeed(1f, 1))
-        assertEquals(0.5f, steppedPlaybackSpeed(0.5f, -1))
-        assertEquals(2f, steppedPlaybackSpeed(2f, 1))
-        assertEquals(2f, steppedPlaybackSpeed(1.5f, 1))
-    }
-
-    @Test
     fun `frameStepMs prefers the timeline when present`() {
         val pts = LongArray(5) { it * 16_683L }
         val tl = FrameTimeline.of(pts)!!
