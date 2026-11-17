@@ -11,9 +11,9 @@ object TelemetryHealth {
         packetsPerSecond: Double,
         lastPacketAgeMs: Long,
     ): StreamHealth = when {
-        !connected -> StreamHealth(false, "Waiting for packets")
+        !connected -> StreamHealth(false, "Waiting for the first packet")
         lastPacketAgeMs < 0 || lastPacketAgeMs > MAX_PACKET_AGE_MS ->
-            StreamHealth(false, "Packets are stale")
+            StreamHealth(false, "Packets stopped")
         packetsPerSecond < MIN_PACKETS_PER_SECOND ->
             StreamHealth(false, "Packet rate is low")
         else -> StreamHealth(true, "Streaming")

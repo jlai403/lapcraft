@@ -8,6 +8,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ApplicationProvider
 import io.github.jlai403.lapcraft.core.profile.DriverProfile
@@ -228,6 +229,26 @@ class SettingsScreenTest {
 
         assertEquals(2f, SettingsStore(context).defaultPlaybackSpeed)
         assertFalse(SettingsStore(context).telemetryHud)
+    }
+
+    @Test
+    fun `saving the console address normalizes it and rejects invalid input`() {
+        compose.setContent {
+            LapCraftTheme { SettingsScreen() }
+        }
+
+        compose.onNodeWithTag("settings-ps5-ip").performScrollTo().performTextInput("192.168.001.050")
+        compose.onNodeWithText("Save IP").performScrollTo().performClick()
+
+        assertEquals("192.168.1.50", SettingsStore(context).ps5Ip)
+        compose.onNodeWithText("Saved 192.168.1.50").assertExists()
+
+        compose.onNodeWithTag("settings-ps5-ip").performScrollTo().performTextClearance()
+        compose.onNodeWithTag("settings-ps5-ip").performTextInput("999.1.1.1")
+        compose.onNodeWithText("Save IP").performScrollTo().performClick()
+
+        compose.onNodeWithText("Enter a valid IPv4 address").assertExists()
+        assertEquals("192.168.1.50", SettingsStore(context).ps5Ip)
     }
 
     private companion object {

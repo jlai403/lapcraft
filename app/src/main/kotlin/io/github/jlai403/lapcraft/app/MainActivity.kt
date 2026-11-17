@@ -13,9 +13,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import androidx.core.content.IntentCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -26,6 +23,7 @@ import io.github.jlai403.lapcraft.app.ui.App
 import io.github.jlai403.lapcraft.app.ui.CaptureUiState
 import io.github.jlai403.lapcraft.app.ui.LapCraftTheme
 import io.github.jlai403.lapcraft.app.updater.UpdateManager
+import io.github.jlai403.lapcraft.core.network.Ipv4
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -60,15 +58,13 @@ class MainActivity : ComponentActivity() {
             val completedLaps by TelemetryService.completedLaps.collectAsStateWithLifecycle()
             val sharedVideo by pendingShare.collectAsStateWithLifecycle()
             val update by UpdateManager.state.collectAsStateWithLifecycle()
-            var ip by rememberSaveable { mutableStateOf(settings.ps5Ip) }
 
             LaunchedEffect(Unit) { UpdateManager.checkIfStale(applicationContext) }
 
             LapCraftTheme {
                 App(
                     capture = CaptureUiState(
-                        ps5Ip = ip,
-                        status = serviceState.status,
+                        ps5Ip = settings.ps5Ip,
                         telemetryRunning = telemetryRunning,
                         telemetryError = telemetryError,
                         connected = serviceState.connected,
@@ -95,10 +91,7 @@ class MainActivity : ComponentActivity() {
                         events = telemetryEvents,
                         completedLaps = completedLaps,
                     ),
-                    onSaveIp = { raw ->
-                        if (settings.savePs5Ip(raw)) ip = settings.ps5Ip
-                    },
-                    onConnect = { raw -> connect(raw) },
+                    onConnect = { connect() },
                     onDisconnect = { disconnect() },
                     onCapture = { sendServiceAction(TelemetryService.ACTION_CAPTURE) },
                     onCancelCapture = { sendServiceAction(TelemetryService.ACTION_CANCEL_CAPTURE) },
@@ -126,11 +119,11 @@ class MainActivity : ComponentActivity() {
         if (uri != null) pendingShare.value = uri.toString()
     }
 
-    private fun connect(raw: String) {
-        if (!settings.savePs5Ip(raw)) return
+    private fun connect() {
+        val host = Ipv4.normalize(settings.ps5Ip) ?: return
         // Start the foreground service while the activity is definitely visible.
-        Log.i("LapCraft", "connect requested · ${settings.ps5Ip}")
-        startTelemetry(settings.ps5Ip)
+        Log.i("LapCraft", "connect requested · $host")
+        startTelemetry(host)
         requestNotificationPermission()
         lifecycleScope.launch {
             delay(4_000)

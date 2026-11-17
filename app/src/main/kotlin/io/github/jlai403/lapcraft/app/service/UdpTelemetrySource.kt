@@ -31,7 +31,7 @@ class UdpTelemetrySource(
     private val onSample: (Sample) -> Unit,
     private val onLap: (LapBoundary) -> Unit,
     private val onState: (TelemetryUiState) -> Unit,
-    private val onStatus: (String) -> Unit = {},
+    private val onError: (String) -> Unit = {},
 ) {
     private var scope: CoroutineScope? = null
     private var socket: DatagramSocket? = null
@@ -67,7 +67,7 @@ class UdpTelemetrySource(
                     val payload = Gt7Protocol.HEARTBEAT.toByteArray()
                     newSocket.send(DatagramPacket(payload, payload.size, address, Gt7Protocol.PORT_SEND))
                 } catch (error: Exception) {
-                    if (isActive) onStatus("Heartbeat failed: ${error.message}")
+                    if (isActive) onError("Heartbeat failed: ${error.message}")
                 }
                 delay(100)
             }
@@ -109,7 +109,7 @@ class UdpTelemetrySource(
                 } catch (_: SocketTimeoutException) {
                     publish(System.nanoTime())
                 } catch (error: Exception) {
-                    if (isActive) onStatus("Telemetry socket error: ${error.message}")
+                    if (isActive) onError("Telemetry socket error: ${error.message}")
                     break
                 }
             }
@@ -154,7 +154,6 @@ class UdpTelemetrySource(
                 carCode = sample?.carCode ?: 0,
                 flags = sample?.flags ?: 0,
                 lastLapTimeMs = sample?.lastLapTimeMs ?: 0,
-                status = if (connected) "Telemetry connected" else "Waiting for telemetry",
             ),
         )
     }

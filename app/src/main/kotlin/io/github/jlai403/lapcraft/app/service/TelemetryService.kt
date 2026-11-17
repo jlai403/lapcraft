@@ -84,7 +84,7 @@ class TelemetryService : Service() {
         Log.e("LapCraft", "telemetry onStartCommand failed", error)
         running.value = false
         lastError.value = "Telemetry failed: ${error.message ?: error::class.java.simpleName}"
-        state.value = TelemetryUiState(status = lastError.value.orEmpty())
+        state.value = TelemetryUiState()
         runCatching { stopForeground(STOP_FOREGROUND_REMOVE) }
         runCatching { stopSelf() }
         START_NOT_STICKY
@@ -110,6 +110,7 @@ class TelemetryService : Service() {
             }
             ACTION_STOP -> {
                 if (::coordinator.isInitialized) coordinator.onDisconnect()
+                lastError.value = null
                 stopSelf()
                 return START_NOT_STICKY
             }
@@ -117,11 +118,9 @@ class TelemetryService : Service() {
                 val host = Ipv4.normalize(intent.getStringExtra(EXTRA_IP).orEmpty())
                 Log.i("LapCraft", "telemetry start · $host")
                 if (host == null) {
-                    state.value = TelemetryUiState(
-                        status = "Enter a valid PS5 IPv4 address, for example 192.168.1.50",
-                    )
                     running.value = false
-                    lastError.value = state.value.status
+                    lastError.value = "Enter a valid PS5 IPv4 address in Settings, for example 192.168.1.50"
+                    state.value = TelemetryUiState()
                     startForeground(
                         NOTIFICATION_ID,
                         notification("GT7 stream · waiting"),
@@ -142,7 +141,7 @@ class TelemetryService : Service() {
                 acquireLocks()
                 events.value = emptyList()
                 completedLaps.value = 0
-                state.value = TelemetryUiState(status = "Waiting for telemetry")
+                state.value = TelemetryUiState()
                 if (!::coordinator.isInitialized) {
                     val driverProfiles = DriverProfileStore(this)
                     coordinator = LapCaptureCoordinator(
@@ -173,7 +172,7 @@ class TelemetryService : Service() {
                         handleLap(it)
                     },
                     onState = { publishState(it) },
-                    onStatus = { state.value = state.value.copy(status = it) },
+                    onError = { lastError.value = it },
                 )
                 val failure = newSource.start()
                 if (failure != null) {
@@ -181,7 +180,7 @@ class TelemetryService : Service() {
                     releaseLocks()
                     running.value = false
                     lastError.value = failure
-                    state.value = TelemetryUiState(status = failure)
+                    state.value = TelemetryUiState()
                     stopForeground(STOP_FOREGROUND_REMOVE)
                     stopSelf()
                     return START_NOT_STICKY

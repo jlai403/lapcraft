@@ -21,5 +21,4 @@ data class TelemetryUiState(
     val carCode: Int = 0,
     val flags: Int = 0,
     val lastLapTimeMs: Int = 0,
-    val status: String = "Waiting for telemetry",
 )
