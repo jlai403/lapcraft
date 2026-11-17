@@ -63,6 +63,8 @@ object EventMatcher {
                 round = e.round,
                 carClass = e.carClass,
                 auto = true,
+                startMs = e.startMs,
+                endMs = e.endMs,
             )
         } else null
         return EventMatchResult(tag, pool.distinct())
