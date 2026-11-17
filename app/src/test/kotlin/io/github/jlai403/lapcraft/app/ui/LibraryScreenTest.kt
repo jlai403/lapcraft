@@ -341,8 +341,10 @@ class LibraryScreenTest {
         }
         compose.onNodeWithTag("library-compare").performClick()
         compose.onNodeWithText("1:30.000").performClick()
+        compose.waitForIdle()
         compose.onNodeWithText("Primary").assertExists()
         compose.onNodeWithText("1:31.000").performClick()
+        compose.waitForIdle()
         compose.onNodeWithTag("library-compare-go").performClick()
 
         assertEquals(listOf(LapId("session-1"), LapId("session-2")), compared)
