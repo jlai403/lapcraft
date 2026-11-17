@@ -82,6 +82,9 @@ android {
 tasks.withType<Test>().configureEach {
     maxParallelForks = 2
     maxHeapSize = "1g"
+    testLogging {
+        showStandardStreams = true
+    }
 }
 
 kotlin {
