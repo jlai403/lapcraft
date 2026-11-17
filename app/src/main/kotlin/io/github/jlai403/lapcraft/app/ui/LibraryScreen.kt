@@ -218,7 +218,6 @@ fun LibraryScreen(
     }
 
     fun togglePick(lap: LapSummary) {
-        println("PICK id=" + lap.lapId.value + " before=" + picks.map { it.lapId.value })
         if (picks.any { it.lapId == lap.lapId }) {
             picks = picks.filterNot { it.lapId == lap.lapId }
             return
@@ -517,44 +516,42 @@ fun LibraryScreen(
                                 if (index in newGroupIndices) {
                                     CurrentEventHeader(group = currentGroupAt[index])
                                 }
-                                key(lap.lapId.value) {
-                                    val fastestLap = fastest[lap.trackKey]
-                                    val ranked = (trackCounts[lap.trackKey] ?: 0) >= 2
-                                    val isFastest = ranked && fastestLap?.lapId == lap.lapId
-                                    val deltaMs = if (ranked && !isFastest && fastestLap != null) {
-                                        lap.lapTimeMs - fastestLap.lapTimeMs
-                                    } else {
-                                        null
-                                    }
-                                    val driverPsn = lap.driverPsnId
-                                    val driver = driverPsn?.let { psn ->
-                                        profiles[psn.lowercase()] ?: owner?.takeIf { it.psnId.equals(psn, true) }
-                                    }
-                                    Column(modifier = Modifier.animateItem()) {
-                                        LapCard(
-                                            lap = lap,
-                                            driver = driver,
-                                            fastest = isFastest,
-                                            deltaMs = deltaMs,
-                                            onOpen = { target ->
-                                                if (compareMode) togglePick(target) else onOpenLap(target.lapId)
-                                            },
-                                            onEdit = ::edit,
-                                            onDelete = { deleting = it },
-                                            compareMode = compareMode,
-                                            pick = when {
-                                                picks.getOrNull(0)?.lapId == lap.lapId -> LapPick.Primary
-                                                picks.getOrNull(1)?.lapId == lap.lapId -> LapPick.Reference
-                                                else -> null
-                                            },
+                                val fastestLap = fastest[lap.trackKey]
+                                val ranked = (trackCounts[lap.trackKey] ?: 0) >= 2
+                                val isFastest = ranked && fastestLap?.lapId == lap.lapId
+                                val deltaMs = if (ranked && !isFastest && fastestLap != null) {
+                                    lap.lapTimeMs - fastestLap.lapTimeMs
+                                } else {
+                                    null
+                                }
+                                val driverPsn = lap.driverPsnId
+                                val driver = driverPsn?.let { psn ->
+                                    profiles[psn.lowercase()] ?: owner?.takeIf { it.psnId.equals(psn, true) }
+                                }
+                                Column(modifier = Modifier.animateItem()) {
+                                    LapCard(
+                                        lap = lap,
+                                        driver = driver,
+                                        fastest = isFastest,
+                                        deltaMs = deltaMs,
+                                        onOpen = { target ->
+                                            if (compareMode) togglePick(target) else onOpenLap(target.lapId)
+                                        },
+                                        onEdit = ::edit,
+                                        onDelete = { deleting = it },
+                                        compareMode = compareMode,
+                                        pick = when {
+                                            picks.getOrNull(0)?.lapId == lap.lapId -> LapPick.Primary
+                                            picks.getOrNull(1)?.lapId == lap.lapId -> LapPick.Reference
+                                            else -> null
+                                        },
+                                    )
+                                    if (index != currentFlat.lastIndex && currentGroupAt[index + 1].key == currentGroupAt[index].key) {
+                                        HorizontalDivider(
+                                            modifier = Modifier.testTag("lap-divider"),
+                                            thickness = 1.dp,
+                                            color = Hairline,
                                         )
-                                        if (index != currentFlat.lastIndex && currentGroupAt[index + 1].key == currentGroupAt[index].key) {
-                                            HorizontalDivider(
-                                                modifier = Modifier.testTag("lap-divider"),
-                                                thickness = 1.dp,
-                                                color = Hairline,
-                                            )
-                                        }
                                     }
                                 }
                             }
@@ -575,47 +572,45 @@ fun LibraryScreen(
                             }.toSet()
                             if (pastExpanded) {
                                 itemsIndexed(items = pastFlat, key = { _, lap -> lap.lapId.value }) { index, lap ->
-                                    key(lap.lapId.value) {
-                                        val fastestLap = fastest[lap.trackKey]
-                                        val ranked = (trackCounts[lap.trackKey] ?: 0) >= 2
-                                        val isFastest = ranked && fastestLap?.lapId == lap.lapId
-                                        val deltaMs = if (ranked && !isFastest && fastestLap != null) {
-                                            lap.lapTimeMs - fastestLap.lapTimeMs
-                                        } else {
-                                            null
-                                        }
-                                        val driverPsn = lap.driverPsnId
-                                        val driver = driverPsn?.let { psn ->
-                                            profiles[psn.lowercase()] ?: owner?.takeIf { it.psnId.equals(psn, true) }
-                                        }
-                                        if (index in pastNewGroupIndices) {
-                                            CurrentEventHeader(group = pastGroupAt[index])
-                                        }
-                                        Column(modifier = Modifier.animateItem()) {
-                                            LapCard(
-                                                lap = lap,
-                                                driver = driver,
-                                                fastest = isFastest,
-                                                deltaMs = deltaMs,
-                                                onOpen = { target ->
-                                                    if (compareMode) togglePick(target) else onOpenLap(target.lapId)
-                                                },
-                                                onEdit = ::edit,
-                                                onDelete = { deleting = it },
-                                                compareMode = compareMode,
-                                                pick = when {
-                                                    picks.getOrNull(0)?.lapId == lap.lapId -> LapPick.Primary
-                                                    picks.getOrNull(1)?.lapId == lap.lapId -> LapPick.Reference
-                                                    else -> null
-                                                },
+                                    val fastestLap = fastest[lap.trackKey]
+                                    val ranked = (trackCounts[lap.trackKey] ?: 0) >= 2
+                                    val isFastest = ranked && fastestLap?.lapId == lap.lapId
+                                    val deltaMs = if (ranked && !isFastest && fastestLap != null) {
+                                        lap.lapTimeMs - fastestLap.lapTimeMs
+                                    } else {
+                                        null
+                                    }
+                                    val driverPsn = lap.driverPsnId
+                                    val driver = driverPsn?.let { psn ->
+                                        profiles[psn.lowercase()] ?: owner?.takeIf { it.psnId.equals(psn, true) }
+                                    }
+                                    if (index in pastNewGroupIndices) {
+                                        CurrentEventHeader(group = pastGroupAt[index])
+                                    }
+                                    Column(modifier = Modifier.animateItem()) {
+                                        LapCard(
+                                            lap = lap,
+                                            driver = driver,
+                                            fastest = isFastest,
+                                            deltaMs = deltaMs,
+                                            onOpen = { target ->
+                                                if (compareMode) togglePick(target) else onOpenLap(target.lapId)
+                                            },
+                                            onEdit = ::edit,
+                                            onDelete = { deleting = it },
+                                            compareMode = compareMode,
+                                            pick = when {
+                                                picks.getOrNull(0)?.lapId == lap.lapId -> LapPick.Primary
+                                                picks.getOrNull(1)?.lapId == lap.lapId -> LapPick.Reference
+                                                else -> null
+                                            },
+                                        )
+                                        if (index != pastFlat.lastIndex && pastGroupAt[index + 1].key == pastGroupAt[index].key) {
+                                            HorizontalDivider(
+                                                modifier = Modifier.testTag("lap-divider"),
+                                                thickness = 1.dp,
+                                                color = Hairline,
                                             )
-                                            if (index != pastFlat.lastIndex && pastGroupAt[index + 1].key == pastGroupAt[index].key) {
-                                                HorizontalDivider(
-                                                    modifier = Modifier.testTag("lap-divider"),
-                                                    thickness = 1.dp,
-                                                    color = Hairline,
-                                                )
-                                            }
                                         }
                                     }
                                 }
