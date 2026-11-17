@@ -373,6 +373,9 @@ class LibraryScreenTest {
             compose.onAllNodesWithText("Daily Race A · W47").fetchSemanticsNodes().isNotEmpty()
         }
         compose.onNodeWithText("Daily Race A · W47").assertExists()
+        val titleLeft = compose.onNodeWithText("Daily Race A · W47").fetchSemanticsNode().boundsInRoot.left
+        val detailLeft = compose.onNodeWithText("Gr.4", substring = true).fetchSemanticsNode().boundsInRoot.left
+        assertEquals(titleLeft, detailLeft, 0.5f)
     }
 
     @Test

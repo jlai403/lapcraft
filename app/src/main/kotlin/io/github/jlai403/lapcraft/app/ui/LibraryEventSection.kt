@@ -23,16 +23,13 @@ import io.github.jlai403.lapcraft.core.events.eventRangeLabel
 
 @Composable
 fun CurrentEventHeader(group: LapEventGroup, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        Row {
-            Spacer(Modifier.width(20.dp))
-            Text(
-                group.tag?.label ?: "No event",
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+    Column(modifier = modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
+        Text(
+            group.tag?.label ?: "No event",
+            style = MaterialTheme.typography.titleMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
         Text(
             eventDetail(group),
             style = MaterialTheme.typography.bodySmall,
