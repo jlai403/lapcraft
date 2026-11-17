@@ -528,7 +528,7 @@ fun LibraryScreen(
                                 val driver = driverPsn?.let { psn ->
                                     profiles[psn.lowercase()] ?: owner?.takeIf { it.psnId.equals(psn, true) }
                                 }
-                                Column(modifier = Modifier.animateItem()) {
+                                Column() {
                                     LapCard(
                                         lap = lap,
                                         driver = driver,
@@ -587,7 +587,7 @@ fun LibraryScreen(
                                     if (index in pastNewGroupIndices) {
                                         CurrentEventHeader(group = pastGroupAt[index])
                                     }
-                                    Column(modifier = Modifier.animateItem()) {
+                                    Column() {
                                         LapCard(
                                             lap = lap,
                                             driver = driver,

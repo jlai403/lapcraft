@@ -11,7 +11,7 @@ This document is the source of truth for visual tokens and recurring UI patterns
 3. **Dark only for v0.1.** No light theme until the data-viz palette is validated on track.
 4. **Big targets, short labels.** Primary actions are 50 dp pills; secondary actions are 44 dp.
 5. **Cards, not dividers.** Group related content into 20–22 dp rounded surfaces rather than dense tables.
-6. **Calm motion.** Material defaults only; the one exception is `animateItem()` on library rows after an edit or filter.
+6. **Calm motion.** Material defaults only. Library rows do not animate item placement: the animated shift moved a row while the test was clicking it, so the rows reflow instantly.
 
 ## Color tokens
 
