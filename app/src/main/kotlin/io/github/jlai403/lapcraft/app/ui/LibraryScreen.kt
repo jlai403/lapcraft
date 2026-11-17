@@ -218,6 +218,7 @@ fun LibraryScreen(
     }
 
     fun togglePick(lap: LapSummary) {
+        println("PICK id=" + lap.lapId.value + " before=" + picks.map { it.lapId.value })
         if (picks.any { it.lapId == lap.lapId }) {
             picks = picks.filterNot { it.lapId == lap.lapId }
             return
