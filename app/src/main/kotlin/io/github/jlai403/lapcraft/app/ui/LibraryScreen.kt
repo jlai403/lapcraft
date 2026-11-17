@@ -218,7 +218,6 @@ fun LibraryScreen(
     }
 
     fun togglePick(lap: LapSummary) {
-        println("PICK id=" + lap.lapId.value + " before=" + picks.map { it.lapId.value })
         if (picks.any { it.lapId == lap.lapId }) {
             picks = picks.filterNot { it.lapId == lap.lapId }
             return
@@ -514,7 +513,6 @@ fun LibraryScreen(
                         }.toSet()
                         if (currentFlat.isNotEmpty()) {
                             itemsIndexed(items = currentFlat, key = { _, lap -> lap.lapId.value }) { index, lap ->
-                                println("COMPOSE idx=" + index + " lap=" + lap.lapId.value)
                                 if (index in newGroupIndices) {
                                     CurrentEventHeader(group = currentGroupAt[index])
                                 }

@@ -342,6 +342,7 @@ class LibraryScreenTest {
         compose.onNodeWithTag("library-compare").performClick()
         compose.onNodeWithText("1:30.000").performClick()
         compose.onNodeWithText("Primary").assertExists()
+        compose.onNodeWithTag("lap-list").performScrollToIndex(1)
         compose.onNodeWithText("1:31.000").performClick()
         compose.onNodeWithTag("library-compare-go").performClick()
 
