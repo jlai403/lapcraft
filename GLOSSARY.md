@@ -179,8 +179,16 @@ A dated GT7 competition a lap was driven in: a Daily Race, a Time Trial, or a ch
 _Avoid_: race type, session
 
 **Event tag**:
-The event recorded on a lap, kept as a snapshot (id, kind, label) so it survives a schedule refresh.
+The event recorded on a lap, kept as a snapshot (id, kind, label, window) so it survives a schedule refresh.
 _Avoid_: label, category
+
+**Event window**:
+The start and end timestamps copied onto a tag when it is assigned, so the library can tell a current event from a lapsed one after the cache drops it. Legacy and manual tags have no window.
+_Avoid_: schedule, dates
+
+**Lapsed event**:
+An event whose window has ended. Lapsed events collect under `Past events` in the library. An auto tag without a window counts as lapsed once its id leaves the event cache.
+_Avoid_: expired, old event
 
 **Auto tag**:
 An event tag assigned by the matcher from time, track and car rather than chosen by the driver.

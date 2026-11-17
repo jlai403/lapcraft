@@ -46,6 +46,26 @@ class EventKindCodecTest {
     }
 
     @Test
+    fun `legacy tag without dates decodes with a null window`() {
+        val decoded = json.decodeFromString<EventTag>(
+            """{"id":"x","kind":"daily","label":"Daily A"}"""
+        )
+        assertEquals(null, decoded.startMs)
+        assertEquals(null, decoded.endMs)
+    }
+
+    @Test
+    fun `tag window round-trips`() {
+        val encoded = json.encodeToString(
+            EventTag.serializer(),
+            EventTag(id = "x", kind = EventKind.Daily, label = "Daily A", startMs = 1, endMs = 2),
+        )
+        val decoded = json.decodeFromString<EventTag>(encoded)
+        assertEquals(1L, decoded.startMs)
+        assertEquals(2L, decoded.endMs)
+    }
+
+    @Test
     fun `cached event legacy string decodes`() {
         val decoded = json.decodeFromString<CachedEvent>(
             """{"id":"c","kind":"championship","label":"R1","startMs":1,"endMs":2,"source":"polyphony-cdn","fetchedAtMs":3}"""

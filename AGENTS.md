@@ -82,6 +82,15 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
   while ids stay week-free; Time Trials label by track (`Time Trial · Suzuka`). The edit sheet's event
   field suggests cached events and stores free text as a manual Championship tag. `LapView.event` /
   `LapSummary.event`; `LapFilter`/`LapSort` event dimensions.
+- Library grouping: `LapSummary.eventGroups` (`core/events/EventGroups.kt`) orders current events,
+  the `No event` group, then lapsed ones; `EventTag.status` (`EventStatus.kt`) resolves current /
+  upcoming / lapsed / unknown. `EventTag.startMs`/`endMs` are snapshotted at tag time, so a lapsed
+  event keeps its window after the schedule refresh; auto tags without a window fall back to cache
+  membership, manual tags without one stay `Unknown`. `LibraryEventSection.kt` renders
+  `CurrentEventHeader` (title + `series · dates · class · track · laps · Best`) and the
+  `PastEventsHeader` collapse row. Wrap each lazy row in `key(lap.lapId.value)` and avoid
+  `Modifier.padding`/extra conditionals before `LapCard`: both trigger a Compose closure hoist that
+  makes every row's `onOpen` use the last lap. The event label is gone from `LapCard`; the header owns it.
 - Acknowledgements: Settings card at the bottom links to GT GridStats (DriverProfileLinks.gridStatsHome).
 - Build: `org.gradle.caching` and configuration cache are on; app unit tests run with 2 forks and a
   1 GB heap (`app/build.gradle.kts`). Inner loop is `:app:assembleDebug` (~3 s) plus targeted

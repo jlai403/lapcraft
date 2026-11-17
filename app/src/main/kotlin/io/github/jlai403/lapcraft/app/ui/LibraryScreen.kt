@@ -28,6 +28,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,6 +53,8 @@ import io.github.jlai403.lapcraft.app.track.TrackCatalog
 import io.github.jlai403.lapcraft.app.track.TrackNamer
 import io.github.jlai403.lapcraft.core.events.EventFilter
 import io.github.jlai403.lapcraft.core.events.EventKind
+import io.github.jlai403.lapcraft.core.events.EventStatus
+import io.github.jlai403.lapcraft.core.events.eventGroups
 import io.github.jlai403.lapcraft.core.session.LapFilter
 import io.github.jlai403.lapcraft.core.session.LapSort
 import io.github.jlai403.lapcraft.core.session.LapSummary
@@ -94,6 +97,7 @@ fun LibraryScreen(
     var reload by remember { mutableIntStateOf(0) }
     var filter by remember { mutableStateOf(LapFilter()) }
     var sort by remember { mutableStateOf(LapSort.Newest) }
+    var pastExpanded by remember { mutableStateOf(false) }
     var eventMenu by remember { mutableStateOf(false) }
     var cachedEvents by remember { mutableStateOf(EventCache(context).events()) }
     var previewEmpty by remember { mutableStateOf(settings.previewEmptyLibrary) }
@@ -229,6 +233,7 @@ fun LibraryScreen(
 
     val all = laps
     val visible = all?.applyFilter(filter)?.applySort(sort)
+    val groups = visible?.eventGroups(cachedEvents, System.currentTimeMillis()).orEmpty()
     val tracks = all?.distinctBy { it.trackKey }?.map { it.trackKey to it.trackLabel }?.sortedBy { it.second }.orEmpty()
     val rankable = all?.filter { it.trackLabel != TrackNamer.UNKNOWN }
     val fastest = rankable?.fastestPerTrack().orEmpty()
@@ -496,50 +501,123 @@ fun LibraryScreen(
                         }
                     }
 
-                    else -> itemsIndexed(
-                        items = visible,
-                        key = { _, lap -> lap.lapId.value },
-                    ) { index, lap ->
-                        val fastestLap = fastest[lap.trackKey]
-                        val ranked = (trackCounts[lap.trackKey] ?: 0) >= 2
-                        val isFastest = ranked && fastestLap?.lapId == lap.lapId
-                        val deltaMs = if (ranked && !isFastest && fastestLap != null) {
-                            lap.lapTimeMs - fastestLap.lapTimeMs
-                        } else {
-                            null
-                        }
-                        val driverPsn = lap.driverPsnId
-                        val driver = driverPsn?.let { psn ->
-                            profiles[psn.lowercase()] ?: owner?.takeIf { it.psnId.equals(psn, true) }
-                        }
-                        Column(modifier = Modifier.animateItem()) {
-                            LapCard(
-                                lap = lap,
-                                driver = driver,
-                                fastest = isFastest,
-                                deltaMs = deltaMs,
-                                onOpen = {
-                                    if (compareMode) {
-                                        togglePick(lap)
+                    else -> {
+                        val lapsedGroups = groups.filter { it.status == EventStatus.Lapsed }
+                        val currentGroups = groups.filter { it.status != EventStatus.Lapsed }
+                        val currentFlat = currentGroups.flatMap { it.laps }
+                        val pastFlat = lapsedGroups.flatMap { it.laps }
+                        val currentGroupByLap = currentGroups.flatMap { g -> g.laps.map { it.lapId to g } }.toMap()
+                        val currentGroupAt = currentFlat.map { currentGroupByLap.getValue(it.lapId) }
+                        val newGroupIndices = currentFlat.indices.filter { i ->
+                            i == 0 || currentGroupAt[i - 1].key != currentGroupAt[i].key
+                        }.toSet()
+                        if (currentFlat.isNotEmpty()) {
+                            itemsIndexed(items = currentFlat, key = { _, lap -> lap.lapId.value }) { index, lap ->
+                                if (index in newGroupIndices) {
+                                    CurrentEventHeader(group = currentGroupAt[index])
+                                }
+                                key(lap.lapId.value) {
+                                    val fastestLap = fastest[lap.trackKey]
+                                    val ranked = (trackCounts[lap.trackKey] ?: 0) >= 2
+                                    val isFastest = ranked && fastestLap?.lapId == lap.lapId
+                                    val deltaMs = if (ranked && !isFastest && fastestLap != null) {
+                                        lap.lapTimeMs - fastestLap.lapTimeMs
                                     } else {
-                                        onOpenLap(lap.lapId)
+                                        null
                                     }
-                                },
-                                onEdit = { edit(lap) },
-                                onDelete = { deleting = lap },
-                                compareMode = compareMode,
-                                pick = when {
-                                    picks.getOrNull(0)?.lapId == lap.lapId -> LapPick.Primary
-                                    picks.getOrNull(1)?.lapId == lap.lapId -> LapPick.Reference
-                                    else -> null
-                                },
-                            )
-                            if (index != visible.lastIndex) {
-                                HorizontalDivider(
-                                    modifier = Modifier.testTag("lap-divider"),
-                                    thickness = 1.dp,
-                                    color = Hairline,
+                                    val driverPsn = lap.driverPsnId
+                                    val driver = driverPsn?.let { psn ->
+                                        profiles[psn.lowercase()] ?: owner?.takeIf { it.psnId.equals(psn, true) }
+                                    }
+                                    Column(modifier = Modifier.animateItem()) {
+                                        LapCard(
+                                            lap = lap,
+                                            driver = driver,
+                                            fastest = isFastest,
+                                            deltaMs = deltaMs,
+                                            onOpen = {
+                                                if (compareMode) togglePick(lap) else onOpenLap(lap.lapId)
+                                            },
+                                            onEdit = { edit(lap) },
+                                            onDelete = { deleting = lap },
+                                            compareMode = compareMode,
+                                            pick = when {
+                                                picks.getOrNull(0)?.lapId == lap.lapId -> LapPick.Primary
+                                                picks.getOrNull(1)?.lapId == lap.lapId -> LapPick.Reference
+                                                else -> null
+                                            },
+                                        )
+                                        if (index != currentFlat.lastIndex && currentGroupAt[index + 1].key == currentGroupAt[index].key) {
+                                            HorizontalDivider(
+                                                modifier = Modifier.testTag("lap-divider"),
+                                                thickness = 1.dp,
+                                                color = Hairline,
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (lapsedGroups.isNotEmpty()) {
+                            item(key = "past-header") {
+                                PastEventsHeader(
+                                    lapCount = lapsedGroups.sumOf { it.laps.size },
+                                    eventCount = lapsedGroups.size,
+                                    expanded = pastExpanded,
+                                    onToggle = { pastExpanded = !pastExpanded },
                                 )
+                            }
+                            val pastGroupByLap = lapsedGroups.flatMap { g -> g.laps.map { it.lapId to g } }.toMap()
+                            val pastGroupAt = pastFlat.map { pastGroupByLap.getValue(it.lapId) }
+                            val pastNewGroupIndices = pastFlat.indices.filter { i ->
+                                i == 0 || pastGroupAt[i - 1].key != pastGroupAt[i].key
+                            }.toSet()
+                            if (pastExpanded) {
+                                itemsIndexed(items = pastFlat, key = { _, lap -> lap.lapId.value }) { index, lap ->
+                                    key(lap.lapId.value) {
+                                        val fastestLap = fastest[lap.trackKey]
+                                        val ranked = (trackCounts[lap.trackKey] ?: 0) >= 2
+                                        val isFastest = ranked && fastestLap?.lapId == lap.lapId
+                                        val deltaMs = if (ranked && !isFastest && fastestLap != null) {
+                                            lap.lapTimeMs - fastestLap.lapTimeMs
+                                        } else {
+                                            null
+                                        }
+                                        val driverPsn = lap.driverPsnId
+                                        val driver = driverPsn?.let { psn ->
+                                            profiles[psn.lowercase()] ?: owner?.takeIf { it.psnId.equals(psn, true) }
+                                        }
+                                        if (index in pastNewGroupIndices) {
+                                            CurrentEventHeader(group = pastGroupAt[index])
+                                        }
+                                        Column(modifier = Modifier.animateItem()) {
+                                            LapCard(
+                                                lap = lap,
+                                                driver = driver,
+                                                fastest = isFastest,
+                                                deltaMs = deltaMs,
+                                                onOpen = {
+                                                    if (compareMode) togglePick(lap) else onOpenLap(lap.lapId)
+                                                },
+                                                onEdit = { edit(lap) },
+                                                onDelete = { deleting = lap },
+                                                compareMode = compareMode,
+                                                pick = when {
+                                                    picks.getOrNull(0)?.lapId == lap.lapId -> LapPick.Primary
+                                                    picks.getOrNull(1)?.lapId == lap.lapId -> LapPick.Reference
+                                                    else -> null
+                                                },
+                                            )
+                                            if (index != pastFlat.lastIndex && pastGroupAt[index + 1].key == pastGroupAt[index].key) {
+                                                HorizontalDivider(
+                                                    modifier = Modifier.testTag("lap-divider"),
+                                                    thickness = 1.dp,
+                                                    color = Hairline,
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

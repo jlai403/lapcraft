@@ -226,15 +226,6 @@ internal fun LapCard(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    lap.event?.label?.let { label ->
-                        Text(
-                            label,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
                     driver?.ratingLabel()?.let { rating ->
                         Text(
                             rating,

@@ -13,12 +13,16 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.swipeRight
 import androidx.test.core.app.ApplicationProvider
+import io.github.jlai403.lapcraft.core.events.EventKind
+import io.github.jlai403.lapcraft.core.events.EventTag
 import io.github.jlai403.lapcraft.core.profile.DriverProfile
+import io.github.jlai403.lapcraft.core.session.LapStore
 import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -340,6 +344,63 @@ class LibraryScreenTest {
         compose.onNodeWithTag("library-compare-go").performClick()
 
         assertEquals(listOf(LapId("session-1"), LapId("session-2")), compared)
+    }
+
+    @Test
+    fun `shows an event header with the window and best lap`() {
+        SessionFixtures.install(context, SessionFixtures.session(lapTimesMs = listOf(90_000, 91_500)))
+        val store = LapStore(context.filesDir)
+        val now = System.currentTimeMillis()
+        val tag = EventTag(
+            id = "daily-A",
+            kind = EventKind.Daily,
+            label = "Daily Race A · W47",
+            carClass = "Gr.4",
+            auto = true,
+            startMs = now - 86_400_000L,
+            endMs = now + 86_400_000L,
+        )
+        store.list().forEach { store.setEvent(it, tag) }
+
+        compose.setContent {
+            LapCraftTheme { LibraryScreen(onOpenLap = { _ -> }) }
+        }
+
+        compose.waitUntil(TIMEOUT) {
+            compose.onAllNodesWithText("Daily Race A · W47").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithText("Daily Race A · W47").assertExists()
+    }
+
+    @Test
+    fun `keeps lapsed events collapsed under Past events`() {
+        SessionFixtures.install(context, SessionFixtures.session(lapTimesMs = listOf(90_000)))
+        val store = LapStore(context.filesDir)
+        val now = System.currentTimeMillis()
+        val past = EventTag(
+            id = "daily-B",
+            kind = EventKind.Daily,
+            label = "Daily Race B · W45",
+            auto = true,
+            startMs = now - 14L * 86_400_000L,
+            endMs = now - 7L * 86_400_000L,
+        )
+        store.list().forEach { store.setEvent(it, past) }
+
+        compose.setContent {
+            LapCraftTheme { LibraryScreen(onOpenLap = { _ -> }) }
+        }
+
+        compose.waitUntil(TIMEOUT) {
+            compose.onAllNodesWithText("Past events", substring = true).fetchSemanticsNodes().isNotEmpty()
+        }
+        assertTrue(
+            "lapsed event header should be collapsed",
+            compose.onAllNodesWithText("Daily Race B · W45").fetchSemanticsNodes().isEmpty(),
+        )
+        compose.onNodeWithText("Past events", substring = true).performClick()
+        compose.waitForIdle()
+        compose.onNodeWithText("Daily Race B · W45").assertExists()
     }
 
     private companion object {
