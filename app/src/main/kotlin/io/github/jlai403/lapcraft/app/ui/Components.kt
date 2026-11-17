@@ -301,6 +301,31 @@ fun SectionLabel(text: String, modifier: Modifier = Modifier) {
     )
 }
 
+/** Label, value and right-aligned actions: the one form row every edit sheet field uses. */
+@Composable
+fun EditRow(
+    label: String,
+    modifier: Modifier = Modifier,
+    value: @Composable () -> Unit,
+    actions: @Composable RowScope.() -> Unit = {},
+) {
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        SectionLabel(label)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Column(modifier = Modifier.weight(1f)) { value() }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                content = actions,
+            )
+        }
+    }
+}
+
 @Composable
 fun StatusDot(active: Boolean, modifier: Modifier = Modifier) {
     Box(

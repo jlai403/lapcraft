@@ -12,3 +12,6 @@ data class EventTag(
     val carClass: String? = null,
     val auto: Boolean = false,
 )
+
+fun CachedEvent.toTag(auto: Boolean = false): EventTag =
+    EventTag(id, kind, label, series, round, carClass, auto)

@@ -697,7 +697,6 @@ fun LapPlayerScreen(
                     reencodeResult = null
                 },
                 onSaveTrack = { name ->
-                    editing = false
                     scope.launch {
                         val renamed = withContext(Dispatchers.IO) {
                             runCatching { store.renameTrack(lapId, name) }.getOrNull()
