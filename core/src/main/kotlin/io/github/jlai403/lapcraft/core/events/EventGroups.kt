@@ -11,11 +11,15 @@ data class LapEventGroup(
     val bestLapMs: Int,
 )
 
+private fun capturedAtMs(lap: LapSummary): Long =
+    runCatching { Instant.parse(lap.createdAt).toEpochMilli() }.getOrDefault(Long.MAX_VALUE)
+
 fun List<LapSummary>.eventGroups(
     cache: List<CachedEvent> = emptyList(),
     nowMs: Long = System.currentTimeMillis(),
 ): List<LapEventGroup> {
     val cacheIds = cache.map { it.id }.toSet()
+    val weekStart = startOfIsoWeek(nowMs)
     val untagged = mutableListOf<LapSummary>()
     val byKey = LinkedHashMap<String, MutableList<LapSummary>>()
     for (lap in this) {
@@ -35,7 +39,7 @@ fun List<LapSummary>.eventGroups(
     fun eventStart(groupLaps: List<LapSummary>): Long {
         val tag = groupLaps.first().event
         if (tag?.startMs != null) return tag.startMs
-        return groupLaps.maxOfOrNull { runCatching { Instant.parse(it.createdAt).toEpochMilli() }.getOrDefault(0L) } ?: 0L
+        return groupLaps.maxOfOrNull { capturedAtMs(it) } ?: 0L
     }
     fun eventEnd(groupLaps: List<LapSummary>): Long {
         val tag = groupLaps.first().event
@@ -43,29 +47,44 @@ fun List<LapSummary>.eventGroups(
         return eventStart(groupLaps)
     }
 
-    val current = byKey.map { (key, laps) ->
+    val current = mutableListOf<LapEventGroup>()
+    val lapsed = mutableListOf<LapEventGroup>()
+    for ((key, laps) in byKey) {
         val tag = laps.first().event!!
-        LapEventGroup(key, tag, tag.status(nowMs, cacheIds), laps, laps.minOf { it.lapTimeMs })
-    }.filter { it.status != EventStatus.Lapsed }
-        .sortedByDescending { eventStart(it.laps) }
+        val status = tag.status(nowMs, cacheIds)
+        val resolved = if (status == EventStatus.Unknown) {
+            val newest = laps.maxOfOrNull { capturedAtMs(it) } ?: 0L
+            if (newest < weekStart) EventStatus.Lapsed else EventStatus.Unknown
+        } else status
+        val group = LapEventGroup(key, tag, resolved, laps, laps.minOf { it.lapTimeMs })
+        if (resolved == EventStatus.Lapsed) lapsed += group else current += group
+    }
+    current.sortByDescending { eventStart(it.laps) }
 
-    val lapsed = byKey.map { (key, laps) ->
-        val tag = laps.first().event!!
-        LapEventGroup(key, tag, tag.status(nowMs, cacheIds), laps, laps.minOf { it.lapTimeMs })
-    }.filter { it.status == EventStatus.Lapsed }
-        .sortedByDescending { eventEnd(it.laps) }
-
-    val result = mutableListOf<LapEventGroup>()
-    result += current
-    if (untagged.isNotEmpty()) {
-        result += LapEventGroup(
+    // Untagged laps split by age: this week stays in the main feed, older ones archive.
+    val (untaggedCurrent, untaggedOld) = untagged.partition { capturedAtMs(it) >= weekStart }
+    if (untaggedCurrent.isNotEmpty()) {
+        current += LapEventGroup(
             key = "untagged",
             tag = null,
             status = EventStatus.Unknown,
-            laps = untagged,
-            bestLapMs = untagged.minOf { it.lapTimeMs },
+            laps = untaggedCurrent,
+            bestLapMs = untaggedCurrent.minOf { it.lapTimeMs },
         )
     }
+    if (untaggedOld.isNotEmpty()) {
+        lapsed += LapEventGroup(
+            key = "untagged-past",
+            tag = null,
+            status = EventStatus.Lapsed,
+            laps = untaggedOld,
+            bestLapMs = untaggedOld.minOf { it.lapTimeMs },
+        )
+    }
+    lapsed.sortByDescending { eventEnd(it.laps) }
+
+    val result = mutableListOf<LapEventGroup>()
+    result += current
     result += lapsed
     return result
 }

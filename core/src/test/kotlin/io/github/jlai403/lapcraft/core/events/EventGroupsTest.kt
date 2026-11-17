@@ -81,10 +81,39 @@ class EventGroupsTest {
         val second = EventTag(id = "manual-2", kind = EventKind.Championship, label = "World Series · R3", auto = false)
         val groups = listOf(lap("a", 90_000, event = first), lap("b", 91_000, event = second))
             .eventGroups(nowMs = now)
-
+ 
         assertEquals(1, groups.size)
         assertEquals("manual-worldseriesr3", groups[0].key)
         assertEquals(2, groups[0].laps.size)
+        assertEquals(EventStatus.Unknown, groups[0].status)
+    }
+
+    @Test
+    fun `untagged laps older than this week archive under past`() {
+        val groups = listOf(
+            lap("old", 90_000, createdAt = "2026-11-10T10:00:00Z"),
+            lap("current", 91_000, createdAt = "2026-11-16T10:00:00Z"),
+        ).eventGroups(nowMs = now)
+        assertEquals(listOf("untagged", "untagged-past"), groups.map { it.key })
+        assertEquals(EventStatus.Unknown, groups[0].status)
+        assertEquals(EventStatus.Lapsed, groups[1].status)
+    }
+
+    @Test
+    fun `a manual group older than this week is lapsed`() {
+        val tag = EventTag(id = "manual-1", kind = EventKind.Championship, label = "World Series", auto = false)
+        val groups = listOf(lap("old", 90_000, createdAt = "2026-11-10T10:00:00Z", event = tag))
+            .eventGroups(nowMs = now)
+        assertEquals(1, groups.size)
+        assertEquals(EventStatus.Lapsed, groups[0].status)
+    }
+
+    @Test
+    fun `a manual group with a current-week lap stays current`() {
+        val tag = EventTag(id = "manual-1", kind = EventKind.Championship, label = "World Series", auto = false)
+        val groups = listOf(lap("new", 90_000, createdAt = "2026-11-16T10:00:00Z", event = tag))
+            .eventGroups(nowMs = now)
+        assertEquals(1, groups.size)
         assertEquals(EventStatus.Unknown, groups[0].status)
     }
 }

@@ -58,7 +58,8 @@ fun PastEventsHeader(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            "Past events · $lapCount lap${if (lapCount == 1) "" else "s"} · $eventCount event${if (eventCount == 1) "" else "s"}",
+            if (eventCount == 0) "Past events · $lapCount lap${if (lapCount == 1) "" else "s"}"
+            else "Past events · $lapCount lap${if (lapCount == 1) "" else "s"} · $eventCount event${if (eventCount == 1) "" else "s"}",
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,

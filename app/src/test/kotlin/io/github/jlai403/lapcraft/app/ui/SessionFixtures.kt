@@ -8,6 +8,7 @@ import io.github.jlai403.lapcraft.core.session.LapRecord
 import io.github.jlai403.lapcraft.core.session.LapStore
 import io.github.jlai403.lapcraft.core.session.LapTelemetryCodec
 import java.io.File
+import java.time.Instant
 
 object SessionFixtures {
 
@@ -16,7 +17,7 @@ object SessionFixtures {
         val trackLabel: String = "Suzuka",
         val carCode: Int = 3474,
         val carName: String = "BRZ GT300 '21",
-        val createdAt: String = "2026-11-10T10:00:00Z",
+        val createdAt: String = Instant.now().minusSeconds(3600).toString(),
         val lapTimesMs: List<Int> = listOf(90_000, 91_500),
         val needsCut: Boolean = false,
         val withReplay: Boolean = true,
@@ -30,7 +31,7 @@ object SessionFixtures {
         trackLabel: String = "Suzuka",
         carCode: Int = 3474,
         carName: String = "BRZ GT300 '21",
-        createdAt: String = "2026-11-10T10:00:00Z",
+        createdAt: String = Instant.now().minusSeconds(3600).toString(),
         lapTimesMs: List<Int> = listOf(90_000, 91_500),
         needsCut: Boolean = false,
         withReplay: Boolean = true,

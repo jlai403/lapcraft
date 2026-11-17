@@ -1,5 +1,6 @@
 package io.github.jlai403.lapcraft.core.events
 
+import java.time.DayOfWeek
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -19,6 +20,13 @@ fun weekStartLabel(epochMs: Long): String {
     val date = Instant.ofEpochMilli(epochMs).atZone(ZoneOffset.UTC).toLocalDate()
     val monday = date.minusDays((date.dayOfWeek.value - 1).toLong())
     return "Week of ${dayFormat.format(monday)}"
+}
+
+/** Monday 00:00 UTC of the ISO week containing [epochMs]. */
+fun startOfIsoWeek(epochMs: Long): Long {
+    val date = Instant.ofEpochMilli(epochMs).atZone(ZoneOffset.UTC).toLocalDate()
+    val monday = date.minusDays((date.dayOfWeek.value - DayOfWeek.MONDAY.value).toLong())
+    return monday.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
 }
 
 /** "Nov 16 – Nov 23", or a single date when the range is missing. */

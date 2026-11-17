@@ -103,7 +103,7 @@ class LibraryScreenTest {
             SessionFixtures.session(
                 id = "without",
                 trackLabel = "Nurburgring",
-                createdAt = "2026-11-11T10:00:00Z",
+                createdAt = "2026-11-16T09:00:00Z",
                 lapTimesMs = listOf(120_000),
                 needsCut = true,
             ),
@@ -129,14 +129,14 @@ class LibraryScreenTest {
         profiles.save(DriverProfile("friend", "Friend", "US"))
         SessionFixtures.install(
             context,
-            SessionFixtures.session(id = "mine", lapTimesMs = listOf(90_000), driverPsnId = "skino2024"),
+            SessionFixtures.session(id = "mine", createdAt = "2026-11-16T08:00:00Z", lapTimesMs = listOf(90_000), driverPsnId = "skino2024"),
         )
         SessionFixtures.install(
             context,
             SessionFixtures.session(
                 id = "theirs",
                 trackLabel = "Monza",
-                createdAt = "2026-11-11T10:00:00Z",
+                createdAt = "2026-11-16T09:30:00Z",
                 lapTimesMs = listOf(100_000),
                 driverPsnId = "friend",
             ),
@@ -146,7 +146,7 @@ class LibraryScreenTest {
             SessionFixtures.session(
                 id = "legacy",
                 trackLabel = "Spa",
-                createdAt = "2026-11-12T10:00:00Z",
+                createdAt = "2026-11-16T10:00:00Z",
                 lapTimesMs = listOf(110_000),
             ),
         )
@@ -404,6 +404,29 @@ class LibraryScreenTest {
         compose.onNodeWithText("Past events", substring = true).performClick()
         compose.waitForIdle()
         compose.onNodeWithText("Daily Race B · W45").assertExists()
+    }
+
+    @Test
+    fun `old untagged laps stay collapsed under Past events`() {
+        SessionFixtures.install(
+            context,
+            SessionFixtures.session(id = "old", createdAt = "2026-11-10T10:00:00Z", lapTimesMs = listOf(90_000)),
+        )
+
+        compose.setContent {
+            LapCraftTheme { LibraryScreen(onOpenLap = { _ -> }) }
+        }
+
+        compose.waitUntil(TIMEOUT) {
+            compose.onAllNodesWithText("Past events", substring = true).fetchSemanticsNodes().isNotEmpty()
+        }
+        assertTrue(
+            "old untagged lap should be hidden while collapsed",
+            compose.onAllNodesWithText("1:30.000").fetchSemanticsNodes().isEmpty(),
+        )
+        compose.onNodeWithText("Past events", substring = true).performClick()
+        compose.waitForIdle()
+        compose.onNodeWithText("1:30.000").assertExists()
     }
 
     private companion object {

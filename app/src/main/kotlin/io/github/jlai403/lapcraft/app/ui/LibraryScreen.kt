@@ -560,7 +560,7 @@ fun LibraryScreen(
                             item(key = "past-header") {
                                 PastEventsHeader(
                                     lapCount = lapsedGroups.sumOf { it.laps.size },
-                                    eventCount = lapsedGroups.size,
+                                    eventCount = lapsedGroups.count { it.tag != null },
                                     expanded = pastExpanded,
                                     onToggle = { pastExpanded = !pastExpanded },
                                 )
