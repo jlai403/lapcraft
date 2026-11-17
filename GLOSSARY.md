@@ -157,7 +157,7 @@ The person who drove a lap.
 _Avoid_: player, user
 
 **Driver profile**:
-A driver's PSN ID, GT nickname, and country flag.
+A driver's PSN ID, GT nickname, country flag, and the DR/SR rating cached from GT GridStats.
 _Avoid_: account, avatar, card
 
 **Owner**:
@@ -171,3 +171,25 @@ _Avoid_: contacts, address book
 **Assigned / unassigned lap**:
 Whether a lap has a driver profile.
 _Avoid_: set/unset, linked
+
+## Event
+
+**Event**:
+A dated GT7 competition a lap was driven in: a Daily Race, a Time Trial, or a championship round.
+_Avoid_: race type, session
+
+**Event tag**:
+The event recorded on a lap, kept as a snapshot (id, kind, label) so it survives a schedule refresh.
+_Avoid_: label, category
+
+**Auto tag**:
+An event tag assigned by the matcher from time, track and car rather than chosen by the driver.
+_Avoid_: inferred tag, guess
+
+**Week**:
+The seven-day rotation a Daily Race belongs to, named by its ISO number (`W47`) and the Monday it started.
+_Avoid_: round, week of year
+
+**Rating**:
+A driver's DR and SR values cached from GT GridStats, with the date they were fetched.
+_Avoid_: rank, grade
