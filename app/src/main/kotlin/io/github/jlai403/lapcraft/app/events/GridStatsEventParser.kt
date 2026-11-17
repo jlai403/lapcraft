@@ -2,6 +2,7 @@ package io.github.jlai403.lapcraft.app.events
 
 import io.github.jlai403.lapcraft.core.events.CachedEvent
 import io.github.jlai403.lapcraft.core.events.EventKind
+import io.github.jlai403.lapcraft.core.events.isoWeekOf
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -29,22 +30,22 @@ object GridStatsEventParser {
             data.forEach { el ->
                 val o = el.jsonObject
                 val raceTypeRaw = o["race_type"]?.jsonPrimitive?.content ?: return@forEach
-                val label = normalizeRaceType(raceTypeRaw)
+                val raceLabel = normalizeRaceType(raceTypeRaw)
                 val track = o["track_name"]?.jsonPrimitive?.content
                 val begin = o["begin_date"]?.jsonPrimitive?.content
                 val end = o["end_date"]?.jsonPrimitive?.content
                 val carClass = o["car_class"]?.jsonPrimitive?.content
                 val startMs = parseDate(begin) ?: return@forEach
                 val endMs = parseDate(end) ?: startMs
-                val id = "daily-$label-${begin ?: ""}"
+                val id = "daily-$raceLabel-${begin ?: ""}"
                 val ownerCar = ownerResults.firstOrNull {
-                    normalizeRaceType(it.raceType) == label && (track == null || it.trackName == track)
+                    normalizeRaceType(it.raceType) == raceLabel && (track == null || it.trackName == track)
                 }?.carName
                 out.add(
                     CachedEvent(
                         id = id,
                         kind = EventKind.Daily,
-                        label = label,
+                        label = "$raceLabel · W${isoWeekOf(startMs)}",
                         carClass = carClass,
                         trackName = track,
                         ownerCarName = ownerCar,
@@ -72,18 +73,23 @@ object GridStatsEventParser {
         data.forEach { el ->
             val o = el.jsonObject
             val eventId = o["event_id"]?.jsonPrimitive?.content ?: return@forEach
-            val title = o["title"]?.jsonPrimitive?.content ?: "Time Trial"
+            val title = o["title"]?.jsonPrimitive?.content?.trim()
             val track = o["track_name"]?.jsonPrimitive?.content ?: o["track"]?.jsonPrimitive?.content
             val begin = o["begin_date"]?.jsonPrimitive?.content
             val end = o["end_date"]?.jsonPrimitive?.content
             val startMs = parseDate(begin) ?: return@forEach
             val endMs = parseDate(end) ?: startMs
             val ownerCar = ownerResults.firstOrNull { it.eventId == eventId }?.carName
+            val label = when {
+                !track.isNullOrBlank() -> "Time Trial · $track"
+                !title.isNullOrBlank() -> title
+                else -> "Time Trial"
+            }
             out.add(
                 CachedEvent(
                     id = "tt-$eventId",
                     kind = EventKind.TimeTrial,
-                    label = "Time Trial",
+                    label = label,
                     trackName = track,
                     ownerCarName = ownerCar,
                     startMs = startMs,
