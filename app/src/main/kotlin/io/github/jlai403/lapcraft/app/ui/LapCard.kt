@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import io.github.jlai403.lapcraft.core.profile.DriverProfile
 import io.github.jlai403.lapcraft.app.profile.countryFlagEmoji
+import io.github.jlai403.lapcraft.app.profile.ratingLabel
 import io.github.jlai403.lapcraft.core.session.LapSummary
 import kotlin.math.roundToInt
 
@@ -234,15 +235,12 @@ internal fun LapCard(
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
-                    driver?.let { d ->
-                        val drSr = listOfNotNull(d.dr?.let { "DR $it" }, d.sr?.let { "SR $it" }).joinToString(" · ")
-                        if (drSr.isNotEmpty()) {
-                            Text(
-                                drSr,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
+                    driver?.ratingLabel()?.let { rating ->
+                        Text(
+                            rating,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         NumericText(

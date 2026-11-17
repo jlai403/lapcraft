@@ -9,4 +9,6 @@ data class DriverProfile(
     val countryCode: String?,
     val dr: String? = null,
     val sr: String? = null,
+    /** When DR/SR were last fetched from GT GridStats; null for manual entries. */
+    val fetchedAtMs: Long? = null,
 )
