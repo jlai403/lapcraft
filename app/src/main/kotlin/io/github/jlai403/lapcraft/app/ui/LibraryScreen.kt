@@ -97,7 +97,8 @@ fun LibraryScreen(
     var eventMenu by remember { mutableStateOf(false) }
     var cachedEvents by remember { mutableStateOf(EventCache(context).events()) }
     var previewEmpty by remember { mutableStateOf(settings.previewEmptyLibrary) }
-    var editing by remember { mutableStateOf<LapSummary?>(null) }
+    var editingId by remember { mutableStateOf<LapId?>(null) }
+    val editing = editingId?.let { id -> laps?.firstOrNull { it.lapId == id } }
     var candidates by remember { mutableStateOf<List<TrackCandidate>?>(null) }
     var deleting by remember { mutableStateOf<LapSummary?>(null) }
     var syncTarget by remember { mutableStateOf<LapSummary?>(null) }
@@ -158,7 +159,7 @@ fun LibraryScreen(
     }
 
     fun edit(lap: LapSummary) {
-        editing = lap
+        editingId = lap.lapId
         candidates = null
         reencodeResult = null
         if (lap.trackLabel == TrackNamer.UNKNOWN) {
@@ -166,7 +167,7 @@ fun LibraryScreen(
                 val found = withContext(Dispatchers.IO) {
                     runCatching { namer.candidates(lap.lapId) }.getOrDefault(emptyList())
                 }
-                if (editing?.lapId == lap.lapId) candidates = found
+                if (editingId == lap.lapId) candidates = found
             }
         }
     }
@@ -208,12 +209,6 @@ fun LibraryScreen(
             }.getOrDefault(false)
             reencoding = false
             reencodeResult = reencoded
-            if (reencoded) {
-                val fresh = withContext(Dispatchers.IO) {
-                    store.summaries().firstOrNull { it.lapId == lap.lapId }
-                }
-                if (fresh != null && editing?.lapId == lap.lapId) editing = fresh
-            }
             reload++
         }
     }
@@ -561,13 +556,10 @@ fun LibraryScreen(
             profiles = profiles.values.toList(),
             candidates = candidates,
             onDismiss = {
-                editing = null
+                editingId = null
                 reencodeResult = null
             },
-            onSaveTrack = { name ->
-                editing = null
-                saveTrack(lap, name)
-            },
+            onSaveTrack = { name -> saveTrack(lap, name) },
             onAssignDriver = { profile -> assignDriver(lap, profile) },
             events = cachedEvents,
             onAssignEvent = { tag ->

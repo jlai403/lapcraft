@@ -75,4 +75,16 @@ class DriverProfileStoreTest {
             DriverProfileStore(context).owner(),
         )
     }
+
+    @Test
+    fun `a manual save keeps the cached fetch date`() {
+        val store = DriverProfileStore(context)
+        store.save(DriverProfile("friend", "Friend", "US", dr = "B", sr = "S", fetchedAtMs = 1_763_000_000_000))
+        store.save(DriverProfile("friend", "Friendy", "US"))
+
+        val saved = store.profile("friend")!!
+        assertEquals("Friendy", saved.nickname)
+        assertEquals(1_763_000_000_000, saved.fetchedAtMs)
+        assertEquals("B", saved.dr)
+    }
 }

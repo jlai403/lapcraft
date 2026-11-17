@@ -238,7 +238,7 @@ class LibraryScreenTest {
         compose.onNodeWithTag("lap-card").performTouchInput { swipeRight() }
 
         compose.waitUntil(TIMEOUT) {
-            compose.onAllNodesWithText("Edit lap").fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithTag("edit-lap-title").fetchSemanticsNodes().isNotEmpty()
         }
         assertEquals(0, opened)
     }

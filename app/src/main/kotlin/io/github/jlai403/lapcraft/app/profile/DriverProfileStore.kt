@@ -39,7 +39,17 @@ class DriverProfileStore(context: Context) {
         if (normalized.psnId.isEmpty()) return
         val profiles = readProfiles().toMutableList()
         val index = profiles.indexOfFirst { it.psnId.equals(normalized.psnId, ignoreCase = true) }
-        if (index >= 0) profiles[index] = normalized else profiles.add(normalized)
+        val existing = profiles.getOrNull(index)
+        val merged = if (existing == null) {
+            normalized
+        } else {
+            normalized.copy(
+                dr = normalized.dr ?: existing.dr,
+                sr = normalized.sr ?: existing.sr,
+                fetchedAtMs = normalized.fetchedAtMs ?: existing.fetchedAtMs,
+            )
+        }
+        if (index >= 0) profiles[index] = merged else profiles.add(merged)
         writeProfiles(profiles)
     }
 
@@ -76,7 +86,7 @@ class DriverProfileStore(context: Context) {
             ?.takeIf { it.length == 2 && it.all { char -> char in 'A'..'Z' } }
         val dr = profile.dr?.trim()?.uppercase()?.takeIf { it.isNotEmpty() && it.length <= 3 }
         val sr = profile.sr?.trim()?.uppercase()?.takeIf { it.isNotEmpty() && it.length <= 3 }
-        return DriverProfile(psnId, nickname, countryCode, dr, sr)
+        return DriverProfile(psnId, nickname, countryCode, dr, sr, profile.fetchedAtMs)
     }
 
     private fun ownerPsnId(): String? {

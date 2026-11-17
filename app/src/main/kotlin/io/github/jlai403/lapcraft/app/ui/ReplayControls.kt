@@ -77,12 +77,6 @@ internal val PLAYBACK_SPEEDS = listOf(0.5f, 1f, 1.5f, 2f)
 internal fun playbackSpeedLabel(speed: Float): String =
     if (speed % 1f == 0f) "%.0f×".format(speed) else "%.1f×".format(speed)
 
-internal fun steppedPlaybackSpeed(speed: Float, direction: Int): Float {
-    val current = PLAYBACK_SPEEDS.indexOf(speed).takeIf { it >= 0 }
-        ?: PLAYBACK_SPEEDS.indexOf(1f)
-    return PLAYBACK_SPEEDS[(current + direction).coerceIn(0, PLAYBACK_SPEEDS.lastIndex)]
-}
-
 internal fun nextPlaybackSpeed(speed: Float): Float {
     val current = PLAYBACK_SPEEDS.indexOf(speed).takeIf { it >= 0 }
         ?: PLAYBACK_SPEEDS.indexOf(1f)

@@ -22,7 +22,8 @@ class GridStatsProfileClient(
         val trimmed = psnId.trim()
         require(trimmed.isNotEmpty()) { "Enter a PSN ID." }
         val key = apiKey()
-        if (key.isNullOrBlank()) fetchHtml(trimmed) else fetchApi(trimmed, key)
+        val profile = if (key.isNullOrBlank()) fetchHtml(trimmed) else fetchApi(trimmed, key)
+        profile.copy(fetchedAtMs = System.currentTimeMillis())
     }
 
     private fun fetchApi(psnId: String, key: String): DriverProfile {

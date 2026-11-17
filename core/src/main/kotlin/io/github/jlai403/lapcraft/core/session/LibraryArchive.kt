@@ -39,7 +39,6 @@ object LibraryArchive {
     private const val ITEM_ROOT = "library"
     private const val BUFFER = 64 * 1024
     private val ID_PATTERN = Regex("[A-Za-z0-9][A-Za-z0-9._-]{0,63}")
-    private val CLIP_PATH = Regex("[A-Za-z0-9][A-Za-z0-9._/-]{0,127}")
     private val json = Json { encodeDefaults = true; ignoreUnknownKeys = true }
 
     fun export(
@@ -174,12 +173,6 @@ object LibraryArchive {
         } else {
             false
         }
-    }
-
-    private fun keepClip(dir: File, relative: String): String? {
-        if (!CLIP_PATH.matches(relative) || !relative.endsWith(".mp4", ignoreCase = true)) return null
-        if (relative.split('/').any { it == ".." || it == "." }) return null
-        return relative.takeIf { File(dir, it).isFile }
     }
 
     private fun sweepStaging(lapsDir: File) {

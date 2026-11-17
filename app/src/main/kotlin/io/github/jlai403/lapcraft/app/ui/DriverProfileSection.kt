@@ -5,13 +5,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -25,6 +27,8 @@ import io.github.jlai403.lapcraft.core.profile.DriverProfile
 import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
 import io.github.jlai403.lapcraft.app.profile.GridStatsProfileClient
 import io.github.jlai403.lapcraft.app.profile.countryFlagEmoji
+import io.github.jlai403.lapcraft.app.profile.needsRefresh
+import io.github.jlai403.lapcraft.app.profile.ratingWithAgeLabel
 import io.github.jlai403.lapcraft.core.session.LapStore
 import io.github.jlai403.lapcraft.app.catalog.lapStore
 import kotlinx.coroutines.CancellationException
@@ -45,38 +49,33 @@ internal fun DriverProfileSection(
     var psnId by remember { mutableStateOf(profile?.psnId.orEmpty()) }
     var fetching by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
-    var missingCount by remember {
-        mutableStateOf(missingProfileCount(store, sessionStore))
-    }
-    var fetchingMissing by remember { mutableStateOf(false) }
-    var missingProgress by remember { mutableStateOf("") }
-    var missingError by remember { mutableStateOf<String?>(null) }
+    var savedProfiles by remember { mutableStateOf(store.profiles()) }
+    var removingProfile by remember { mutableStateOf<DriverProfile?>(null) }
+    var pendingProfiles by remember { mutableIntStateOf(staleDriverCount(store, sessionStore)) }
+    var refreshingProfiles by remember { mutableStateOf(false) }
+    var refreshProgress by remember { mutableStateOf("") }
+    var refreshError by remember { mutableStateOf<String?>(null) }
     var apiKey by remember { mutableStateOf(store.apiKey.orEmpty()) }
     var keyStatus by remember { mutableStateOf<String?>(null) }
 
-    fun refreshMissing() {
-        missingCount = sessionStore.summaries()
-            .mapNotNull { it.driverPsnId }
-            .distinct()
-            .count { store.profile(it) == null }
+    fun refreshPending() {
+        pendingProfiles = staleDriverCount(store, sessionStore)
+        savedProfiles = store.profiles()
     }
 
-    fun fetchMissing() {
-        if (fetchingMissing) return
-        val targets = sessionStore.summaries()
-            .mapNotNull { it.driverPsnId }
-            .distinct()
-            .filter { store.profile(it) == null }
+    fun fetchPending() {
+        if (refreshingProfiles) return
+        val targets = staleDriverPsns(store, sessionStore)
         if (targets.isEmpty()) {
-            refreshMissing()
+            refreshPending()
             return
         }
-        fetchingMissing = true
-        missingError = null
+        refreshingProfiles = true
+        refreshError = null
         scope.launch {
             var done = 0
             for (psn in targets) {
-                missingProgress = "${done + 1} of ${targets.size}"
+                refreshProgress = "${done + 1} of ${targets.size}"
                 try {
                     val fetched = resolvedLookup(psn)
                     store.save(fetched)
@@ -84,12 +83,30 @@ internal fun DriverProfileSection(
                 } catch (e: kotlinx.coroutines.CancellationException) {
                     throw e
                 } catch (e: Exception) {
-                    missingError = e.message ?: "Profile lookup failed."
+                    refreshError = e.message ?: "Profile lookup failed."
                 }
             }
-            missingProgress = ""
-            fetchingMissing = false
-            refreshMissing()
+            refreshProgress = ""
+            refreshingProfiles = false
+            refreshPending()
+        }
+    }
+
+    fun refreshOne(psn: String) {
+        if (refreshingProfiles) return
+        refreshingProfiles = true
+        refreshError = null
+        scope.launch {
+            try {
+                store.save(resolvedLookup(psn))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                refreshError = e.message ?: "Profile lookup failed."
+            } finally {
+                refreshingProfiles = false
+                refreshPending()
+            }
         }
     }
 
@@ -108,6 +125,8 @@ internal fun DriverProfileSection(
                 profile = fetched
                 psnId = fetched.psnId
                 store.setOwner(fetched)
+                savedProfiles = store.profiles()
+                refreshPending()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -155,6 +174,7 @@ internal fun DriverProfileSection(
                         profile = null
                         psnId = ""
                         error = null
+                        refreshPending()
                     },
                     contentColor = MaterialTheme.colorScheme.error,
                     modifier = Modifier.testTag("settings-profile-remove"),
@@ -176,13 +196,9 @@ internal fun DriverProfileSection(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    val drSr = listOfNotNull(
-                        loaded.dr?.let { "DR $it" },
-                        loaded.sr?.let { "SR $it" },
-                    ).joinToString(" · ")
-                    if (drSr.isNotEmpty()) {
+                    loaded.ratingWithAgeLabel()?.let { rating ->
                         Text(
-                            drSr,
+                            rating,
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -195,6 +211,42 @@ internal fun DriverProfileSection(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+        val others = savedProfiles.filterNot { it.psnId.equals(profile?.psnId, ignoreCase = true) }
+        if (others.isNotEmpty()) {
+            Text("Saved drivers", style = MaterialTheme.typography.titleMedium)
+            others.forEach { saved ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    countryFlagEmoji(saved.countryCode)?.let {
+                        Text(it, style = MaterialTheme.typography.titleMedium)
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(saved.nickname, style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            listOfNotNull(saved.psnId, saved.ratingWithAgeLabel()).joinToString(" · "),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    if (saved.needsRefresh(System.currentTimeMillis(), !store.apiKey.isNullOrBlank())) {
+                        GhostPill(
+                            text = "Refresh",
+                            onClick = { refreshOne(saved.psnId) },
+                            enabled = !refreshingProfiles,
+                            modifier = Modifier.testTag("settings-driver-refresh-${saved.psnId.lowercase()}"),
+                        )
+                    }
+                    GhostPill(
+                        text = "Remove",
+                        onClick = { removingProfile = saved },
+                        contentColor = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.testTag("settings-driver-remove-${saved.psnId.lowercase()}"),
+                    )
+                }
+            }
+        }
         error?.let {
             Text(
                 it,
@@ -202,19 +254,19 @@ internal fun DriverProfileSection(
                 color = MaterialTheme.colorScheme.error,
             )
         }
-        if (missingCount > 0 || fetchingMissing) {
+        if (pendingProfiles > 0 || refreshingProfiles) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 GhostPill(
-                    text = if (fetchingMissing) {
-                        "Fetching $missingProgress…"
+                    text = if (refreshingProfiles) {
+                        if (refreshProgress.isBlank()) "Refreshing…" else "Refreshing $refreshProgress…"
                     } else {
-                        "Fetch missing profiles ($missingCount)"
+                        "Refresh profiles ($pendingProfiles)"
                     },
-                    onClick = { fetchMissing() },
-                    enabled = !fetchingMissing,
+                    onClick = { fetchPending() },
+                    enabled = !refreshingProfiles,
                     modifier = Modifier.testTag("settings-profile-fetch-missing"),
                 )
-                missingError?.let {
+                refreshError?.let {
                     Text(
                         it,
                         style = MaterialTheme.typography.bodySmall,
@@ -223,7 +275,7 @@ internal fun DriverProfileSection(
                 }
             }
             Text(
-                "Laps imported without a cached profile need a one-time fetch.",
+                "Missing profiles and ratings older than a week are refreshed from GT GridStats.",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -280,10 +332,43 @@ internal fun DriverProfileSection(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
+
+    removingProfile?.let { target ->
+        AlertDialog(
+            onDismissRequest = { removingProfile = null },
+            title = { Text("Remove ${target.nickname}?") },
+            text = { Text("Laps keep the PSN ID; only the cached profile is deleted.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        store.remove(target.psnId)
+                        removingProfile = null
+                        refreshPending()
+                    },
+                    modifier = Modifier.testTag("settings-driver-remove-confirm"),
+                ) {
+                    Text("Remove", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { removingProfile = null }) { Text("Keep") }
+            },
+        )
+    }
 }
 
-private fun missingProfileCount(store: DriverProfileStore, sessionStore: LapStore): Int =
-    sessionStore.summaries()
+/** Drivers on saved laps whose cached profile is missing or carries a stale rating. */
+private fun staleDriverPsns(store: DriverProfileStore, sessionStore: LapStore): List<String> {
+    val expectRating = !store.apiKey.isNullOrBlank()
+    val now = System.currentTimeMillis()
+    return sessionStore.summaries()
         .mapNotNull { it.driverPsnId }
         .distinct()
-        .count { store.profile(it) == null }
+        .filter { psn ->
+            val cached = store.profile(psn)
+            cached == null || cached.needsRefresh(now, expectRating)
+        }
+}
+
+private fun staleDriverCount(store: DriverProfileStore, sessionStore: LapStore): Int =
+    staleDriverPsns(store, sessionStore).size

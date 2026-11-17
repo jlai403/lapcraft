@@ -116,6 +116,34 @@ class SettingsScreenTest {
     }
 
     @Test
+    fun `saved drivers can be removed from settings`() {
+        val store = DriverProfileStore(context)
+        store.setOwner(DriverProfile("skino2024", "Skino", "GB"))
+        store.save(DriverProfile("friend", "Friend", "US"))
+        compose.setContent {
+            LapCraftTheme { SettingsScreen() }
+        }
+
+        compose.onNodeWithTag("settings-driver-remove-friend").performScrollTo().performClick()
+        compose.onNodeWithTag("settings-driver-remove-confirm").performClick()
+
+        assertNull(store.profile("friend"))
+        compose.onNodeWithText("Friend").assertDoesNotExist()
+    }
+
+    @Test
+    fun `a cached rating shows when it was fetched`() {
+        DriverProfileStore(context).setOwner(
+            DriverProfile("skino2024", "Skino", "GB", dr = "B", sr = "S", fetchedAtMs = 1_763_000_000_000),
+        )
+        compose.setContent {
+            LapCraftTheme { SettingsScreen() }
+        }
+
+        compose.onNodeWithText("DR (B) · SR (S) · updated", substring = true).assertExists()
+    }
+
+    @Test
     fun `shows an available update and downloads it`() {
         var downloads = 0
         compose.setContent {

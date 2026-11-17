@@ -125,13 +125,14 @@ Defined in `ui/Components.kt` unless noted.
 | `SegmentedChoice` | equal-width pill segments inside a `CircleShape` track; selected segment is green |
 | `SectionCard` | 22 dp surface card with 16 dp padding, an optional uppercase title, and an optional trailing action |
 | `SectionLabel` | uppercase muted label for groups inside a card |
+| `EditRow` | form row: uppercase label, a one-line ellipsised value, and actions flush to the right edge; every field in the edit sheet uses it |
 | `StatusDot` | 10 dp circle: green when live, outline when idle |
 | `FrameRuler` | 64 dp surface strip with a fixed green needle; frame ticks, half-second labels, and horizontal drag at 6 dp per frame. A tap does nothing; a drag past the touch slop steps frames from the playhead it started on. The strip follows the finger, so drag right to rewind and left to move forward. The drag reports total frames from the playhead it started on; the ruler and time readout jump to the requested frame at once while seeks are coalesced to one in flight, and one haptic tick fires per step unless disabled |
 | `LapCard` | flat feed row, no radius or surface box: leading 32 dp flag column, name and short date, track, hero lap time, car and replay state; tap opens, swipe edits or deletes, long press and custom actions repeat both |
 | Swipe actions | full-height action background under the card, Gmail-style; horizontal drag clamped to 60% of the card width; Edit pinned left on a right swipe, Delete pinned right on a left swipe; below the 35% threshold the card springs back to zero, and it always returns to the default state; never dismisses the card |
 | `PullToRefreshBox` | library list gesture; the spinner follows the refresh state |
-| `DriverPickerRow` | flag, nickname, PSN, Change menu; pass `onOpenLink` to add GT GridStats and GTSH-Rank |
-| `EditLapSheet` | modal bottom sheet for track, driver, and replay |
+| `DriverPickerRow` | flag, nickname, PSN with `DR/SR · updated` when cached, Change menu; pass `onOpenLink` to add GT GridStats and GTSH-Rank, `onRemoveProfile` for a per-driver `×` |
+| `EditLapSheet` | modal bottom sheet for track, event, driver, replay and data, built from `EditRow`; edits commit immediately and the footer is `Done` |
 | `ReplaySourcePill` | one pill that opens Files or the PlayStation App |
 | `Replay source menu` | pill with a trailing chevron; dropdown rows for Files and PlayStation App, each with a one-line subtitle |
 | `AppBottomBar` (App.kt) | Library / Record / Settings tabs, green indicator, no elevation |
@@ -150,7 +151,7 @@ Dialogs use Material 3 `AlertDialog`. Destructive confirmation labels are red; c
 - Fastest lap is computed per track across every lap, ignores the active filter, and only appears when the track has two or more laps. The other laps on that track show the delta.
 - Every card shows the lap's driver in the hero row: flag and nickname, the PSN when the profile is unknown, or `Driver not set` in muted text.
 - Swipe right opens Edit. Swipe left opens the delete confirmation, and the card springs back. Long press and the TalkBack custom actions offer the same two.
-- Edit sheet: track field with candidate rows for `Unknown` laps, the shared driver picker without profile links, a replay row (`Add a replay`, `Replace replay`, `Resume sync`), a data row (`N MB total` with replay/pending/telemetry breakdown), and Save.
+- Edit sheet: every field is an `EditRow` — a label, a value, and one or more pills flush to the right edge, matching the driver picker. Track shows the name plus `Rename` (unknown laps open straight in the field), the event row is a text field with cached-event suggestions and a `Refresh events` pill when the cache is empty, the driver row is the shared picker without profile links (each saved friend carries a `×` to remove them), the replay row holds `Add a replay` / `Replace replay` / `Resume sync`, and a data row shows `N MB total` with the replay/pending/telemetry breakdown. Edits commit as you make them; the footer is `Done`.
 - Empty state: `No laps yet`, the Record instruction, and `Go to Record`. A filtered empty list adds `Clear filters`.
 - Developer: Settings → Developer → `Developer tools` exposes maintenance actions such as `Re-encode clip` in the Edit lap sheet; `Preview empty library` renders the empty state over a banner with `Turn off` while the laps stay on disk. Preview channel only.
 
@@ -168,8 +169,9 @@ Dialogs use Material 3 `AlertDialog`. Destructive confirmation labels are red; c
 
 - Header: `Lap N · M:SS.mmm` with a chevron. Collapsed shows only the title; tapping expands track, driver flag/name, car, lap stats (top/min/avg), and the vs-ghost comparison. A `Compare` pill opens a picker of other laps on the same track; it is disabled when there is nothing to compare. One overflow menu: `Share video`, `Share screenshot`, `Export CSV`, `Edit lap`.
 - Video: 16:9, black, clipped to 22 dp; the stock Media3 controller is hidden. The lap player uses a `TextureView`-backed `PlayerView` so the telemetry HUD can draw over the video. A telemetry HUD overlays the top centre with the last 2 s of throttle/brake traces when enabled in Settings.
-- Replay management lives in the `Edit lap` sheet: track, driver, add/replace replay, resume a pending sync, and the lap's data volume (replay + telemetry). The main screen keeps only `Add replay` when no clip exists. With Developer tools on, the sheet adds `Re-encode clip`, which rebuilds the clip with a 0.1 s keyframe interval for frame-exact scrubbing and deletes the old clip, its temporaries and any scrub cache. The sheet stays open while the transcode runs, showing a spinner and `Re-encoding…`, then `Re-encoded with 0.1 s keyframes.` (or a failure line, with the clip unchanged).
+- Replay management lives in the `Edit lap` sheet: the lap time as the header, track, event, driver, add/replace replay, resume a pending sync, and the lap's data volume (replay + telemetry). The main screen keeps only `Add replay` when no clip exists. With Developer tools on, the sheet adds `Re-encode clip`, which rebuilds the clip with a 0.1 s keyframe interval for frame-exact scrubbing and deletes the old clip, its temporaries and any scrub cache. The sheet stays open while the transcode runs, showing a spinner and `Re-encoding…`, then `Re-encoded with 0.1 s keyframes.` (or a failure line, with the clip unchanged).
 - New imports are trimmed and then compacted with the Settings replay profile (default 1080p HEVC, ~5 Mbps, 0.1 s keyframes, stereo; ~35% larger than 0.5 s keyframes). If compaction fails the trimmed clip is kept and a `Compaction failed` toast appears.
+- The sync screen scrolls as one column — clip, lap start, offset, replay quality — and ends with `Discard` / `Save clip` under a hairline, so the save action is never pinned over the content.
 - Missing video: `Replay` card with a one-sentence explanation and the source pill.
 - Playback footer (sticky): a labelled `clock / end` readout in mono (e.g. `Lap 0:12.431 / 1:30.000`) with the Loop toggle and the `− / +` speed stepper on the right, the frame ruler, then one centred transport row: `−1` frame, skip to the previous brake point, play/pause, skip to the next brake point, `+1` frame. Frame steps repeat while held. The ruler is the only scrubber and shows a progress track, event dots, and pinch zoom. A tap does nothing; drags and the release seek the exact frame, with at most one seek in flight. The readout and telemetry follow the requested frame immediately. On the sync screen the footer gains a second `Lap` row naming the lap time to sync against, and its clock reads `Clip`.
 - Scrolling content above the footer: video, telemetry card with trace toggles, track-map card. The rendered frame drives the charts and map, including while paused.
@@ -189,6 +191,7 @@ Dialogs use Material 3 `AlertDialog`. Destructive confirmation labels are red; c
 
 - Header: “Settings”, subtitle “Console, profile, units, and updates”.
 - Console card: IP field.
+- Driver profile card: owner PSN with `Fetch profile` / `Refresh profile` and `Remove`, the cached ratings with their fetch date (`DR (B) · SR (S) · updated Nov 3`), a `Saved drivers` list where every cached friend carries its own `Remove` (confirmed, laps keep the PSN), a `Refresh profiles (N)` action for missing or week-old ratings, and the optional GT GridStats API key (`Save key` / `Clear`).
 - Replay compression card: `Preset` (Original / Balanced / Compact), and while not Original, `Resolution` (1080p/720p), `Codec` (HEVC/H.264), `Keyframes` (Frame 0.1 s / Fast 0.5 s / Standard 1 s / Sparse 2 s), and `Audio` (Stereo 96 kbps / Mono 64 kbps / Remove). Defaults: Balanced, 1080p, HEVC, Frame, Stereo. Each control shows a caption describing its effect; a non-default choice is prefixed `Changed:` and uses the primary colour. These are defaults; the import screen can override them per lap.
 - Display card: `Imperial units`, `Frame ruler haptics`, and `Telemetry HUD` toggle rows, plus a `Default playback speed` dropdown (0.5×/1×/1.5×/2×); haptics are on by default, HUD is on by default.
 - Updates card: channel-aware status line (`Checks the rolling debug build once a day.`, `You are on the latest build.`, `Version X (build N) is available.`), then one action: `Check for updates`, `Download X`, `Downloading N%`, `Install update`, or `Installing…`. Failures use `error` color and name the next action.
@@ -266,6 +269,7 @@ While Chiaki-Up is fullscreen the Record tab is not visible, and v0.1 has no ove
 | `ui/SettingsScreen.kt` | capture and unit settings |
 | `ui/TelemetryCharts.kt` | traces and track map |
 | `ui/EditLapSheet.kt` / `LapCard.kt` | lap editing and row presentation |
+| `ui/DriverPickerRow.kt` / `AddDriverDialog.kt` / `DriverProfileSection.kt` | driver picker, add-driver dialog, Settings profile card |
 | `res/font/` | bundled Geist Sans and Geist Mono TTF files |
 | `licenses/Geist-OFL.txt` | Geist OFL-1.1 license |
 | `MainActivity.kt` | edge-to-edge system bars, permissions, service wiring |

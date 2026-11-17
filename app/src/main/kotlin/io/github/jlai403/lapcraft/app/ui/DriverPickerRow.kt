@@ -6,10 +6,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import io.github.jlai403.lapcraft.core.profile.DriverProfile
 import io.github.jlai403.lapcraft.app.profile.DriverProfileLinks
 import io.github.jlai403.lapcraft.app.profile.countryFlagEmoji
+import io.github.jlai403.lapcraft.app.profile.ratingLabel
+import io.github.jlai403.lapcraft.app.profile.ratingWithAgeLabel
 
 @Composable
 internal fun DriverPickerRow(
@@ -36,6 +43,7 @@ internal fun DriverPickerRow(
     onChange: (DriverProfile?) -> Unit,
     onAddDriver: () -> Unit,
     onOpenLink: ((String) -> Unit)? = null,
+    onRemoveProfile: ((DriverProfile) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
@@ -84,23 +92,34 @@ internal fun DriverPickerRow(
                 Text(
                     buildString {
                         append(profile?.psnId ?: driverPsnId ?: "Defaults to your profile when set")
-                        profile?.let { p ->
-                            val drSr = listOfNotNull(p.dr?.let { "DR $it" }, p.sr?.let { "SR $it" }).joinToString(" · ")
-                            if (drSr.isNotEmpty()) append(" · $drSr")
-                        }
+                        profile?.ratingWithAgeLabel()?.let { append(" · $it") }
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Box {
-                GhostPill(
-                    text = if (driverPsnId == null) "Set driver" else "Change",
-                    onClick = { menuOpen = true },
-                    modifier = Modifier.testTag("driver-menu"),
-                )
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    GhostPill(
+                        text = if (driverPsnId == null) "Set driver" else "Change",
+                        onClick = { menuOpen = true },
+                        modifier = Modifier.testTag("driver-menu"),
+                    )
+                    if (driverPsnId == null && owner != null) {
+                        GhostPill(
+                            text = "Use my profile",
+                            onClick = { onChange(owner) },
+                            modifier = Modifier.testTag("driver-use-owner"),
+                        )
+                    }
+                }
                 DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                     driverOptions(owner, profiles).forEach { option ->
+                        val removable = onRemoveProfile != null &&
+                            !option.psnId.equals(owner?.psnId, ignoreCase = true)
                         DropdownMenuItem(
                             text = {
                                 Column {
@@ -113,7 +132,7 @@ internal fun DriverPickerRow(
                                         style = MaterialTheme.typography.bodyMedium,
                                     )
                                     Text(
-                                        option.psnId,
+                                        listOfNotNull(option.psnId, option.ratingLabel()).joinToString(" · "),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
@@ -123,7 +142,26 @@ internal fun DriverPickerRow(
                                 Text(countryFlagEmoji(option.countryCode).orEmpty())
                             },
                             trailingIcon = {
-                                if (option.psnId.equals(driverPsnId, ignoreCase = true)) Text("✓")
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    if (option.psnId.equals(driverPsnId, ignoreCase = true)) Text("✓")
+                                    if (removable) {
+                                        IconButton(
+                                            onClick = {
+                                                menuOpen = false
+                                                onRemoveProfile?.invoke(option)
+                                            },
+                                            modifier = Modifier
+                                                .size(32.dp)
+                                                .testTag("driver-remove-${option.psnId.lowercase()}"),
+                                        ) {
+                                            Icon(
+                                                Icons.Filled.Close,
+                                                contentDescription = "Remove ${option.nickname}",
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            )
+                                        }
+                                    }
+                                }
                             },
                             onClick = {
                                 menuOpen = false
@@ -166,13 +204,6 @@ internal fun DriverPickerRow(
                     }
                 }
             }
-        }
-        if (driverPsnId == null && owner != null) {
-            GhostPill(
-                text = "Use my profile",
-                onClick = { onChange(owner) },
-                modifier = Modifier.testTag("driver-use-owner"),
-            )
         }
     }
 }
