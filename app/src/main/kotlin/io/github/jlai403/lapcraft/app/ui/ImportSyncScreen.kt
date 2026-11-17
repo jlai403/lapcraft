@@ -19,11 +19,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -453,7 +453,8 @@ fun ImportSyncScreen(
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
                 .testTag("sync-scroll")
-                .padding(horizontal = 20.dp, vertical = 8.dp),
+                .padding(horizontal = 20.dp, vertical = 8.dp)
+                .padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             currentLap?.let { activeLap ->
@@ -618,17 +619,14 @@ fun ImportSyncScreen(
                     )
                 }
             }
-        }
-        Surface(
-            tonalElevation = 2.dp,
-            shadowElevation = 8.dp,
-        ) {
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                    .padding(top = 4.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                HorizontalDivider(color = Hairline)
                 if (hadClip) {
                     Text(
                         "Saving replaces the current replay. Discard keeps it.",
