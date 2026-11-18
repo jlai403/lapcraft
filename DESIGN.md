@@ -127,7 +127,7 @@ Defined in `ui/Components.kt` unless noted.
 |---|---|
 | `ScreenHeader` | optional 40 dp back button, one-line title, optional subtitle, trailing action row |
 | `PrimaryPill` | one main action per screen; green fill, dark text, 50 dp |
-| `GhostPill` | secondary actions; outlined, 44 dp; pass `contentColor = error` for destructive |
+| `GhostPill` | secondary actions; outlined, 44 dp; optional leading icon; pass `contentColor = error` for destructive |
 | `StatChip` | compact metric block: accent value over muted label, 16 dp radius |
 | `SegmentedChoice` | equal-width pill segments inside a `CircleShape` track; selected segment is green |
 | `SectionCard` | 22 dp surface card with 16 dp padding, an optional uppercase title, and an optional trailing action |
@@ -153,7 +153,7 @@ Dialogs use Material 3 `AlertDialog`. Destructive confirmation labels are red; c
 ### Library
 
 - Header: `Library` with subtitle `N laps · M tracks · Best M:SS.mmm`, hidden when the library is empty or previewing. The owner chip (`🇬🇧 Nickname ▾`) opens GT GridStats, GTSH-Rank, and Edit profile. A profile is optional; without one the chip reads `Add GT profile`.
-- Toolbar: an equal-width kind tab row (`All · Daily · Time Trial · World Series`). The tab font shrinks from 14 to 11 sp until the longest label fits, then falls back to a scrollable row at large font scales. Selecting a tab sets `EventFilter.Kind`; All resets it. Next come `All tracks ▾`, the event pill (All events / Untagged / cached events of the selected kind), the sort pill, and `Clear` while a filter is active. The toolbar hides when the library is empty or previewing. An empty kind tab points at Settings when event tags are off; otherwise it suggests tagging laps in Edit lap. Both offer `Show all laps`.
+- Toolbar: an equal-width kind tab row (`All · Daily · Time Trial · World Series`). The tab font shrinks from 14 to 11 sp until the longest label fits, then falls back to a scrollable row at large font scales. Selecting a tab sets `EventFilter.Kind`; All resets it. Next come `All tracks ▾` and `All cars ▾`, each with a funnel icon, then the sort pill with a sort icon, and `Clear` while a filter is active. The pills live in a horizontally scrolling row and `Clear` sits outside that scroll, so a long car name can never push it off screen. There is no event pill: kind is in the tabs and a single event is in the feed's group headers. The icons are Material Symbols paths vendored in `ui/FilterIcons.kt`. The toolbar hides when the library is empty or previewing. An empty kind tab points at Settings when event tags are off; otherwise it suggests tagging laps in Edit lap. Both offer `Show all laps`.
 - Pull to refresh replaces the refresh button. The spinner follows the gesture and the manual reload only, not the automatic reload after an edit.
 - Event sections: the feed is grouped by event tag. Each current event opens with a header. It shows the event label (`Daily Race A · W47`, `Time Trial · Suzuka`, `World Series · R3`), then `series · Nov 16 – Nov 23 · Gr.4 · Suzuka · 2 laps · Best 1:23.456`. The header is not interactive for current events; the laps follow. Laps with no tag captured this week collect under a `No event` header.
 - Past events: lapsed events (and laps captured before the current ISO week, including untagged ones) collapse into one `Past events · N laps · M events` row below the current sections, where M counts only real events. Tapping expands it into each lapsed event's header and laps; tapping again collapses it. Everything else starts expanded.
@@ -268,6 +268,7 @@ The phone records no video and no audio. The foreground telemetry service is the
 |---|---|
 | `ui/Theme.kt` | color, type, shape tokens |
 | `ui/Components.kt` | shared header, pills, chips, cards, segmented control |
+| `ui/VectorIcons.kt` / `ui/TransportIcons.kt` / `ui/FilterIcons.kt` | vendored Material Symbols paths: transport controls, funnel and sort |
 | `ui/App.kt` | tab state, safe-area root, bottom navigation |
 | `ui/LibraryScreen.kt` | flat lap feed, compare mode, filters |
 | `ui/RecordScreen.kt` | telemetry + capture arm |

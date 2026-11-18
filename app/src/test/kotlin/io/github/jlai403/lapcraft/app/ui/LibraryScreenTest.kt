@@ -2,6 +2,9 @@ package io.github.jlai403.lapcraft.app.ui
 
 import android.app.Application
 import android.content.Context
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isPopup
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
@@ -146,6 +149,53 @@ class LibraryScreenTest {
         assertEquals(0, compose.onAllNodesWithText("1:30.000").fetchSemanticsNodes().size)
         compose.onNodeWithText("2:00.000").assertExists()
         compose.onNodeWithText("1:40.000").assertDoesNotExist()
+    }
+
+    @Test
+    fun `car pill filters the feed to one car`() {
+        SessionFixtures.install(
+            context,
+            SessionFixtures.session(id = "brz", carCode = 0, lapTimesMs = listOf(90_000), carName = "BRZ GT300 '21"),
+        )
+        SessionFixtures.install(
+            context,
+            SessionFixtures.session(
+                id = "supra",
+                trackLabel = "Monza",
+                carCode = 0,
+                createdAt = "2026-11-16T09:00:00Z",
+                lapTimesMs = listOf(100_000),
+                carName = "GR Supra Racing Concept '18",
+            ),
+        )
+
+        compose.setContent {
+            LapCraftTheme { LibraryScreen(onOpenLap = { _ -> }) }
+        }
+
+        compose.waitUntil(TIMEOUT) {
+            compose.onAllNodesWithText("1:30.000").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithText("All cars").performClick()
+        compose.onNode(hasText("GR Supra Racing Concept '18") and hasAnyAncestor(isPopup())).performClick()
+
+        assertEquals(0, compose.onAllNodesWithText("1:30.000").fetchSemanticsNodes().size)
+        compose.onNodeWithText("1:40.000").assertExists()
+    }
+
+    @Test
+    fun `the toolbar offers a car filter instead of an event filter`() {
+        SessionFixtures.install(context, SessionFixtures.session(lapTimesMs = listOf(90_000)))
+
+        compose.setContent {
+            LapCraftTheme { LibraryScreen(onOpenLap = { _ -> }) }
+        }
+
+        compose.waitUntil(TIMEOUT) {
+            compose.onAllNodesWithText("1:30.000").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithText("All cars").assertExists()
+        assertEquals(0, compose.onAllNodesWithText("All events").fetchSemanticsNodes().size)
     }
 
     @Test

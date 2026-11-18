@@ -165,6 +165,7 @@ fun GhostPill(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
+    leadingIcon: ImageVector? = null,
     trailingIcon: ImageVector? = null,
 ) {
     OutlinedButton(
@@ -175,7 +176,16 @@ fun GhostPill(
         contentPadding = PaddingValues(horizontal = 18.dp),
         colors = ButtonDefaults.outlinedButtonColors(contentColor = contentColor),
     ) {
-        Text(text, style = MaterialTheme.typography.labelLarge)
+        leadingIcon?.let {
+            Icon(it, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.size(6.dp))
+        }
+        Text(
+            text,
+            style = MaterialTheme.typography.labelLarge,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
         trailingIcon?.let {
             Spacer(Modifier.size(6.dp))
             Icon(it, contentDescription = null, modifier = Modifier.size(18.dp))
