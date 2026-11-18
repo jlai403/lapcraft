@@ -49,6 +49,20 @@ class SettingsScreenTest {
     }
 
     @Test
+    fun `replay advanced disclosure hides detail controls until opened`() {
+        compose.setContent {
+            LapCraftTheme { SettingsScreen() }
+        }
+
+        compose.onNodeWithTag("replay-advanced").performScrollTo()
+        compose.onNodeWithTag("replay-keyframes").assertDoesNotExist()
+
+        compose.onNodeWithTag("replay-advanced").performClick()
+        compose.onNodeWithTag("replay-keyframes").performScrollTo().assertExists()
+        compose.onNodeWithTag("replay-audio").performScrollTo().assertExists()
+    }
+
+    @Test
     fun `replay compression preset updates the caption`() {
         compose.setContent {
             LapCraftTheme { SettingsScreen() }

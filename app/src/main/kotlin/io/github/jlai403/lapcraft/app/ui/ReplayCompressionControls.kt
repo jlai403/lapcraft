@@ -4,11 +4,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,7 +16,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
@@ -46,60 +45,92 @@ internal fun ReplayCompressionControls(
     onCodecChange: (ReplayCodec) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var presetMenu by remember { mutableStateOf(false) }
+    var advanced by remember { mutableStateOf(false) }
+
     Column(modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        SettingChoice(
-            label = "Preset",
-            options = ReplayPreset.entries,
-            selected = preset,
-            optionLabel = { it.label },
-            caption = presetCaption(preset),
-            changed = highlightChanges && preset != ReplayPreset.Balanced,
-            modifier = Modifier.testTag("replay-preset"),
-            onSelect = onPresetChange,
-        )
+        Box {
+            SettingRow(
+                label = "Preset",
+                supporting = if (preset != ReplayPreset.Balanced) "Changed: ${presetCaption(preset)}" else presetCaption(preset),
+                value = preset.label,
+                modifier = Modifier.testTag("replay-preset"),
+                trailing = { Chevron() },
+                onClick = { presetMenu = true },
+            )
+            DropdownMenu(expanded = presetMenu, onDismissRequest = { presetMenu = false }) {
+                ReplayPreset.entries.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option.label) },
+                        onClick = {
+                            onPresetChange(option)
+                            presetMenu = false
+                        },
+                    )
+                }
+            }
+        }
         if (preset != ReplayPreset.Original) {
-            SettingChoice(
-                label = "Resolution",
-                options = ReplayResolution.entries,
-                selected = resolution,
-                optionLabel = { it.label },
-                caption = resolutionCaption(resolution),
-                changed = highlightChanges && resolution != ReplayResolution.FullHd,
-                modifier = Modifier.testTag("replay-resolution"),
-                onSelect = onResolutionChange,
+            SettingRow(
+                label = "Advanced",
+                value = "Resolution · Codec · Keyframes · Audio",
+                modifier = Modifier.testTag("replay-advanced"),
+                trailing = { Chevron() },
+                onClick = { advanced = !advanced },
             )
-            SettingChoice(
-                label = "Codec",
-                options = ReplayCodec.entries,
-                selected = codec,
-                optionLabel = { it.label },
-                caption = codecCaption(codec),
-                changed = highlightChanges && codec != ReplayCodec.Hevc,
-                modifier = Modifier.testTag("replay-codec"),
-                onSelect = onCodecChange,
-            )
-            SettingChoice(
-                label = "Keyframes",
-                options = ReplayKeyframes.entries,
-                selected = keyframes,
-                optionLabel = { it.label },
-                caption = keyframesCaption(keyframes),
-                changed = highlightChanges && keyframes != ReplayKeyframes.Frame,
-                modifier = Modifier.testTag("replay-keyframes"),
-                onSelect = onKeyframesChange,
-            )
-            SettingChoice(
-                label = "Audio",
-                options = ReplayAudio.entries,
-                selected = audio,
-                optionLabel = { it.label },
-                caption = audioCaption(audio),
-                changed = highlightChanges && audio != ReplayAudio.Stereo,
-                modifier = Modifier.testTag("replay-audio"),
-                onSelect = onAudioChange,
-            )
+            if (advanced) {
+                SettingChoice(
+                    label = "Resolution",
+                    options = ReplayResolution.entries,
+                    selected = resolution,
+                    optionLabel = { it.label },
+                    caption = resolutionCaption(resolution),
+                    changed = highlightChanges && resolution != ReplayResolution.FullHd,
+                    modifier = Modifier.testTag("replay-resolution"),
+                    onSelect = onResolutionChange,
+                )
+                SettingChoice(
+                    label = "Codec",
+                    options = ReplayCodec.entries,
+                    selected = codec,
+                    optionLabel = { it.label },
+                    caption = codecCaption(codec),
+                    changed = highlightChanges && codec != ReplayCodec.Hevc,
+                    modifier = Modifier.testTag("replay-codec"),
+                    onSelect = onCodecChange,
+                )
+                SettingChoice(
+                    label = "Keyframes",
+                    options = ReplayKeyframes.entries,
+                    selected = keyframes,
+                    optionLabel = { it.label },
+                    caption = keyframesCaption(keyframes),
+                    changed = highlightChanges && keyframes != ReplayKeyframes.Frame,
+                    modifier = Modifier.testTag("replay-keyframes"),
+                    onSelect = onKeyframesChange,
+                )
+                SettingChoice(
+                    label = "Audio",
+                    options = ReplayAudio.entries,
+                    selected = audio,
+                    optionLabel = { it.label },
+                    caption = audioCaption(audio),
+                    changed = highlightChanges && audio != ReplayAudio.Stereo,
+                    modifier = Modifier.testTag("replay-audio"),
+                    onSelect = onAudioChange,
+                )
+            }
         }
     }
+}
+
+@Composable
+private fun Chevron() {
+    Icon(
+        imageVector = Icons.Filled.KeyboardArrowDown,
+        contentDescription = null,
+        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 @Composable
@@ -115,7 +146,7 @@ private fun <T> SettingChoice(
 ) {
     var open by remember { mutableStateOf(false) }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
             Text(
                 label,
                 modifier = Modifier.weight(1f),
