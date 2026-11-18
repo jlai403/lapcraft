@@ -209,7 +209,7 @@ Dialogs use Material 3 `AlertDialog`. Destructive confirmation labels are red; c
 - Library card: lap count and size, with `Export laps…` / `Import library…` and the transfer status.
 - Event tags card: `Event tags` toggle, `Refresh events`, status and last-updated line.
 - Developer card (preview channel): `Developer tools` and `Preview empty library` toggles. When `Developer tools` is on, an `Updates` subsection shows the channel-aware status line (`Checks the rolling debug build once a day.`, `You are on the latest build.`, `Version X (build N) is available.`) and one action: `Check for updates`, `Download X`, `Downloading N%`, `Install update`, or `Installing…`. Failures use `error` color and name the next action. On `stable` builds there is no manual update entry; the automatic check and the launch dialog still run. Turning Developer tools off hides the update controls.
-- About card: collapsed to `Version X · channel · sha`; tapping expands the build rows (version name, code, channel, CI build number, short commit SHA) and the GT GridStats acknowledgements row.
+- About card: collapsed to `Version X · channel · sha`; tapping expands the build rows (version name, code, channel, CI build number, short commit SHA). The GT GridStats acknowledgements row is always visible.
 - When an update is found, a launch dialog offers `Download` / `Later`; Settings remains the place to retry or install with Developer tools on.
 
 ## Charts and track map

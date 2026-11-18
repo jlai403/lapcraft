@@ -105,7 +105,7 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
   `PastEventsHeader` collapse row. Wrap each lazy row in `key(lap.lapId.value)` and avoid
   `Modifier.padding`/extra conditionals before `LapCard`: both trigger a Compose closure hoist that
   makes every row's `onOpen` use the last lap. The event label is gone from `LapCard`; the header owns it.
-- Acknowledgements: Settings card at the bottom links to GT GridStats (DriverProfileLinks.gridStatsHome).
+- Acknowledgements: always-visible row at the bottom of Settings (in the About card) links to GT GridStats (DriverProfileLinks.gridStatsHome).
 - Build: `org.gradle.caching` and configuration cache are on; app unit tests run with 2 forks and a
   1 GB heap (`app/build.gradle.kts`). Inner loop is `:app:assembleDebug` (~3 s) plus targeted
   `--tests`; `:app:lintDebug` (~25 s) is CI/pre-merge only. TrackMap's root carries `testTag("track-map")`.

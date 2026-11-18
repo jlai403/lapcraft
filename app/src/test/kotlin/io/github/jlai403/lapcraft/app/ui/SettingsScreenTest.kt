@@ -49,6 +49,16 @@ class SettingsScreenTest {
     }
 
     @Test
+    fun `acknowledgements stay visible without expanding About`() {
+        compose.setContent {
+            LapCraftTheme { SettingsScreen() }
+        }
+
+        compose.onNodeWithTag("ack-gridstats").performScrollTo().assertExists()
+        compose.onNodeWithTag("about-expand").performScrollTo().assertExists()
+    }
+
+    @Test
     fun `developer card sits between event tags and about`() {
         SettingsStore(context).developerTools = true
         compose.setContent {
