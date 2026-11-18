@@ -1,6 +1,6 @@
 # Demo video kit
 
-Builds a 30 second showcase of LapCraft from scripted takes. The app itself is not modified.
+Builds a 24 second showcase of LapCraft from scripted takes. The app itself is not modified.
 
 The four pillars are capture, replay, analyze, and compare. See `shotlist.md` for the shot card of each beat. The captions in `captions.srt` are the source of truth. `conform.sh` slices them per beat into an SRT and a styled ASS, then burns the ASS into the master. The ASS pins 1920x1080 coordinates, Geist, and the left gutter. The same SRT can be uploaded as YouTube captions.
 
@@ -69,7 +69,7 @@ mise exec -- ./tools/demo/conform.sh --short
 mise exec -- ./tools/demo/conform.sh --music tools/demo/music.wav
 ```
 
-Each beat is fitted to a blurred 1920 by 1080 backdrop and padded to a constant frame rate, so the cuts need no transition. Portrait beats use a 1000 px tall device and 44 px captions in the left gutter. Beat 04 uses a 1200 px wide device and 30 px captions. A generated end card closes the master.
+Each beat is fitted to a dark blurred 1920 by 1080 backdrop with a phone shadow, hairline border, and a mint progress bar along the bottom. Portrait beats use a 1000 px tall device and 46 px Geist Medium captions in the left gutter. Beat 04 uses a 1200 px wide device and 32 px captions. Chapter labels are Geist Mono in the top-left. There is no end card; the master ends on the compare shot.
 
 The audio track is silent unless `--music` is given. Speech and music are added in the edit, never recorded from the device.
 

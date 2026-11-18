@@ -14,9 +14,9 @@ trim_for() {
   echo "$PRE_ROLL"
 }
 
-CAPTIONS="$TOOLS/captions-30s.srt"
+CAPTIONS="$TOOLS/captions.srt"
 OUTPUT="$TOOLS/master.mp4"
-DURATION=30
+DURATION=24
 SHORT=0
 DRY_RUN=0
 MUSIC=""
@@ -39,18 +39,14 @@ segment() {
   local take="$BEATS/$name.mkv"
   [[ -f "$take" || $DRY_RUN -eq 1 ]] || die "missing $take, run capture.sh first"
 
-  local scale chapter_x chapter_y font_size margin
+  local scale font_size margin fg
   if [[ "$layout" == landscape ]]; then
     scale="1200:-2"
-    chapter_x=60
-    chapter_y=60
-    font_size=30
+    font_size=32
     margin=60
   else
     scale="-2:1000"
-    chapter_x=80
-    chapter_y=80
-    font_size=44
+    font_size=46
     margin=80
   fi
 
@@ -59,29 +55,30 @@ segment() {
 
   local srt="$WORK/$name.srt"
   run python3 "$PY" slice-srt "$CAPTIONS" "$start" "$length" "$srt" \
-    --font-size "$font_size" --margin "$margin"
+    --font-size "$font_size" --margin "$margin" --chapter "$label"
   local ass="$WORK/$name.ass"
+
+  if [[ "$name" == 02 ]]; then
+    fg="[fg]scale=$scale,crop=w=iw*0.94:h=ih*0.94:x='(in_w-out_w)*t/$length':y='(in_h-out_h)*t/$length'[phone];"
+  else
+    fg="[fg]scale=$scale[phone];"
+  fi
 
   local filter
   filter="[0:v]trim=start=$trim:duration=$length,setpts=PTS-STARTPTS,tpad=stop_mode=clone:stop_duration=$length,trim=duration=$length,fps=30,split=2[bg][fg];"
-  filter+="[bg]scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,boxblur=24:2,eq=brightness=-0.25:saturation=0.6[back];"
-  filter+="[fg]scale=$scale[phone];"
-  filter+="[back][phone]overlay=(W-w)/2:(H-h)/2[stage];"
-  filter+="[stage]subtitles=filename='$ass':fontsdir='$FONTDIR'[subs];"
-  filter+="[subs]drawtext=fontfile='$FONT':text='$label':fontsize=26:fontcolor=0x94A3B8:x=$chapter_x:y=$chapter_y:expansion=none[out]"
+  filter+="[bg]scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,boxblur=24:2,eq=brightness=-0.4:saturation=0.35[back];"
+  filter+="$fg"
+  filter+="[phone]drawbox=x=0:y=0:w=iw:h=ih:color=0x2C3944@0.9:t=2,split=2[main][shadowsrc];"
+  filter+="[shadowsrc]gblur=sigma=14,colorchannelmixer=aa=0.5[shadow];"
+  filter+="[back][shadow]overlay=(W-w)/2+10:(H-h)/2+16[withshadow];"
+  filter+="[withshadow][main]overlay=(W-w)/2:(H-h)/2[stage];"
+  filter+="color=c=0x34D399:s=1920x4:r=30:d=$length,scale=w='iw*t/$length':h=4:eval=frame[pb];"
+  filter+="[stage][pb]overlay=0:H-4[withbar];"
+  filter+="[withbar]subtitles=filename='$ass':fontsdir='$FONTDIR'[out]"
 
   run ffmpeg -y -i "$take" -filter_complex "$filter" -map '[out]' \
     -c:v libx264 -crf 18 -preset medium -pix_fmt yuv420p -an "$WORK/$name.mp4"
   printf "file '%s'\n" "$WORK/$name.mp4" >> "$WORK/list.txt"
-}
-
-endcard() {
-  local filter
-  filter="drawtext=fontfile='$FONT':text='LapCraft':fontsize=104:fontcolor=0xF8FAFC:x=(w-text_w)/2:y=(h-text_h)/2-90:expansion=none,"
-  filter+="drawtext=fontfile='$FONT':text='Free, open source':fontsize=34:fontcolor=0x94A3B8:x=(w-text_w)/2:y=(h-text_h)/2+50:expansion=none"
-  run ffmpeg -y -f lavfi -i "color=c=0x0D1114:s=1920x1080:r=30:d=2" -vf "$filter" \
-    -c:v libx264 -crf 18 -preset medium -pix_fmt yuv420p -an "$WORK/end.mp4"
-  printf "file '%s'\n" "$WORK/end.mp4" >> "$WORK/list.txt"
 }
 
 usage() {
@@ -116,11 +113,10 @@ if (( SHORT )); then
   segment 03 7.5 3.5 portrait "03 ANALYZE"
   segment 04 11 4 landscape "04 COMPARE"
 else
-  segment 01 0 7 portrait "01 CAPTURE"
-  segment 02 7 4 portrait "02 REPLAY"
-  segment 03 11 7 portrait "03 ANALYZE"
-  segment 04 18 10 landscape "04 COMPARE"
-  endcard
+  segment 01 0 5 portrait "01 CAPTURE"
+  segment 02 5 4 portrait "02 REPLAY"
+  segment 03 9 6 portrait "03 ANALYZE"
+  segment 04 15 9 landscape "04 COMPARE"
 fi
 
 run ffmpeg -y -f concat -safe 0 -i "$WORK/list.txt" -c copy "$WORK/joined.mp4"

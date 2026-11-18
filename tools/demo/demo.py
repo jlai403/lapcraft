@@ -108,13 +108,39 @@ def ass_time(ms: int) -> str:
     return f"{hours}:{minutes:02d}:{seconds:02d}.{millis // 10:02d}"
 
 
-def ass_document(cues: list[tuple[int, int, str]], font_size: int, margin: int) -> str:
-    style = (
-        "Style: Default,Geist,"
+STYLE_FORMAT = (
+    "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, "
+    "OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, "
+    "ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, "
+    "Alignment, MarginL, MarginR, MarginV, Encoding"
+)
+EVENT_FORMAT = (
+    "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text"
+)
+
+
+def ass_document(
+    cues: list[tuple[int, int, str]],
+    font_size: int,
+    margin: int,
+    chapter: str,
+    length_ms: int,
+) -> str:
+    caption_style = (
+        "Style: Caption,Geist Medium,"
         f"{font_size},&H00FCFAF8,&H00FCFAF8,&H00000000,&H00000000,"
-        "0,0,0,0,100,100,0,0,1,0,0,4,"
-        f"{margin},0,0,1"
+        f"0,0,0,0,100,100,8,0,1,0,0,4,{margin},0,0,1"
     )
+    chapter_style = (
+        "Style: Chapter,Geist Mono Medium,20,&H00B0BEC5,&H00B0BEC5,"
+        "&H00000000,&H00000000,0,0,0,0,100,100,2,0,1,0,0,7,"
+        f"{margin},0,54,1"
+    )
+    number, _, label = chapter.partition(" ")
+    chapter_text = "{\\c&H0099D334&}" + number + "{\\c&H00B0BEC5&}"
+    if label:
+        chapter_text += " / " + label
+
     lines = [
         "[Script Info]",
         "ScriptType: v4.00+",
@@ -124,25 +150,31 @@ def ass_document(cues: list[tuple[int, int, str]], font_size: int, margin: int) 
         "ScaledBorderAndShadow: no",
         "",
         "[V4+ Styles]",
-        "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, "
-        "OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, "
-        "ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, "
-        "Alignment, MarginL, MarginR, MarginV, Encoding",
-        style,
+        STYLE_FORMAT,
+        caption_style,
+        chapter_style,
         "",
         "[Events]",
-        "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text",
+        EVENT_FORMAT,
+        f"Dialogue: 0,0:00:00.00,{ass_time(length_ms)},Chapter,,0,0,0,,{chapter_text}",
     ]
     for start, end, text in cues:
         escaped = text.replace("\n", "\\N")
         lines.append(
-            f"Dialogue: 0,{ass_time(start)},{ass_time(end)},Default,,0,0,0,,{escaped}"
+            f"Dialogue: 0,{ass_time(start)},{ass_time(end)},Caption,,0,0,0,,"
+            "{\\fad(150,150)}" + escaped
         )
     return "\n".join(lines) + "\n"
 
 
 def slice_srt(
-    source: Path, start: float, duration: float, out: Path, font_size: int, margin: int
+    source: Path,
+    start: float,
+    duration: float,
+    out: Path,
+    font_size: int,
+    margin: int,
+    chapter: str,
 ) -> None:
     start_ms = round(start * 1000)
     end_ms = start_ms + round(duration * 1000)
@@ -168,7 +200,10 @@ def slice_srt(
         encoding="utf-8",
     )
     ass = out.with_suffix(".ass")
-    ass.write_text(ass_document(cues, font_size, margin), encoding="utf-8")
+    ass.write_text(
+        ass_document(cues, font_size, margin, chapter, round(duration * 1000)),
+        encoding="utf-8",
+    )
     print(f"wrote {out} and {ass} with {len(cues)} cue(s)")
 
 
@@ -201,6 +236,7 @@ def main() -> None:
     cut.add_argument("out", type=Path)
     cut.add_argument("--font-size", type=int, default=44)
     cut.add_argument("--margin", type=int, default=80)
+    cut.add_argument("--chapter", default="01 CAPTURE")
 
     args = parser.parse_args()
     if args.command == "wait":
@@ -213,7 +249,10 @@ def main() -> None:
         adb("shell", "uiautomator", "dump", DUMP_PATH)
         print(adb("exec-out", "cat", DUMP_PATH))
     elif args.command == "slice-srt":
-        slice_srt(args.source, args.start, args.duration, args.out, args.font_size, args.margin)
+        slice_srt(
+            args.source, args.start, args.duration, args.out,
+            args.font_size, args.margin, args.chapter,
+        )
 
 
 if __name__ == "__main__":
