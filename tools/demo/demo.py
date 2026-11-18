@@ -87,7 +87,49 @@ def fmt(ms: int) -> str:
     return f"{hours:02d}:{minutes:02d}:{seconds:02d},{millis:03d}"
 
 
-def slice_srt(source: Path, start: float, duration: float, out: Path) -> None:
+def ass_time(ms: int) -> str:
+    hours, rest = divmod(max(ms, 0), 3_600_000)
+    minutes, rest = divmod(rest, 60_000)
+    seconds, millis = divmod(rest, 1000)
+    return f"{hours}:{minutes:02d}:{seconds:02d}.{millis // 10:02d}"
+
+
+def ass_document(cues: list[tuple[int, int, str]], font_size: int, margin: int) -> str:
+    style = (
+        "Style: Default,Geist,"
+        f"{font_size},&H00FCFAF8,&H00FCFAF8,&H00000000,&H00000000,"
+        "0,0,0,0,100,100,0,0,1,0,0,4,"
+        f"{margin},0,0,1"
+    )
+    lines = [
+        "[Script Info]",
+        "ScriptType: v4.00+",
+        "PlayResX: 1920",
+        "PlayResY: 1080",
+        "WrapStyle: 2",
+        "ScaledBorderAndShadow: no",
+        "",
+        "[V4+ Styles]",
+        "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, "
+        "OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, "
+        "ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, "
+        "Alignment, MarginL, MarginR, MarginV, Encoding",
+        style,
+        "",
+        "[Events]",
+        "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text",
+    ]
+    for start, end, text in cues:
+        escaped = text.replace("\n", "\\N")
+        lines.append(
+            f"Dialogue: 0,{ass_time(start)},{ass_time(end)},Default,,0,0,0,,{escaped}"
+        )
+    return "\n".join(lines) + "\n"
+
+
+def slice_srt(
+    source: Path, start: float, duration: float, out: Path, font_size: int, margin: int
+) -> None:
     start_ms = round(start * 1000)
     end_ms = start_ms + round(duration * 1000)
     cues = []
@@ -102,13 +144,18 @@ def slice_srt(source: Path, start: float, duration: float, out: Path) -> None:
         lines = block.splitlines()
         arrow = next(i for i, line in enumerate(lines) if "-->" in line)
         text = "\n".join(lines[arrow + 1 :]).strip()
-        cues.append(
-            f"{len(cues) + 1}\n"
-            f"{fmt(cue_start - start_ms)} --> {fmt(min(cue_end, end_ms) - start_ms)}\n"
-            f"{text}"
+        cues.append((cue_start - start_ms, min(cue_end, end_ms) - start_ms, text))
+    out.write_text(
+        "\n\n".join(
+            f"{index}\n{fmt(cue_start)} --> {fmt(cue_end)}\n{text}"
+            for index, (cue_start, cue_end, text) in enumerate(cues, 1)
         )
-    out.write_text("\n\n".join(cues) + "\n" if cues else "", encoding="utf-8")
-    print(f"wrote {out} with {len(cues)} cue(s)")
+        + ("\n" if cues else ""),
+        encoding="utf-8",
+    )
+    ass = out.with_suffix(".ass")
+    ass.write_text(ass_document(cues, font_size, margin), encoding="utf-8")
+    print(f"wrote {out} and {ass} with {len(cues)} cue(s)")
 
 
 def main() -> None:
@@ -134,6 +181,8 @@ def main() -> None:
     cut.add_argument("start", type=float)
     cut.add_argument("duration", type=float)
     cut.add_argument("out", type=Path)
+    cut.add_argument("--font-size", type=int, default=44)
+    cut.add_argument("--margin", type=int, default=80)
 
     args = parser.parse_args()
     if args.command == "wait":
@@ -146,7 +195,7 @@ def main() -> None:
         adb("shell", "uiautomator", "dump", DUMP_PATH)
         print(adb("exec-out", "cat", DUMP_PATH))
     elif args.command == "slice-srt":
-        slice_srt(args.source, args.start, args.duration, args.out)
+        slice_srt(args.source, args.start, args.duration, args.out, args.font_size, args.margin)
 
 
 if __name__ == "__main__":

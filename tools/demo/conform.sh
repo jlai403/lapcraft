@@ -51,14 +51,16 @@ segment() {
   fi
 
   local srt="$WORK/$name.srt"
-  run python3 "$PY" slice-srt "$CAPTIONS" "$start" "$length" "$srt"
+  run python3 "$PY" slice-srt "$CAPTIONS" "$start" "$length" "$srt" \
+    --font-size "$font_size" --margin "$margin"
+  local ass="$WORK/$name.ass"
 
   local filter
   filter="[0:v]trim=start=$PRE_ROLL:duration=$length,setpts=PTS-STARTPTS,fps=30,split=2[bg][fg];"
   filter+="[bg]scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,boxblur=24:2,eq=brightness=-0.25:saturation=0.6[back];"
   filter+="[fg]scale=$scale[phone];"
   filter+="[back][phone]overlay=(W-w)/2:(H-h)/2[stage];"
-  filter+="[stage]subtitles=filename='$srt':fontsdir='$FONTDIR':force_style='FontName=Geist,FontSize=$font_size,PrimaryColour=&H00FCFAF8,Outline=0,Shadow=0,Alignment=4,MarginL=$margin,MarginV=0'[subs];"
+  filter+="[stage]subtitles=filename='$ass':fontsdir='$FONTDIR'[subs];"
   filter+="[subs]drawtext=fontfile='$FONT':text='$label':fontsize=26:fontcolor=0x94A3B8:x=$chapter_x:y=$chapter_y:expansion=none[out]"
 
   run ffmpeg -y -i "$take" -filter_complex "$filter" -map '[out]' \

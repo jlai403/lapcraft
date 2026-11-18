@@ -1,0 +1,3 @@
+[tools]
+"ubi:Genymobile/scrcpy" = "5.0.1"
+"conda:ffmpeg" = "9.0.2"

@@ -2,24 +2,38 @@
 
 Builds a 40 second showcase of LapCraft from scripted takes. The app itself is not modified.
 
-The four pillars are capture, replay, analyze, and compare. See `shotlist.md` for the shot card of each beat. The captions in `captions.srt` are the source of truth. `conform.sh` slices them per beat and burns them into the master, and the same file can be uploaded as YouTube captions.
+The four pillars are capture, replay, analyze, and compare. See `shotlist.md` for the shot card of each beat. The captions in `captions.srt` are the source of truth. `conform.sh` slices them per beat into an SRT and a styled ASS, then burns the ASS into the master. The ASS pins 1920x1080 coordinates, Geist, and the left gutter. The same SRT can be uploaded as YouTube captions.
 
 ## Requirements
 
-A phone with adb access, scrcpy, ffmpeg, and Python 3. None of these are installed in the development container, so no take can be recorded here. The scripts have a `--dry-run` mode that prints every command without touching a device.
+The repo pins scrcpy and ffmpeg in `mise.toml`. Run `mise install` on the machine that will build the master. adb comes from the OS package, since the mise Android SDK plugin installs `sdkmanager` but not `platform-tools`.
+
+```sh
+# macOS
+brew install android-platform-tools
+# Debian or Ubuntu
+sudo apt install android-tools-adb
+# Arch
+sudo pacman -S android-tools
+```
+
+Python 3 is the only other requirement. The helper uses the standard library.
+
+A phone with adb access is needed for the takes. The development container has no USB path to the phone and no display, so no take can be recorded here. Both scripts have a `--dry-run` mode that prints every command without touching a device. Run the scripts through `mise exec --` unless your shell has `mise activate`, because they call `adb` and `scrcpy` from `PATH`.
 
 The two Suzuka laps tagged W47 must already be in the app, and both must have a replay clip. The console is connected for beat 01, but no lap is captured during the take.
 
 ## Record the beats
 
 ```sh
-adb devices
-./tools/demo/capture.sh --beat 01
-./tools/demo/capture.sh --beat 02
-./tools/demo/capture.sh --beat 02b
-./tools/demo/capture.sh --beat 03
-./tools/demo/capture.sh --beat 04
-./tools/demo/capture.sh --beat all --dry-run
+mise install
+mise exec -- adb devices
+mise exec -- ./tools/demo/capture.sh --beat 01
+mise exec -- ./tools/demo/capture.sh --beat 02
+mise exec -- ./tools/demo/capture.sh --beat 02b
+mise exec -- ./tools/demo/capture.sh --beat 03
+mise exec -- ./tools/demo/capture.sh --beat 04
+mise exec -- ./tools/demo/capture.sh --beat all --dry-run
 ```
 
 `--dry-run` prints the UI lookups and gestures instead of running them. `--touches on|off` overrides the default, which is on for beats 03 and 04 and off for the rest. `--reference` sets the lap time text used to pick the reference in beat 04; the default `1:` chooses the first candidate.
@@ -35,11 +49,11 @@ Each take is saved to `tools/demo/beats/<beat>.mkv` with about 0.6 s of pre-roll
 ## Build the master
 
 ```sh
-./tools/demo/conform.sh --dry-run
-./tools/demo/conform.sh
-./tools/demo/conform.sh --short --dry-run
-./tools/demo/conform.sh --short
-./tools/demo/conform.sh --music tools/demo/music.wav
+mise exec -- ./tools/demo/conform.sh --dry-run
+mise exec -- ./tools/demo/conform.sh
+mise exec -- ./tools/demo/conform.sh --short --dry-run
+mise exec -- ./tools/demo/conform.sh --short
+mise exec -- ./tools/demo/conform.sh --music tools/demo/music.wav
 ```
 
 Each beat is fitted to a blurred 1920 by 1080 backdrop and padded to a constant frame rate, so the cuts need no transition. Portrait beats use a 1000 px tall device and 44 px captions in the left gutter. Beat 04 uses a 1200 px wide device and 30 px captions. A generated end card closes the master.
