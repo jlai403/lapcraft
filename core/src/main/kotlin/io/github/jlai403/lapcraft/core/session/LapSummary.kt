@@ -24,15 +24,13 @@ data class LapSummary(
 enum class LapSort { Newest, Fastest, Track, Event }
 
 data class LapFilter(
-    val hasReplay: Boolean? = null,
     val trackKey: String? = null,
     val event: EventFilter = EventFilter.All,
     val eventId: String? = null,
 )
 
 fun List<LapSummary>.applyFilter(filter: LapFilter): List<LapSummary> = filter { lap ->
-    (filter.hasReplay == null || lap.hasReplay == filter.hasReplay) &&
-        (filter.trackKey == null || lap.trackKey == filter.trackKey) &&
+    (filter.trackKey == null || lap.trackKey == filter.trackKey) &&
         (filter.eventId == null || lap.event?.id == filter.eventId) &&
         when (filter.event) {
             EventFilter.All -> true

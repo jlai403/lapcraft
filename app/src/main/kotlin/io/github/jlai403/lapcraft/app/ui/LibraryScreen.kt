@@ -288,6 +288,23 @@ fun LibraryScreen(
         )
 
         if (!previewEmpty && !all.isNullOrEmpty()) {
+            val kindFilter = (filter.event as? EventFilter.Kind)?.kind
+            SegmentedChoice(
+                options = listOf("All") + EventKind.entries.map { it.label },
+                selectedIndex = when (kindFilter) {
+                    null -> 0
+                    else -> EventKind.entries.indexOf(kindFilter) + 1
+                },
+                scrollable = true,
+                modifier = Modifier.padding(horizontal = 20.dp),
+                onSelect = { index ->
+                    filter = if (index == 0) {
+                        filter.copy(event = EventFilter.All, eventId = null)
+                    } else {
+                        filter.copy(event = EventFilter.Kind(EventKind.entries[index - 1]), eventId = null)
+                    }
+                },
+            )
             Row(
                 modifier = Modifier.padding(horizontal = 20.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -339,28 +356,21 @@ fun LibraryScreen(
                                 eventMenu = false
                             },
                         )
-                        EventKind.entries.forEach { kind ->
-                            DropdownMenuItem(
-                                text = { Text(kind.label) },
-                                onClick = {
-                                    filter = filter.copy(event = EventFilter.Kind(kind), eventId = null)
-                                    eventMenu = false
-                                },
-                            )
-                        }
-                        if (cachedEvents.isNotEmpty()) {
-                            HorizontalDivider()
-                            cachedEvents.map { it.label }.distinct().sorted().forEach { label ->
+                        cachedEvents
+                            .filter { kindFilter == null || it.kind == kindFilter }
+                            .map { it.label }
+                            .distinct()
+                            .sorted()
+                            .forEach { label ->
                                 val ev = cachedEvents.first { it.label == label }
                                 DropdownMenuItem(
                                     text = { Text(label) },
                                     onClick = {
-                                        filter = filter.copy(event = EventFilter.All, eventId = ev.id)
+                                        filter = filter.copy(eventId = ev.id)
                                         eventMenu = false
                                     },
                                 )
                             }
-                        }
                     }
                 }
                 Box {
@@ -385,25 +395,6 @@ fun LibraryScreen(
                     TextButton(onClick = { filter = LapFilter() }) { Text("Clear") }
                 }
             }
-
-            SegmentedChoice(
-                options = listOf("All", "Replay", "No replay"),
-                selectedIndex = when (filter.hasReplay) {
-                    null -> 0
-                    true -> 1
-                    false -> 2
-                },
-                modifier = Modifier.padding(horizontal = 20.dp),
-                onSelect = { index ->
-                    filter = filter.copy(
-                        hasReplay = when (index) {
-                            0 -> null
-                            1 -> true
-                            else -> false
-                        },
-                    )
-                },
-            )
         }
 
         message?.let {
@@ -490,14 +481,42 @@ fun LibraryScreen(
                     }
 
                     visible.isNullOrEmpty() -> item {
+                        val kind = (filter.event as? EventFilter.Kind)?.kind
                         SectionCard(modifier = Modifier.padding(horizontal = 20.dp)) {
-                            Text("No laps match this filter", style = MaterialTheme.typography.titleLarge)
-                            Text(
-                                "Clear the filter or capture another lap.",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            GhostPill("Clear filters", onClick = { filter = LapFilter() })
+                            if (kind != null) {
+                                Text(
+                                    "No ${kind.label} laps yet",
+                                    style = MaterialTheme.typography.titleLarge,
+                                )
+                                if (!settings.eventTags) {
+                                    Text(
+                                        "Event tags are off. Turn them on in Settings to group " +
+                                            "laps by event.",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                    GhostPill("Open Settings", onClick = onOpenSettings)
+                                } else {
+                                    Text(
+                                        "Tag a lap with a ${kind.label} event in Edit lap, or " +
+                                            "capture another lap.",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                GhostPill(
+                                    "Show all laps",
+                                    onClick = { filter = filter.copy(event = EventFilter.All, eventId = null) },
+                                )
+                            } else {
+                                Text("No laps match this filter", style = MaterialTheme.typography.titleLarge)
+                                Text(
+                                    "Clear the filter or capture another lap.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                GhostPill("Clear filters", onClick = { filter = LapFilter() })
+                            }
                         }
                     }
 

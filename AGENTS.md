@@ -38,6 +38,10 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
   `LapClock.forLapStart` and `core/clip/SyncOffset`. The sync footer reads `Clip current / end`
   plus a second `Lap` row.
 - Library is a flat feed: no cards/radii, `Hairline` dividers, `RowPressed` for pressed rows.
+- The library's primary nav is the kind tab row (`All · Daily · Time Trial · World Series`, scrollable
+  `SegmentedChoice(scrollable = true)`); it sets `EventFilter.Kind`. The Event pill keeps All events /
+  Untagged / cached events scoped to the selected kind. There is no replay filter (`LapFilter` has no
+  `hasReplay`); the row badge carries replay state.
 - Every field in the edit sheet is an `EditRow` (label, one-line value, actions flush right); edits commit
   as they are made and the footer is `Done`, so `onSaveTrack` must persist without dismissing the sheet.
 - `DESIGN.md` is the visual/behaviour reference; `docs/specs/2026-11-10-lapcraft.md` is the functional spec. The domain model lives in `docs/adr/` (ADRs) and `docs/domain-model-review.md` (living review log); `GLOSSARY.md` is the vocabulary.
@@ -61,6 +65,10 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
   400 ms while anchoring) and keeps at most one seek in flight.
 - The lap player uses a `TextureView`-backed `PlayerView` (`res/layout/view_lap_player.xml`) so the
   telemetry HUD can draw over the video; a `SurfaceView` hides Compose overlays.
+- A lap with no clip still plays: `LapPlayerScreen` runs a synthetic lap clock (`clockMs` advanced by
+  `withFrameNanos`, scaled by the speed, looping or stopping at the lap end), `cursorMs` reads it when
+  `hasClip` is false, and the footer is always composed with `PlaybackFooter(frameSteps = hasClip)`
+  hiding the ±1 buttons. The no-clip card order is Telemetry, Track map, then the `Replay` prompt.
 - There is no scrub thumbnail cache; the ruler seeks the clip directly. `SettingsStore.developerTools`
   exposes `Re-encode clip` in `EditLapSheet`, which rewrites a lap at 0.1 s keyframes
   (`LapReencoder`, `ReplayKeyframes.Frame`) and deletes the old clip plus any `lap-NNN.preview/` leftovers.

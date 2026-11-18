@@ -13,6 +13,6 @@ enum class EventKind {
         get() = when (this) {
             Daily -> "Daily"
             TimeTrial -> "Time Trial"
-            Championship -> "Championship"
+            Championship -> "World Series"
         }
 }

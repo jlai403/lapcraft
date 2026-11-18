@@ -96,16 +96,41 @@ class LibraryScreenTest {
     }
 
     @Test
-    fun `filters to laps without a replay`() {
-        SessionFixtures.install(context, SessionFixtures.session(id = "with", lapTimesMs = listOf(90_000)))
+    fun `kind tabs filter to laps of that event kind`() {
         SessionFixtures.install(
             context,
             SessionFixtures.session(
-                id = "without",
+                id = "daily",
+                trackLabel = "Suzuka",
+                lapTimesMs = listOf(90_000),
+                event = EventTag(
+                    id = "daily-Daily Race A-2026-11-16",
+                    kind = EventKind.Daily,
+                    label = "Daily Race A · W47",
+                ),
+            ),
+        )
+        SessionFixtures.install(
+            context,
+            SessionFixtures.session(
+                id = "trial",
                 trackLabel = "Nurburgring",
                 createdAt = "2026-11-16T09:00:00Z",
                 lapTimesMs = listOf(120_000),
-                needsCut = true,
+                event = EventTag(
+                    id = "tt-Suzuka",
+                    kind = EventKind.TimeTrial,
+                    label = "Time Trial · Suzuka",
+                ),
+            ),
+        )
+        SessionFixtures.install(
+            context,
+            SessionFixtures.session(
+                id = "untagged",
+                trackLabel = "Monza",
+                createdAt = "2026-11-16T10:00:00Z",
+                lapTimesMs = listOf(100_000),
             ),
         )
 
@@ -114,12 +139,35 @@ class LibraryScreenTest {
         }
 
         compose.waitUntil(TIMEOUT) {
-            compose.onAllNodesWithText("2:00.000").fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithText("1:30.000").fetchSemanticsNodes().isNotEmpty()
         }
-        compose.onNodeWithText("No replay").performClick()
+        compose.onNodeWithText("Time Trial").performClick()
 
         assertEquals(0, compose.onAllNodesWithText("1:30.000").fetchSemanticsNodes().size)
         compose.onNodeWithText("2:00.000").assertExists()
+        compose.onNodeWithText("1:40.000").assertDoesNotExist()
+    }
+
+    @Test
+    fun `an empty kind tab explains where the laps would come from`() {
+        SessionFixtures.install(context, SessionFixtures.session(lapTimesMs = listOf(90_000)))
+        SettingsStore(context).eventTags = false
+        var openedSettings = false
+
+        compose.setContent {
+            LapCraftTheme {
+                LibraryScreen(onOpenLap = { _ -> }, onOpenSettings = { openedSettings = true })
+            }
+        }
+
+        compose.waitUntil(TIMEOUT) {
+            compose.onAllNodesWithText("1:30.000").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithText("World Series").performClick()
+
+        compose.onNodeWithText("No World Series laps yet").assertExists()
+        compose.onNodeWithText("Open Settings").performClick()
+        assertEquals(true, openedSettings)
     }
 
     @Test
