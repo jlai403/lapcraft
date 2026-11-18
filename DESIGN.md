@@ -132,6 +132,8 @@ Defined in `ui/Components.kt` unless noted.
 | `SegmentedChoice` | equal-width pill segments inside a `CircleShape` track; selected segment is green |
 | `SectionCard` | 22 dp surface card with 16 dp padding, an optional uppercase title, and an optional trailing action |
 | `SectionLabel` | uppercase muted label for groups inside a card |
+| `SettingRow` | settings row: label, one-line supporting text, value and trailing control right, whole row tappable, 44 dp min |
+| `SettingToggleRow` | settings toggle row: `toggleable` with `Role.Switch`, display-only `Switch`, one semantic node |
 | `EditRow` | form row: uppercase label, a one-line ellipsised value, and actions flush to the right edge; every field in the edit sheet uses it |
 | `StatusDot` | 10 dp circle: green when live, outline when idle |
 | `FrameRuler` | 64 dp surface strip with a fixed green needle; frame ticks, half-second labels, and horizontal drag at 6 dp per frame. A tap does nothing; a drag past the touch slop steps frames from the playhead it started on. The strip follows the finger, so drag right to rewind and left to move forward. The drag reports total frames from the playhead it started on; the ruler and time readout jump to the requested frame at once while seeks are coalesced to one in flight, and one haptic tick fires per step unless disabled |
@@ -197,15 +199,18 @@ Dialogs use Material 3 `AlertDialog`. Destructive confirmation labels are red; c
 
 ### Settings
 
-- Header: “Settings”, subtitle “Console, profile, units, and updates”.
-- Console card: IP field.
+- Header: “Settings”, subtitle “Display, console, replay, and data”.
+- Cards in order: **Display & playback**, **Console**, **Replay compression**, **Driver profile**, **Library**, **Event tags**, **Developer** (preview channel only), **About**.
+- Every setting uses `SettingRow`: label left, at most one line of supporting text, value and trailing control flush right; the whole row is the 44 dp target. `SettingToggleRow` uses `toggleable` with `Role.Switch` and a display-only `Switch`, so a row is one semantic node. Toggle rows are fully clickable; the switch is display-only.
+- Display & playback: `Imperial units`, `Frame ruler haptics` (supporting: “Ticks as you drag the ruler.”), `Telemetry HUD`, plus `Default playback speed` (0.5×/1×/1.5×/2×) and `Chart window` (±2/±3/±5/±10 s) dropdown rows. Tapping the row opens its menu. Haptics and HUD are on by default.
+- Console: `PS5 address` row showing the saved address or `Not set`. Tapping opens a dialog with the IPv4 field and `Save IP` / `Cancel`; an invalid address keeps the dialog open with “Enter a valid IPv4 address”, and a valid save closes it and the row reads `Saved <ip>`.
+- Replay compression: `Preset` (Original / Balanced / Compact) plus an `Advanced` disclosure holding `Resolution` (1080p/720p), `Codec` (HEVC/H.264), `Keyframes` (Frame 0.1 s / Fast 0.5 s / Standard 1 s / Sparse 2 s), and `Audio` (Stereo 96 kbps / Mono 64 kbps / Remove). Defaults: Balanced, 1080p, HEVC, Frame, Stereo. Each control shows a caption describing its effect; a non-default choice is prefixed `Changed:` and uses the primary colour. These are defaults; the import screen can override them per lap.
 - Driver profile card: owner PSN with `Fetch profile` / `Refresh profile` and `Remove`, the cached ratings with their fetch date (`DR (B) · SR (S) · updated Nov 3`), a `Saved drivers` list where every cached friend carries its own `Remove` (confirmed, laps keep the PSN), a `Refresh profiles (N)` action for missing or week-old ratings, and the optional GT GridStats API key (`Save key` / `Clear`).
-- Replay compression card: `Preset` (Original / Balanced / Compact), and while not Original, `Resolution` (1080p/720p), `Codec` (HEVC/H.264), `Keyframes` (Frame 0.1 s / Fast 0.5 s / Standard 1 s / Sparse 2 s), and `Audio` (Stereo 96 kbps / Mono 64 kbps / Remove). Defaults: Balanced, 1080p, HEVC, Frame, Stereo. Each control shows a caption describing its effect; a non-default choice is prefixed `Changed:` and uses the primary colour. These are defaults; the import screen can override them per lap.
-- Display card: `Imperial units`, `Frame ruler haptics`, and `Telemetry HUD` toggle rows, plus a `Default playback speed` dropdown (0.5×/1×/1.5×/2×); haptics are on by default, HUD is on by default.
-- Updates card: channel-aware status line (`Checks the rolling debug build once a day.`, `You are on the latest build.`, `Version X (build N) is available.`), then one action: `Check for updates`, `Download X`, `Downloading N%`, `Install update`, or `Installing…`. Failures use `error` color and name the next action.
-- Build card: version name, version code, update channel (`preview`/`stable`), CI build number (or `local`), and short commit SHA.
-- When an update is found, a launch dialog offers `Download` / `Later`; Settings remains the place to retry or install.
-- Toggle rows are fully clickable; the switch is display-only.
+- Library card: lap count and size, with `Export laps…` / `Import library…` and the transfer status.
+- Event tags card: `Event tags` toggle, `Refresh events`, status and last-updated line.
+- Developer card (preview channel): `Developer tools` and `Preview empty library` toggles. When `Developer tools` is on, an `Updates` subsection shows the channel-aware status line (`Checks the rolling debug build once a day.`, `You are on the latest build.`, `Version X (build N) is available.`) and one action: `Check for updates`, `Download X`, `Downloading N%`, `Install update`, or `Installing…`. Failures use `error` color and name the next action. On `stable` builds there is no manual update entry; the automatic check and the launch dialog still run. Turning Developer tools off hides the update controls.
+- About card: collapsed to `Version X · channel · sha`; tapping expands the build rows (version name, code, channel, CI build number, short commit SHA) and the GT GridStats acknowledgements row.
+- When an update is found, a launch dialog offers `Download` / `Later`; Settings remains the place to retry or install with Developer tools on.
 
 ## Charts and track map
 

@@ -13,17 +13,21 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,21 +61,10 @@ fun SettingsScreen(
     val scope = rememberCoroutineScope()
     val resolvedLookup: suspend (String) -> DriverProfile =
         lookupProfile ?: { GridStatsProfileClient { io.github.jlai403.lapcraft.app.profile.DriverProfileStore(context).apiKey }.fetch(it) }
-    var ip by remember { mutableStateOf(settings.ps5Ip) }
-    var savedIp by remember { mutableStateOf<String?>(null) }
-    var ipError by remember { mutableStateOf(false) }
-    fun saveIp() {
-        val normalized = Ipv4.normalize(ip)
-        if (normalized == null) {
-            ipError = true
-            savedIp = null
-        } else {
-            ip = normalized
-            ipError = false
-            savedIp = normalized
-            settings.savePs5Ip(normalized)
-        }
-    }
+
+    var ps5Ip by remember { mutableStateOf(settings.ps5Ip) }
+    var ipDialog by remember { mutableStateOf(false) }
+    var ipStatus by remember { mutableStateOf<String?>(null) }
     var imperial by remember { mutableStateOf(settings.imperialUnits) }
     var haptics by remember { mutableStateOf(settings.hapticsEnabled) }
     var defaultSpeed by remember { mutableStateOf(settings.defaultPlaybackSpeed) }
@@ -89,6 +82,7 @@ fun SettingsScreen(
     var replayAudio by remember { mutableStateOf(settings.replayAudio) }
     var replayResolution by remember { mutableStateOf(settings.replayResolution) }
     var replayCodec by remember { mutableStateOf(settings.replayCodec) }
+    var aboutExpanded by rememberSaveable { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -99,51 +93,11 @@ fun SettingsScreen(
     ) {
         ScreenHeader(
             title = "Settings",
-            subtitle = "Console, profile, units, and updates",
+            subtitle = "Display, console, replay, and data",
         )
 
-        DriverProfileSection(lookupProfile = resolvedLookup)
-
-        LibrarySection()
-
-        SectionCard(title = "Console") {
-            OutlinedTextField(
-                value = ip,
-                onValueChange = {
-                    ip = it
-                    savedIp = null
-                    ipError = false
-                },
-                label = { Text("PS5 IPv4 address") },
-                placeholder = { Text("192.168.1.50") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth().testTag("settings-ps5-ip"),
-                shape = RoundedCornerShape(14.dp),
-            )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                GhostPill("Save IP", onClick = { saveIp() })
-                Text(
-                    when {
-                        ipError -> "Enter a valid IPv4 address"
-                        savedIp != null -> "Saved $savedIp"
-                        else -> "Used for telemetry heartbeats"
-                    },
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (ipError) {
-                        MaterialTheme.colorScheme.error
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
-                )
-            }
-        }
-
-        SectionCard(title = "Display") {
-            SettingToggle(
+        SectionCard(title = "Display & playback") {
+            SettingToggleRow(
                 label = "Imperial units",
                 checked = imperial,
                 modifier = Modifier.testTag("imperial"),
@@ -151,90 +105,76 @@ fun SettingsScreen(
                 imperial = it
                 settings.imperialUnits = it
             }
-            SettingToggle(
+            SettingToggleRow(
                 label = "Frame ruler haptics",
+                supporting = "Ticks as you drag the ruler.",
                 checked = haptics,
                 modifier = Modifier.testTag("haptics"),
             ) {
                 haptics = it
                 settings.hapticsEnabled = it
             }
-            Text(
-                "Ticks as you drag the ruler.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "Default playback speed",
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Box {
-                    GhostPill(
-                        text = playbackSpeedLabel(defaultSpeed),
-                        onClick = { speedMenu = true },
-                        modifier = Modifier.testTag("default-playback-speed"),
-                        trailingIcon = Icons.Filled.KeyboardArrowDown,
-                    )
-                    DropdownMenu(expanded = speedMenu, onDismissRequest = { speedMenu = false }) {
-                        PLAYBACK_SPEEDS.forEach { speed ->
-                            DropdownMenuItem(
-                                text = { Text(playbackSpeedLabel(speed)) },
-                                onClick = {
-                                    defaultSpeed = speed
-                                    settings.defaultPlaybackSpeed = speed
-                                    speedMenu = false
-                                },
-                            )
-                        }
-                    }
-                }
-            }
-            SettingToggle(
+            SettingToggleRow(
                 label = "Telemetry HUD",
+                supporting = "Speed, gear, and pedal sparklines over the replay.",
                 checked = hud,
                 modifier = Modifier.testTag("telemetry-hud"),
             ) {
                 hud = it
                 settings.telemetryHud = it
             }
-            Text(
-                "Speed, gear, and pedal sparklines over the replay.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "Chart window",
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.titleMedium,
+            Box {
+                SettingRow(
+                    label = "Default playback speed",
+                    value = playbackSpeedLabel(defaultSpeed),
+                    trailing = { ChevronDown() },
+                    modifier = Modifier.testTag("default-playback-speed"),
+                    onClick = { speedMenu = true },
                 )
-                Box {
-                    GhostPill(
-                        text = "\u00b1${chartWindowSeconds}s",
-                        onClick = { chartWindowMenu = true },
-                        modifier = Modifier.testTag("chart-window"),
-                        trailingIcon = Icons.Filled.KeyboardArrowDown,
-                    )
-                    DropdownMenu(expanded = chartWindowMenu, onDismissRequest = { chartWindowMenu = false }) {
-                        listOf(2, 3, 5, 10).forEach { seconds ->
-                            DropdownMenuItem(
-                                text = { Text("\u00b1${seconds}s") },
-                                onClick = {
-                                    chartWindowSeconds = seconds
-                                    settings.chartWindowSeconds = seconds
-                                    chartWindowMenu = false
-                                },
-                            )
-                        }
+                DropdownMenu(expanded = speedMenu, onDismissRequest = { speedMenu = false }) {
+                    PLAYBACK_SPEEDS.forEach { speed ->
+                        DropdownMenuItem(
+                            text = { Text(playbackSpeedLabel(speed)) },
+                            onClick = {
+                                defaultSpeed = speed
+                                settings.defaultPlaybackSpeed = speed
+                                speedMenu = false
+                            },
+                        )
                     }
                 }
             }
-            Text(
-                "Time shown either side of the cursor on the telemetry charts.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            Box {
+                SettingRow(
+                    label = "Chart window",
+                    value = "\u00b1${chartWindowSeconds}s",
+                    trailing = { ChevronDown() },
+                    modifier = Modifier.testTag("chart-window"),
+                    onClick = { chartWindowMenu = true },
+                )
+                DropdownMenu(expanded = chartWindowMenu, onDismissRequest = { chartWindowMenu = false }) {
+                    listOf(2, 3, 5, 10).forEach { seconds ->
+                        DropdownMenuItem(
+                            text = { Text("\u00b1${seconds}s") },
+                            onClick = {
+                                chartWindowSeconds = seconds
+                                settings.chartWindowSeconds = seconds
+                                chartWindowMenu = false
+                            },
+                        )
+                    }
+                }
+            }
+        }
+
+        SectionCard(title = "Console") {
+            SettingRow(
+                label = "PS5 address",
+                supporting = ipStatus,
+                value = ps5Ip.ifBlank { "Not set" },
+                modifier = Modifier.testTag("settings-ps5-edit"),
+                onClick = { ipDialog = true },
+                trailing = { ChevronDown() },
             )
         }
 
@@ -276,7 +216,7 @@ fun SettingsScreen(
 
         if (BuildConfig.UPDATE_CHANNEL != "stable") {
             SectionCard(title = "Developer") {
-                SettingToggle(
+                SettingToggleRow(
                     label = "Developer tools",
                     checked = developerTools,
                     modifier = Modifier.testTag("dev-developer-tools"),
@@ -284,41 +224,41 @@ fun SettingsScreen(
                     developerTools = it
                     settings.developerTools = it
                 }
-                Text(
-                    "Adds maintenance actions such as re-encoding a lap clip.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                SettingToggle(
+                SettingToggleRow(
                     label = "Preview empty library",
+                    supporting = "Shows the empty state while your laps stay saved.",
                     checked = previewEmpty,
                     modifier = Modifier.testTag("dev-preview-empty"),
                 ) {
                     previewEmpty = it
                     settings.previewEmptyLibrary = it
                 }
-                Text(
-                    "Shows the empty state while your laps stay saved.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                if (developerTools) {
+                    SectionLabel("Updates")
+                    UpdatesContent(
+                        update = update,
+                        onCheckUpdate = onCheckUpdate,
+                        onDownloadUpdate = onDownloadUpdate,
+                        onInstallUpdate = onInstallUpdate,
+                    )
+                }
             }
         }
 
+        DriverProfileSection(lookupProfile = resolvedLookup)
+
+        LibrarySection()
+
         SectionCard(title = "Event tags") {
-            SettingToggle(
+            SettingToggleRow(
                 label = "Event tags",
+                supporting = "Tag laps with Daily Races, Time Trials, and World Series rounds. Uses your GT GridStats key and the official GT championship schedule.",
                 checked = eventTags,
                 modifier = Modifier.testTag("event-tags"),
             ) {
                 eventTags = it
                 settings.eventTags = it
             }
-            Text(
-                "Tag laps with Daily Races, Time Trials, and World Series rounds. Uses your GT GridStats key and the official GT championship schedule.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 GhostPill(
                     text = if (refreshingEvents) "Refreshing…" else "Refresh events",
@@ -361,78 +301,166 @@ fun SettingsScreen(
             )
         }
 
-        SectionCard(title = "Updates") {
-            Text(
-                updateSummary(update),
-                style = MaterialTheme.typography.bodySmall,
-                color = if (update is UpdateManager.State.Failed) {
-                    MaterialTheme.colorScheme.error
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
+        SectionCard(title = "About") {
+            SettingRow(
+                label = "Version",
+                value = "${BuildConfig.VERSION_NAME} · ${BuildConfig.UPDATE_CHANNEL} · ${BuildConfig.GIT_SHA}",
+                modifier = Modifier.testTag("about-expand"),
+                onClick = { aboutExpanded = !aboutExpanded },
+                trailing = { Chevron(expanded = aboutExpanded) },
             )
-            when (update) {
-                is UpdateManager.State.Available -> GhostPill(
-                    text = "Download ${update.manifest.versionName}",
-                    onClick = onDownloadUpdate,
-                )
-                is UpdateManager.State.Ready -> GhostPill(
-                    text = "Install update",
-                    onClick = onInstallUpdate,
-                )
-                is UpdateManager.State.Downloading -> GhostPill(
-                    text = "Downloading ${update.percent}%",
-                    enabled = false,
-                    onClick = {},
-                )
-                is UpdateManager.State.Checking -> GhostPill(
-                    text = "Checking…",
-                    enabled = false,
-                    onClick = {},
-                )
-                is UpdateManager.State.Installing -> GhostPill(
-                    text = "Installing…",
-                    enabled = false,
-                    onClick = {},
-                )
-                else -> GhostPill("Check for updates", onClick = onCheckUpdate)
+            if (aboutExpanded) {
+                BuildRow("Version", BuildConfig.VERSION_NAME)
+                BuildRow("Version code", BuildConfig.VERSION_CODE.toString())
+                BuildRow("Update channel", BuildConfig.UPDATE_CHANNEL)
+                BuildRow("Build number", BuildConfig.BUILD_NUMBER)
+                BuildRow("Commit", BuildConfig.GIT_SHA)
+                AcknowledgementsRow()
             }
         }
+    }
 
-        SectionCard(title = "Build") {
-            BuildRow("Version", BuildConfig.VERSION_NAME)
-            BuildRow("Version code", BuildConfig.VERSION_CODE.toString())
-            BuildRow("Update channel", BuildConfig.UPDATE_CHANNEL)
-            BuildRow("Build number", BuildConfig.BUILD_NUMBER)
-            BuildRow("Commit", BuildConfig.GIT_SHA)
-        }
-
-        SectionCard(title = "Acknowledgements") {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(DriverProfileLinks.gridStatsHome))
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        runCatching { context.startActivity(intent) }
+    if (ipDialog) {
+        var draft by remember { mutableStateOf(ps5Ip) }
+        var draftError by remember { mutableStateOf(false) }
+        AlertDialog(
+            onDismissRequest = { ipDialog = false },
+            title = { Text("PS5 address") },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = draft,
+                        onValueChange = {
+                            draft = it
+                            draftError = false
+                        },
+                        label = { Text("IPv4 address") },
+                        placeholder = { Text("192.168.1.50") },
+                        singleLine = true,
+                        isError = draftError,
+                        modifier = Modifier.fillMaxWidth().testTag("settings-ps5-ip"),
+                        shape = RoundedCornerShape(14.dp),
+                    )
+                    Text(
+                        "Used for telemetry heartbeats.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    if (draftError) {
+                        Text(
+                            "Enter a valid IPv4 address",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
                     }
-                    .testTag("ack-gridstats"),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text(
-                    "GT GridStats ↗",
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                )
-                Text(
-                    "Driver profiles, DR/SR, daily races, time trials, and car names.",
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val normalized = Ipv4.normalize(draft)
+                    if (normalized == null) {
+                        draftError = true
+                    } else {
+                        ps5Ip = normalized
+                        settings.savePs5Ip(normalized)
+                        ipStatus = "Saved $normalized"
+                        ipDialog = false
+                    }
+                }) { Text("Save IP") }
+            },
+            dismissButton = {
+                TextButton(onClick = { ipDialog = false }) { Text("Cancel") }
+            },
+        )
+    }
+}
+
+@Composable
+private fun ChevronDown() {
+    Icon(
+        imageVector = Icons.Filled.KeyboardArrowDown,
+        contentDescription = null,
+        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+@Composable
+private fun Chevron(expanded: Boolean) {
+    Icon(
+        imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+        contentDescription = null,
+        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+@Composable
+private fun UpdatesContent(
+    update: UpdateManager.State,
+    onCheckUpdate: () -> Unit,
+    onDownloadUpdate: () -> Unit,
+    onInstallUpdate: () -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(
+            updateSummary(update),
+            style = MaterialTheme.typography.bodySmall,
+            color = if (update is UpdateManager.State.Failed) {
+                MaterialTheme.colorScheme.error
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            },
+        )
+        when (update) {
+            is UpdateManager.State.Available -> GhostPill(
+                text = "Download ${update.manifest.versionName}",
+                onClick = onDownloadUpdate,
+            )
+            is UpdateManager.State.Ready -> GhostPill(
+                text = "Install update",
+                onClick = onInstallUpdate,
+            )
+            is UpdateManager.State.Downloading -> GhostPill(
+                text = "Downloading ${update.percent}%",
+                enabled = false,
+                onClick = {},
+            )
+            is UpdateManager.State.Checking -> GhostPill(
+                text = "Checking…",
+                enabled = false,
+                onClick = {},
+            )
+            is UpdateManager.State.Installing -> GhostPill(
+                text = "Installing…",
+                enabled = false,
+                onClick = {},
+            )
+            else -> GhostPill("Check for updates", onClick = onCheckUpdate)
+        }
+    }
+}
+
+@Composable
+private fun AcknowledgementsRow() {
+    val context = LocalContext.current
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(DriverProfileLinks.gridStatsHome))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                runCatching { context.startActivity(intent) }
             }
+            .testTag("ack-gridstats"),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text("GT GridStats ↗", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Driver profiles, DR/SR, daily races, time trials, and car names.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -461,27 +489,5 @@ private fun BuildRow(label: String, value: String) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         NumericText(value, style = MaterialTheme.typography.bodySmall)
-    }
-}
-
-@Composable
-private fun SettingToggle(
-    label: String,
-    checked: Boolean,
-    modifier: Modifier = Modifier,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { onCheckedChange(!checked) },
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            label,
-            modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.titleMedium,
-        )
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }

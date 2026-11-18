@@ -139,7 +139,7 @@ internal fun LibrarySection() {
             )
         }
         Text(
-            "A backup keeps clips and telemetry per lap. Settings and your driver profile stay on this device.",
+            "A backup keeps clips and telemetry per lap; settings stay on this device.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
