@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -29,12 +30,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -208,48 +213,116 @@ fun SegmentedChoice(
     selectedIndex: Int,
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    scrollable: Boolean = false,
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .then(
-                if (scrollable) {
-                    Modifier.horizontalScroll(rememberScrollState())
-                } else {
-                    Modifier
-                },
-            )
-            .padding(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        options.forEachIndexed { index, label ->
-            val selected = index == selectedIndex
-            val segment = Modifier
-                .clip(CircleShape)
-                .background(
-                    if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
-                )
-                .clickable { onSelect(index) }
-                .padding(
-                    vertical = 10.dp,
-                    horizontal = if (scrollable) 14.dp else 0.dp,
-                )
-            Box(
-                modifier = if (scrollable) segment else Modifier.weight(1f).then(segment),
-                contentAlignment = Alignment.Center,
+    BoxWithConstraints(modifier.fillMaxWidth()) {
+        val measurer = rememberTextMeasurer()
+        val density = LocalDensity.current
+        val style = MaterialTheme.typography.labelLarge
+        val maxTextPx = with(density) {
+            val segmentTextWidth = (
+                maxWidth - 4.dp * 2 - 4.dp * (options.size - 1)
+            ) / options.size - 2.dp * 2
+            segmentTextWidth.toPx()
+        }
+        // Largest size <= 14 sp that renders every label on its equal-width
+        // segment; below 11 sp the segments stop growing and the row scrolls.
+        val fontSize = remember(options, maxWidth, style) {
+            var size = 14.sp
+            while (size.value > 11f) {
+                val fits = options.all { label ->
+                    measurer.measure(
+                        AnnotatedString(label),
+                        style.copy(fontSize = size),
+                        maxLines = 1,
+                    ).size.width <= maxTextPx
+                }
+                if (fits) break
+                size = (size.value - 0.5f).sp
+            }
+            size
+        }
+        val fits = remember(fontSize) { fontSize.value > 11f }
+
+        if (fits) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .padding(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Text(
-                    label,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = if (selected) {
-                        MaterialTheme.colorScheme.onPrimary
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
-                )
+                options.forEachIndexed { index, label ->
+                    val selected = index == selectedIndex
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(CircleShape)
+                            .background(
+                                if (selected) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    Color.Transparent
+                                },
+                            )
+                            .clickable { onSelect(index) }
+                            .padding(vertical = 10.dp, horizontal = 2.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            label,
+                            style = style.copy(
+                                fontSize = fontSize,
+                                color = if (selected) {
+                                    MaterialTheme.colorScheme.onPrimary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
+                            ),
+                            maxLines = 1,
+                        )
+                    }
+                }
+            }
+        } else {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .horizontalScroll(rememberScrollState())
+                    .padding(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                options.forEachIndexed { index, label ->
+                    val selected = index == selectedIndex
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(
+                                if (selected) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    Color.Transparent
+                                },
+                            )
+                            .clickable { onSelect(index) }
+                            .padding(vertical = 10.dp, horizontal = 14.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            label,
+                            style = style.copy(
+                                color = if (selected) {
+                                    MaterialTheme.colorScheme.onPrimary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
+                            ),
+                            maxLines = 1,
+                        )
+                    }
+                }
             }
         }
     }
