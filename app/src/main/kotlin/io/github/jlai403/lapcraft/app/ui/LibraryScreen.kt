@@ -375,23 +375,23 @@ fun LibraryScreen(
                             }
                         }
                     }
-                    Box {
-                        GhostPill(
-                            text = sort.label,
-                            onClick = { sortMenu = true },
-                            leadingIcon = FilterIcons.Sort,
-                            trailingIcon = Icons.Filled.KeyboardArrowDown,
-                        )
-                        DropdownMenu(expanded = sortMenu, onDismissRequest = { sortMenu = false }) {
-                            LapSort.entries.forEach { option ->
-                                DropdownMenuItem(
-                                    text = { Text(option.label) },
-                                    onClick = {
-                                        sort = option
-                                        sortMenu = false
-                                    },
-                                )
-                            }
+                }
+                Box {
+                    GhostIconPill(
+                        icon = FilterIcons.Sort,
+                        contentDescription = "Sort: ${sort.label}",
+                        onClick = { sortMenu = true },
+                        modifier = Modifier.testTag("library-sort"),
+                    )
+                    DropdownMenu(expanded = sortMenu, onDismissRequest = { sortMenu = false }) {
+                        LapSort.entries.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option.label) },
+                                onClick = {
+                                    sort = option
+                                    sortMenu = false
+                                },
+                            )
                         }
                     }
                 }

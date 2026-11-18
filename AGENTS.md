@@ -45,8 +45,9 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
   falls back to scrollable wrap-content when even 11 sp doesn't); it sets `EventFilter.Kind`.
   There is no event pill: kind lives in the tabs and one specific event in the feed's group headers.
   The filter row is `All tracks`, `All cars`, sort, then `Clear`, each pill carrying a vendored
-  funnel or sort icon (`ui/FilterIcons.kt`); the row scrolls horizontally and `Clear` is pinned
-  outside the scroll. `LapFilter.car` matches `carName` exactly; `LapFilter.eventId` and
+  funnel or sort icon (`ui/FilterIcons.kt`); the two filter pills scroll horizontally, while the
+  icon-only sort button (`GhostIconPill`, 44 dp) and `Clear` are pinned outside the scroll.
+  `LapFilter.car` matches `carName` exactly; `LapFilter.eventId` and
   `EventFilter.None` remain in `core` but the UI no longer sets them. There is no replay filter
   (`LapFilter` has no `hasReplay`); the row badge carries replay state.
 - Every field in the edit sheet is an `EditRow` (label, one-line value, actions flush right); edits commit

@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performTouchInput
@@ -181,6 +182,34 @@ class LibraryScreenTest {
 
         assertEquals(0, compose.onAllNodesWithText("1:30.000").fetchSemanticsNodes().size)
         compose.onNodeWithText("1:40.000").assertExists()
+    }
+
+    @Test
+    fun `the sort control stays on screen with a long car filter`() {
+        SessionFixtures.install(
+            context,
+            SessionFixtures.session(
+                id = "supra",
+                carCode = 0,
+                lapTimesMs = listOf(90_000),
+                carName = "GR Supra Racing Concept '18",
+            ),
+        )
+
+        compose.setContent {
+            LapCraftTheme { LibraryScreen(onOpenLap = { _ -> }) }
+        }
+
+        compose.waitUntil(TIMEOUT) {
+            compose.onAllNodesWithText("1:30.000").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithText("All cars").performClick()
+        compose.onNode(hasText("GR Supra Racing Concept '18") and hasAnyAncestor(isPopup())).performClick()
+
+        val root = compose.onRoot().fetchSemanticsNode().boundsInRoot
+        val sort = compose.onNodeWithTag("library-sort").fetchSemanticsNode().boundsInRoot
+        assertTrue(sort.left >= root.left)
+        assertTrue(sort.right <= root.right)
     }
 
     @Test

@@ -194,6 +194,24 @@ fun GhostPill(
 }
 
 @Composable
+fun GhostIconPill(
+    icon: ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = modifier.size(44.dp),
+        shape = CircleShape,
+        contentPadding = PaddingValues(0.dp),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
+    ) {
+        Icon(icon, contentDescription = contentDescription, modifier = Modifier.size(18.dp))
+    }
+}
+
+@Composable
 fun StatChip(
     label: String,
     value: String,
