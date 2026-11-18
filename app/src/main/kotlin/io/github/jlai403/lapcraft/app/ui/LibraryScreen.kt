@@ -3,15 +3,19 @@ package io.github.jlai403.lapcraft.app.ui
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material.icons.Icons
@@ -63,7 +67,6 @@ import io.github.jlai403.lapcraft.core.session.LapStore
 import io.github.jlai403.lapcraft.app.catalog.lapStore
 import io.github.jlai403.lapcraft.app.events.EventCache
 import io.github.jlai403.lapcraft.app.events.EventRefresh
-import io.github.jlai403.lapcraft.core.events.CachedEvent
 import io.github.jlai403.lapcraft.core.session.applyFilter
 import io.github.jlai403.lapcraft.core.session.applySort
 import io.github.jlai403.lapcraft.core.session.fastestPerTrack
@@ -98,7 +101,7 @@ fun LibraryScreen(
     var filter by remember { mutableStateOf(LapFilter()) }
     var sort by remember { mutableStateOf(LapSort.Newest) }
     var pastExpanded by remember { mutableStateOf(false) }
-    var eventMenu by remember { mutableStateOf(false) }
+    var carMenu by remember { mutableStateOf(false) }
     var cachedEvents by remember { mutableStateOf(EventCache(context).events()) }
     var previewEmpty by remember { mutableStateOf(settings.previewEmptyLibrary) }
     var editingId by remember { mutableStateOf<LapId?>(null) }
@@ -235,6 +238,7 @@ fun LibraryScreen(
     val visible = all?.applyFilter(filter)?.applySort(sort)
     val groups = visible?.eventGroups(cachedEvents, System.currentTimeMillis()).orEmpty()
     val tracks = all?.distinctBy { it.trackKey }?.map { it.trackKey to it.trackLabel }?.sortedBy { it.second }.orEmpty()
+    val cars = all.orEmpty().map { it.carName }.filter { it.isNotBlank() }.distinct().sorted()
     val rankable = all?.filter { it.trackLabel != TrackNamer.UNKNOWN }
     val fastest = rankable?.fastestPerTrack().orEmpty()
     val trackCounts = rankable?.groupingBy { it.trackKey }?.eachCount().orEmpty()
@@ -309,84 +313,85 @@ fun LibraryScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Box {
-                    GhostPill(
-                        text = tracks.firstOrNull { it.first == filter.trackKey }?.second ?: "All tracks",
-                        onClick = { trackMenu = true },
-                        trailingIcon = Icons.Filled.KeyboardArrowDown,
-                    )
-                    DropdownMenu(expanded = trackMenu, onDismissRequest = { trackMenu = false }) {
-                        DropdownMenuItem(
-                            text = { Text("All tracks") },
-                            onClick = {
-                                filter = filter.copy(trackKey = null)
-                                trackMenu = false
-                            },
+                Row(
+                    modifier = Modifier.weight(1f).horizontalScroll(rememberScrollState()),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Box {
+                        GhostPill(
+                            text = tracks.firstOrNull { it.first == filter.trackKey }?.second ?: "All tracks",
+                            onClick = { trackMenu = true },
+                            leadingIcon = FilterIcons.Filter,
+                            trailingIcon = Icons.Filled.KeyboardArrowDown,
                         )
-                        tracks.forEach { (key, label) ->
+                        DropdownMenu(expanded = trackMenu, onDismissRequest = { trackMenu = false }) {
                             DropdownMenuItem(
-                                text = { Text(label) },
+                                text = { Text("All tracks") },
                                 onClick = {
-                                    filter = filter.copy(trackKey = key)
+                                    filter = filter.copy(trackKey = null)
                                     trackMenu = false
                                 },
                             )
-                        }
-                    }
-                }
-                Box {
-                    GhostPill(
-                        text = eventFilterLabel(filter, cachedEvents),
-                        onClick = { eventMenu = true },
-                        trailingIcon = Icons.Filled.KeyboardArrowDown,
-                    )
-                    DropdownMenu(expanded = eventMenu, onDismissRequest = { eventMenu = false }) {
-                        DropdownMenuItem(
-                            text = { Text("All events") },
-                            onClick = {
-                                filter = filter.copy(event = EventFilter.All, eventId = null)
-                                eventMenu = false
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Untagged") },
-                            onClick = {
-                                filter = filter.copy(event = EventFilter.None, eventId = null)
-                                eventMenu = false
-                            },
-                        )
-                        cachedEvents
-                            .filter { kindFilter == null || it.kind == kindFilter }
-                            .map { it.label }
-                            .distinct()
-                            .sorted()
-                            .forEach { label ->
-                                val ev = cachedEvents.first { it.label == label }
+                            tracks.forEach { (key, label) ->
                                 DropdownMenuItem(
                                     text = { Text(label) },
                                     onClick = {
-                                        filter = filter.copy(eventId = ev.id)
-                                        eventMenu = false
+                                        filter = filter.copy(trackKey = key)
+                                        trackMenu = false
                                     },
                                 )
                             }
+                        }
                     }
-                }
-                Box {
-                    GhostPill(
-                        text = sort.label,
-                        onClick = { sortMenu = true },
-                        trailingIcon = Icons.Filled.KeyboardArrowDown,
-                    )
-                    DropdownMenu(expanded = sortMenu, onDismissRequest = { sortMenu = false }) {
-                        LapSort.entries.forEach { option ->
+                    Box {
+                        GhostPill(
+                            text = filter.car ?: "All cars",
+                            onClick = { carMenu = true },
+                            modifier = Modifier.widthIn(max = 190.dp),
+                            leadingIcon = FilterIcons.Filter,
+                            trailingIcon = Icons.Filled.KeyboardArrowDown,
+                        )
+                        DropdownMenu(
+                            expanded = carMenu,
+                            onDismissRequest = { carMenu = false },
+                            modifier = Modifier.heightIn(max = 320.dp),
+                        ) {
                             DropdownMenuItem(
-                                text = { Text(option.label) },
+                                text = { Text("All cars") },
                                 onClick = {
-                                    sort = option
-                                    sortMenu = false
+                                    filter = filter.copy(car = null)
+                                    carMenu = false
                                 },
                             )
+                            cars.forEach { car ->
+                                DropdownMenuItem(
+                                    text = { Text(car) },
+                                    onClick = {
+                                        filter = filter.copy(car = car)
+                                        carMenu = false
+                                    },
+                                )
+                            }
+                        }
+                    }
+                    Box {
+                        GhostPill(
+                            text = sort.label,
+                            onClick = { sortMenu = true },
+                            leadingIcon = FilterIcons.Sort,
+                            trailingIcon = Icons.Filled.KeyboardArrowDown,
+                        )
+                        DropdownMenu(expanded = sortMenu, onDismissRequest = { sortMenu = false }) {
+                            LapSort.entries.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option.label) },
+                                    onClick = {
+                                        sort = option
+                                        sortMenu = false
+                                    },
+                                )
+                            }
                         }
                     }
                 }
@@ -808,13 +813,3 @@ private val LapSort.label: String
         LapSort.Track -> "Track"
         LapSort.Event -> "Event"
     }
-
-private fun eventFilterLabel(filter: LapFilter, events: List<CachedEvent>): String {
-    val event = filter.event
-    return when {
-        filter.eventId != null -> events.firstOrNull { it.id == filter.eventId }?.label ?: "Event"
-        event is EventFilter.None -> "Untagged"
-        event is EventFilter.Kind -> event.kind.label
-        else -> "All events"
-    }
-}
