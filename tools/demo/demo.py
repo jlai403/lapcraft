@@ -2,6 +2,7 @@
 """adb and subtitle helpers used by the demo capture scripts."""
 
 import argparse
+import os
 import re
 import subprocess
 import sys
@@ -14,7 +15,9 @@ TIME = r"(\d{2}):(\d{2}):(\d{2}),(\d{3})"
 
 
 def adb(*args: str) -> str:
-    return subprocess.check_output(["adb", *args], text=True).strip()
+    serial = os.environ.get("ADB_SERIAL", "")
+    command = ["adb"] + (["-s", serial] if serial else []) + list(args)
+    return subprocess.check_output(command, text=True).strip()
 
 
 def bounds(node: ET.Element) -> tuple[int, int, int, int]:

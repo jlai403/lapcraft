@@ -21,6 +21,16 @@ Python 3 is the only other requirement. The helper uses the standard library.
 
 A phone with adb access is needed for the takes. The development container has no USB path to the phone and no display, so no take can be recorded here. Both scripts have a `--dry-run` mode that prints every command without touching a device. Run the scripts through `mise exec --` unless your shell has `mise activate`, because they call `adb` and `scrcpy` from `PATH`.
 
+For a TCP/IP connection, enable Wireless debugging in Developer options, then pair and connect from the recording machine:
+
+```sh
+adb pair <phone-ip>:<pair-port>
+adb connect <phone-ip>:5555
+adb devices
+```
+
+On Android 10 or older, run `adb tcpip 5555` over USB first, then `adb connect`. Pass the connected address with `--serial`, for example `mise exec -- ./tools/demo/capture.sh --beat 01 --serial 192.168.1.50:5555`. Use it whenever more than one device appears in `adb devices`, so scrcpy and the UI helper target the same phone.
+
 The two Suzuka laps tagged W47 must already be in the app, and both must have a replay clip. The console is connected for beat 01, but no lap is captured during the take.
 
 ## Record the beats

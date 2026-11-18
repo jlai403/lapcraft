@@ -10,9 +10,18 @@ BEAT=""
 DRY_RUN=0
 TOUCHES_REQUESTED=""
 REFERENCE="1:"
+ADB_SERIAL=""
 
 log() { printf '%s\n' "$*"; }
 die() { printf 'error: %s\n' "$*" >&2; exit 1; }
+
+adb() {
+  if [[ -n "$ADB_SERIAL" ]]; then
+    command adb -s "$ADB_SERIAL" "$@"
+  else
+    command adb "$@"
+  fi
+}
 
 run() {
   if (( DRY_RUN )); then
@@ -49,7 +58,11 @@ record_start() {
     pause 0.6
     return
   fi
-  scrcpy --record="$file" --no-audio --max-fps=60 --bit-rate=80M >/dev/null 2>&1 &
+  if [[ -n "$ADB_SERIAL" ]]; then
+    scrcpy --serial "$ADB_SERIAL" --record="$file" --no-audio --max-fps=60 --bit-rate=80M >/dev/null 2>&1 &
+  else
+    scrcpy --record="$file" --no-audio --max-fps=60 --bit-rate=80M >/dev/null 2>&1 &
+  fi
   CAPTURE_PID=$!
   sleep 0.6
 }
@@ -174,7 +187,7 @@ beat_04() {
 }
 
 usage() {
-  log "usage: capture.sh --beat 01|02|02b|03|04|all [--touches on|off] [--reference '1:49'] [--dry-run]"
+  log "usage: capture.sh --beat 01|02|02b|03|04|all [--touches on|off] [--reference '1:49'] [--serial ip:port] [--dry-run]"
   log "beats: 01 Record and Library, 02 player, 02b sync screen, 03 ruler, 04 compare"
 }
 
@@ -183,6 +196,7 @@ while (( $# > 0 )); do
     --beat) BEAT="${2:-}"; shift 2 ;;
     --touches) TOUCHES_REQUESTED="${2:-}"; shift 2 ;;
     --reference) REFERENCE="${2:-}"; shift 2 ;;
+    --serial) ADB_SERIAL="${2:-}"; shift 2 ;;
     --dry-run) DRY_RUN=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) die "unknown option $1" ;;
@@ -191,6 +205,7 @@ done
 
 [[ -n "$BEAT" ]] || { usage; die "missing --beat"; }
 if [[ "$BEAT" == all ]]; then BEAT="01 02 02b 03 04"; fi
+export ADB_SERIAL
 
 if (( ! DRY_RUN )); then
   command -v adb >/dev/null || die "adb is not on PATH"
