@@ -295,7 +295,6 @@ fun LibraryScreen(
                     null -> 0
                     else -> EventKind.entries.indexOf(kindFilter) + 1
                 },
-                scrollable = true,
                 modifier = Modifier.padding(horizontal = 20.dp),
                 onSelect = { index ->
                     filter = if (index == 0) {
