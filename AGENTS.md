@@ -187,6 +187,14 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
 - Storage helpers: `lapStore(context)`; legacy sessions are migrated once by `LayoutMigration` (sessions -> laps, convert-and-delete). `LapView` is the UI projection of `LapRecord`.
 - New module file: `core/.../clip/LapClock.kt`, `core/.../clip/SyncOffset.kt`, `core/.../clip/FrameTimeline.kt`, `core/.../session/LapView.kt`, `core/.../session/LayoutMigration.kt`, `core/.../events/EventKind.kt`, `core/.../events/EventFilter.kt`, `core/.../lap/LapTimeSource.kt`.
 
+## Demo video kit
+
+- `mise.toml` pins scrcpy and ffmpeg for the demo kit and has a `demo:setup` task that downloads `scrcpy-server`, which the ubi binary omits. adb comes from the OS package because the mise Android SDK plugin installs `sdkmanager` rather than `platform-tools`. Run the scripts with `mise exec --` unless the shell has `mise activate`.
+- `tools/demo/` holds the showcase video kit: `shotlist.md` (four pillars in 24 seconds), `captions.srt` (master captions) and `captions-15s.srt` (cutdown), `capture.sh` (scripted adb takes found via `uiautomator dump`), `conform.sh` (1920x1080 master, dark backdrop, phone shadow and border, Geist Medium captions, Geist Mono chapters, mint progress bar, no end card), `demo.py` (adb and SRT helpers), and `beats/` plus `.build/` for intermediates.
+- Record beats with `./tools/demo/capture.sh --beat 01|02|03|04|all [--touches on|off] [--lap '1:36.131'] [--reference '1:35.842'] [--serial ip:port] [--dry-run]`. `--serial` targets one device for adb and scrcpy, needed for wireless adb or multiple devices. scrcpy runs with `--no-window` and `SDL_VIDEODRIVER=dummy`, so capture is headless, and preflight exports `ADB` so mise scrcpy finds the system adb. Preflight wakes the phone, dismisses a swipe-only keyguard, and launches the app if it is not in front. The console connection still has to be made by hand. Beat 01 switches Library to Record and back, beat 03 jumps to a brake point and rewinds with the ruler, beat 04 opens compare and scrubs through the corner. Touches default on for 03 and 04.
+- Build with `./tools/demo/conform.sh [--short] [--music file.wav] [--dry-run]`; output is `tools/demo/master.mp4` or `master-15s.mp4`. Both scripts have `--dry-run`. `demo.py slice-srt` generates a styled ASS beside each sliced SRT so libass uses fixed 1920x1080 coordinates and the bundled Geist font.
+- The master uses the two Suzuka laps tagged W47, both with clips. Beat 01 shows the connected Record screen without capturing a lap, then the Library. Beat 04 skips to the first corner with Next brake point, then scrubs through it with the ruler.
+
 ## Release
 
 - Work in a branch, merge to `main`, push. Pushing `main` triggers CI and preview publish.
