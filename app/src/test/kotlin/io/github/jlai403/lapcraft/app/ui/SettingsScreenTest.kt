@@ -49,6 +49,24 @@ class SettingsScreenTest {
     }
 
     @Test
+    fun `developer card sits between event tags and about`() {
+        SettingsStore(context).developerTools = true
+        compose.setContent {
+            LapCraftTheme {
+                SettingsScreen(update = UpdateManager.State.UpToDate)
+            }
+        }
+
+        compose.onNodeWithText("ABOUT").performScrollTo()
+        val eventTags = compose.onNodeWithText("EVENT TAGS").fetchSemanticsNode().boundsInRoot.top
+        val developer = compose.onNodeWithText("DEVELOPER").fetchSemanticsNode().boundsInRoot.top
+        val about = compose.onNodeWithText("ABOUT").fetchSemanticsNode().boundsInRoot.top
+
+        assertTrue(eventTags < developer)
+        assertTrue(developer < about)
+    }
+
+    @Test
     fun `replay advanced disclosure hides detail controls until opened`() {
         compose.setContent {
             LapCraftTheme { SettingsScreen() }
