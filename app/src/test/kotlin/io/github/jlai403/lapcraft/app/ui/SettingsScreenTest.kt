@@ -221,8 +221,7 @@ class SettingsScreenTest {
     }
 
     @Test
-    fun `shows an available update and downloads it`() {
-        var downloads = 0
+    fun `an available update points at the releases page`() {
         SettingsStore(context).developerTools = true
         compose.setContent {
             LapCraftTheme {
@@ -234,14 +233,15 @@ class SettingsScreenTest {
                             notes = "Build 35",
                         ),
                     ),
-                    onDownloadUpdate = { downloads++ },
                 )
             }
         }
 
-        compose.onNodeWithText("Version 0.1.1 (build 1035) is available. Build 35").assertExists()
-        compose.onNodeWithText("Download 0.1.1").performScrollTo().performClick()
-        assertEquals(1, downloads)
+        compose.onNodeWithText(
+            "Version 0.1.1 (build 1035) is available. Build 35 Download it from the releases page.",
+        ).assertExists()
+        compose.onNodeWithText("Open releases").performScrollTo().assertExists()
+        compose.onNodeWithText("Download 0.1.1").assertDoesNotExist()
     }
 
     @Test

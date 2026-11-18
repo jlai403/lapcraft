@@ -46,8 +46,6 @@ fun App(
     onSharedVideoHandled: () -> Unit,
     update: UpdateManager.State,
     onCheckUpdate: () -> Unit,
-    onDownloadUpdate: () -> Unit,
-    onInstallUpdate: () -> Unit,
 ) {
     var screen by remember { mutableStateOf<Screen>(Screen.Library) }
     val context = LocalContext.current
@@ -153,16 +151,10 @@ fun App(
                         Screen.Settings -> SettingsScreen(
                             update = update,
                             onCheckUpdate = onCheckUpdate,
-                            onDownloadUpdate = onDownloadUpdate,
-                            onInstallUpdate = onInstallUpdate,
                         )
                     }
                 }
-                UpdatePrompt(
-                    update = update,
-                    onDownload = onDownloadUpdate,
-                    onInstall = onInstallUpdate,
-                )
+                UpdatePrompt(update = update)
                 if (activeTab != null) {
                     AppBottomBar(selected = activeTab) { tab ->
                         screen = when (tab) {
@@ -178,14 +170,11 @@ fun App(
 }
 
 @Composable
-private fun UpdatePrompt(
-    update: UpdateManager.State,
-    onDownload: () -> Unit,
-    onInstall: () -> Unit,
-) {
+private fun UpdatePrompt(update: UpdateManager.State) {
     var dismissed by rememberSaveable { mutableStateOf(false) }
     val available = update as? UpdateManager.State.Available ?: return
     if (dismissed) return
+    val context = LocalContext.current
     AlertDialog(
         onDismissRequest = { dismissed = true },
         title = { Text("Update available") },
@@ -204,9 +193,9 @@ private fun UpdatePrompt(
             TextButton(
                 onClick = {
                     dismissed = true
-                    onDownload()
+                    UpdateManager.openReleasePage(context)
                 },
-            ) { Text("Download") }
+            ) { Text("Open releases") }
         },
         dismissButton = {
             TextButton(onClick = { dismissed = true }) { Text("Later") }

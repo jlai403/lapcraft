@@ -14,8 +14,6 @@ class UpdateManifestTest {
             {
               "versionCode": 1031,
               "versionName": "0.1.0",
-              "apk": "LapCraft-debug.apk",
-              "sha256": "abc123",
               "notes": "Build 31"
             }
             """.trimIndent(),
@@ -23,20 +21,17 @@ class UpdateManifestTest {
 
         assertEquals(1031, manifest?.versionCode)
         assertEquals("0.1.0", manifest?.versionName)
-        assertEquals("LapCraft-debug.apk", manifest?.apk)
-        assertEquals("abc123", manifest?.sha256)
         assertEquals("Build 31", manifest?.notes)
     }
 
     @Test
     fun `ignores unknown fields and defaults optional ones`() {
         val manifest = UpdateJsonCodec.decode(
-            """{"versionCode": 7, "versionName": "0.2.0", "channel": "debug"}""",
+            """{"versionCode": 7, "versionName": "0.2.0", "apk": "LapCraft.apk"}""",
         )
 
         assertEquals(7, manifest?.versionCode)
-        assertEquals("LapCraft-debug.apk", manifest?.apk)
-        assertEquals("", manifest?.sha256)
+        assertEquals("", manifest?.notes)
     }
 
     @Test
@@ -53,5 +48,4 @@ class UpdateManifestTest {
         assertFalse(manifest.isNewerThan(12))
         assertFalse(manifest.isNewerThan(13))
     }
-
 }

@@ -99,8 +99,6 @@ class MainActivity : ComponentActivity() {
                     onSharedVideoHandled = { pendingShare.value = null },
                     update = update,
                     onCheckUpdate = { UpdateManager.check(applicationContext) },
-                    onDownloadUpdate = { UpdateManager.download(applicationContext) },
-                    onInstallUpdate = { UpdateManager.install(applicationContext) },
                 )
             }
         }

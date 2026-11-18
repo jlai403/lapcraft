@@ -62,16 +62,16 @@ Import merges: ids that already exist are skipped, so importing the same file tw
 - Compact playback footer: one row in compare (`⏮ −1 ▶ +1 ⏭` + ruler + `1×` cycle + loop), and the taller time/ruler/transport layout in the single-lap player.
 - CSV export and MP4 sharing.
 - Library backup: multi-select lap export to a zip and merge-only import, from Settings or the empty library.
-- In-app preview/stable updater.
+- Version check for preview/stable builds; `Open releases` hands the download and install to the browser.
 
 ## Update channels
 
 - **Preview.** Every push to `main` replaces the `preview-latest` prerelease with `LapCraft-preview.apk` and `latest.json`. Preview builds check this channel.
 - **Stable.** A `v*` tag creates the latest release with `LapCraft-<tag>.apk` and `latest.json`. Tag builds check `releases/latest`.
 
-The app checks once a day (or from Settings → Updates), compares `versionCode`, downloads the APK, verifies its SHA-256, and opens Android's installer. The user always confirms the install. Checks are skipped when the app was installed by F-Droid or Play.
+The app checks once a day (or from Settings → Updates), compares `versionCode` with `latest.json`, and offers `Open releases`, which opens the release page in the browser. LapCraft never downloads or installs an APK, so it declares no install-packages permission and Play Protect has nothing to flag. Updating is the normal Android sideload: download the APK from the release page, tap it, and confirm. Checks are skipped when the app was installed by F-Droid or Play.
 
-**Play Protect will likely warn about this app.** It flags APKs that download and install updates outside a store, which is exactly what the in-app updater does. This is a deliberate trade-off: keeping one-tap updates means accepting the warning (choose `Install anyway`, or turn off scanning for this app). If Play Protect blocks an install, [appeal it](https://support.google.com/googleplay/android-developer/contact/protectappeals); the verdict is server-side. Stripping `REQUEST_INSTALL_PACKAGES` is the only reliable way to stop the warning, at the cost of handing every update to the browser.
+Sideloading itself still shows Android's unknown-source prompt and a Play Protect scan of the APK. That is the browser and the system, not the app.
 
 `versionCode` is `1000 + commit count`, so every commit sorts after the previous one.
 

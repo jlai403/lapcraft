@@ -54,8 +54,6 @@ import java.util.Date
 fun SettingsScreen(
     update: UpdateManager.State = UpdateManager.State.Idle,
     onCheckUpdate: () -> Unit = {},
-    onDownloadUpdate: () -> Unit = {},
-    onInstallUpdate: () -> Unit = {},
     lookupProfile: (suspend (String) -> DriverProfile)? = null,
 ) {
     val context = LocalContext.current
@@ -297,12 +295,7 @@ fun SettingsScreen(
                 }
                 if (developerTools) {
                     SectionLabel("Updates")
-                    UpdatesContent(
-                        update = update,
-                        onCheckUpdate = onCheckUpdate,
-                        onDownloadUpdate = onDownloadUpdate,
-                        onInstallUpdate = onInstallUpdate,
-                    )
+                    UpdatesContent(update = update, onCheckUpdate = onCheckUpdate)
                 }
             }
         }
@@ -403,9 +396,8 @@ private fun Chevron(expanded: Boolean) {
 private fun UpdatesContent(
     update: UpdateManager.State,
     onCheckUpdate: () -> Unit,
-    onDownloadUpdate: () -> Unit,
-    onInstallUpdate: () -> Unit,
 ) {
+    val context = LocalContext.current
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(
             updateSummary(update),
@@ -418,25 +410,11 @@ private fun UpdatesContent(
         )
         when (update) {
             is UpdateManager.State.Available -> GhostPill(
-                text = "Download ${update.manifest.versionName}",
-                onClick = onDownloadUpdate,
-            )
-            is UpdateManager.State.Ready -> GhostPill(
-                text = "Install update",
-                onClick = onInstallUpdate,
-            )
-            is UpdateManager.State.Downloading -> GhostPill(
-                text = "Downloading ${update.percent}%",
-                enabled = false,
-                onClick = {},
+                text = "Open releases",
+                onClick = { UpdateManager.openReleasePage(context) },
             )
             is UpdateManager.State.Checking -> GhostPill(
                 text = "Checking…",
-                enabled = false,
-                onClick = {},
-            )
-            is UpdateManager.State.Installing -> GhostPill(
-                text = "Installing…",
                 enabled = false,
                 onClick = {},
             )
@@ -475,16 +453,14 @@ private fun formatEventDate(timestampMs: Long): String =
     if (timestampMs <= 0) "never" else DateFormat.getDateTimeInstance().format(Date(timestampMs))
 
 private fun updateSummary(update: UpdateManager.State): String = when (update) {
-    is UpdateManager.State.Idle -> "Checks the rolling debug build once a day."
+    is UpdateManager.State.Idle -> "Checks GitHub releases once a day."
     is UpdateManager.State.Checking -> "Checking for updates…"
     is UpdateManager.State.UpToDate -> "You are on the latest build."
     is UpdateManager.State.Available -> buildString {
         append("Version ${update.manifest.versionName} (build ${update.manifest.versionCode}) is available.")
         if (update.manifest.notes.isNotBlank()) append(" ${update.manifest.notes}")
+        append(" Download it from the releases page.")
     }
-    is UpdateManager.State.Downloading -> "Downloading ${update.percent}%…"
-    is UpdateManager.State.Ready -> "Downloaded. Install opens Android's installer."
-    is UpdateManager.State.Installing -> "Waiting for the system installer…"
     is UpdateManager.State.Failed -> update.message
 }
 

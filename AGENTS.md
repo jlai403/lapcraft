@@ -202,4 +202,5 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
 ## Release
 
 - Work in a branch, merge to `main`, push. Pushing `main` triggers CI and preview publish.
+- The updater only checks versions: `UpdateManager` reads `latest.json` and `openReleasePage` opens the GitHub release in the browser. There is no install-packages permission, so Play Protect has nothing to flag; downloads and installs stay with the browser.
 - `versionCode = 1000 + git commit count`; `v*` tags are stable builds.

@@ -9,8 +9,6 @@ import kotlinx.serialization.json.Json
 data class UpdateManifest(
     val versionCode: Int,
     val versionName: String,
-    val apk: String = "LapCraft-debug.apk",
-    val sha256: String = "",
     val notes: String = "",
 ) {
     fun isNewerThan(currentVersionCode: Int): Boolean = versionCode > currentVersionCode
