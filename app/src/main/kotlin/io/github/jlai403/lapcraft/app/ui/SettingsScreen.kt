@@ -214,37 +214,6 @@ fun SettingsScreen(
             )
         }
 
-        if (BuildConfig.UPDATE_CHANNEL != "stable") {
-            SectionCard(title = "Developer") {
-                SettingToggleRow(
-                    label = "Developer tools",
-                    checked = developerTools,
-                    modifier = Modifier.testTag("dev-developer-tools"),
-                ) {
-                    developerTools = it
-                    settings.developerTools = it
-                }
-                SettingToggleRow(
-                    label = "Preview empty library",
-                    supporting = "Shows the empty state while your laps stay saved.",
-                    checked = previewEmpty,
-                    modifier = Modifier.testTag("dev-preview-empty"),
-                ) {
-                    previewEmpty = it
-                    settings.previewEmptyLibrary = it
-                }
-                if (developerTools) {
-                    SectionLabel("Updates")
-                    UpdatesContent(
-                        update = update,
-                        onCheckUpdate = onCheckUpdate,
-                        onDownloadUpdate = onDownloadUpdate,
-                        onInstallUpdate = onInstallUpdate,
-                    )
-                }
-            }
-        }
-
         DriverProfileSection(lookupProfile = resolvedLookup)
 
         LibrarySection()
@@ -299,6 +268,37 @@ fun SettingsScreen(
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+
+        if (BuildConfig.UPDATE_CHANNEL != "stable") {
+            SectionCard(title = "Developer") {
+                SettingToggleRow(
+                    label = "Developer tools",
+                    checked = developerTools,
+                    modifier = Modifier.testTag("dev-developer-tools"),
+                ) {
+                    developerTools = it
+                    settings.developerTools = it
+                }
+                SettingToggleRow(
+                    label = "Preview empty library",
+                    supporting = "Shows the empty state while your laps stay saved.",
+                    checked = previewEmpty,
+                    modifier = Modifier.testTag("dev-preview-empty"),
+                ) {
+                    previewEmpty = it
+                    settings.previewEmptyLibrary = it
+                }
+                if (developerTools) {
+                    SectionLabel("Updates")
+                    UpdatesContent(
+                        update = update,
+                        onCheckUpdate = onCheckUpdate,
+                        onDownloadUpdate = onDownloadUpdate,
+                        onInstallUpdate = onInstallUpdate,
+                    )
+                }
+            }
         }
 
         SectionCard(title = "About") {
