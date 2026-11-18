@@ -89,7 +89,7 @@ preflight() {
 
 beat_limit() {
   case "$1" in
-    02|02b) echo 7 ;;
+    02) echo 7 ;;
     *) echo 12 ;;
   esac
 }
@@ -213,47 +213,29 @@ pause_playback() {
   fi
 }
 
-ensure_record() {
-  if (( DRY_RUN )); then
-    printf 'DRY ensure Record screen\n'
-    ui wait "packets/s"
-    return
-  fi
-  tap "^Record$" --min-y 2000
-  if ! python3 "$PY" wait "packets/s" --timeout 20 >/dev/null 2>&1; then
-    die "no telemetry on the Record screen. Connect to the console first."
-  fi
-}
-
 beat_01() {
-  ensure_record
+  if (( ! DRY_RUN )); then
+    ensure_library
+    wait_ui "packets/s" --timeout 5 || {
+      tap "^Record$" --min-y 2000
+      wait_ui "packets/s" --timeout 20
+    }
+  fi
   record_start 01
-  pause 2.2
+  pause 1.2
+  tap "^Record$" --min-y 2000
+  if (( ! DRY_RUN )); then wait_ui "packets/s" --timeout 20; fi
+  pause 2.0
   tap "^Library$" --min-y 2000
   if (( ! DRY_RUN )); then wait_ui "^All$" --timeout 5; fi
-  pause 3.0
+  pause 2.0
   record_stop
 }
 
 beat_02() {
   ensure_player
   record_start 02
-  pause 0.4
-  tap_if_present "^Play$"
-  pause 4.1
-  record_stop
-}
-
-beat_02b() {
-  log "Open the lap, tap Add clip, pick the clip, and stop on the sync screen."
-  if (( DRY_RUN )); then
-    log "DRY waiting for Enter"
-  else
-    read -r -p "Press Enter when the sync screen is on screen: " _
-  fi
-  wait_ui "Use this frame"
-  record_start 02b
-  pause 4.5
+  pause 4.0
   record_stop
 }
 
@@ -262,13 +244,13 @@ beat_03() {
   record_start 03
   pause 0.4
   tap "Next brake point"
-  pause 0.8
-  pause_playback
-  pause 0.8
+  pause 0.6
+  tap_if_present "^Play$"
+  pause 2.0
+  tap_if_present "^Pause$"
+  pause 0.3
   swipe "Frame ruler" -160 900
   pause 2.5
-  swipe "Frame ruler" -120 600
-  pause 3.0
   record_stop
 }
 
@@ -285,19 +267,17 @@ beat_04() {
   record_start 04
   pause 0.4
   tap "Next brake point"
-  pause 0.4
-  tap_if_present "^Play$"
-  pause 3.6
-  tap_if_present "^Pause$"
-  pause 0.2
-  swipe "Frame ruler" -200 800
-  pause 3.6
+  pause 0.6
+  swipe "Frame ruler" -200 900
+  pause 2.5
+  swipe "Frame ruler" -120 700
+  pause 2.5
   record_stop
 }
 
 usage() {
-  log "usage: capture.sh --beat 01|02|02b|03|04|all [--touches on|off] [--lap '1:36.131'] [--reference '1:35.824'] [--serial ip:port] [--dry-run]"
-  log "beats: 01 Record and Library, 02 player, 02b sync screen, 03 ruler, 04 compare"
+  log "usage: capture.sh --beat 01|02|03|04|all [--touches on|off] [--lap '1:36.131'] [--reference '1:35.842'] [--serial ip:port] [--dry-run]"
+  log "beats: 01 Library and Record, 02 lap, 03 brake point and ruler, 04 compare"
 }
 
 while (( $# > 0 )); do
@@ -314,7 +294,7 @@ while (( $# > 0 )); do
 done
 
 [[ -n "$BEAT" ]] || { usage; die "missing --beat"; }
-if [[ "$BEAT" == all ]]; then BEAT="01 02 02b 03 04"; fi
+if [[ "$BEAT" == all ]]; then BEAT="01 02 03 04"; fi
 export ADB_SERIAL
 
 if (( ! DRY_RUN )); then
@@ -324,7 +304,7 @@ if (( ! DRY_RUN )); then
 fi
 
 for beat in $BEAT; do
-  [[ "$beat" == 01 || "$beat" == 02 || "$beat" == 02b || "$beat" == 03 || "$beat" == 04 ]] ||
+  [[ "$beat" == 01 || "$beat" == 02 || "$beat" == 03 || "$beat" == 04 ]] ||
     die "unknown beat $beat"
 done
 

@@ -1,6 +1,6 @@
 # Demo video kit
 
-Builds a 40 second showcase of LapCraft from scripted takes. The app itself is not modified.
+Builds a 30 second showcase of LapCraft from scripted takes. The app itself is not modified.
 
 The four pillars are capture, replay, analyze, and compare. See `shotlist.md` for the shot card of each beat. The captions in `captions.srt` are the source of truth. `conform.sh` slices them per beat into an SRT and a styled ASS, then burns the ASS into the master. The ASS pins 1920x1080 coordinates, Geist, and the left gutter. The same SRT can be uploaded as YouTube captions.
 
@@ -45,21 +45,17 @@ The two Suzuka laps tagged W47 must already be in the app, and both must have a 
 mise install
 mise run demo:setup
 mise exec -- adb devices
-mise exec -- ./tools/demo/capture.sh --beat 01
-mise exec -- ./tools/demo/capture.sh --beat 02
-mise exec -- ./tools/demo/capture.sh --beat 02b
-mise exec -- ./tools/demo/capture.sh --beat 03
-mise exec -- ./tools/demo/capture.sh --beat 04
 mise exec -- ./tools/demo/capture.sh --beat all --dry-run
+mise exec -- ./tools/demo/capture.sh --beat all
 ```
 
 `--dry-run` prints the UI lookups and gestures instead of running them. `--touches on|off` overrides the default, which is on for beats 03 and 04 and off for the rest. `--lap` and `--reference` select laps by their exact on-screen times. The defaults are `1:36.131` for the primary and `1:35.842` for the reference. Change them if those laps are replaced.
 
 Taps are found through `uiautomator dump`, matching either UI text or a content description such as `Frame ruler` and `Next brake point`. Coordinates are read from the node bounds, so one script works on a phone and on an emulator at any density.
 
-Beat 02b is the one manual step. Open the lap, tap `Add clip`, pick the clip, stop on the sync screen, and press Enter. The system document picker is not our UI and its layout varies by device.
+There is no manual picker step. Both laps already have clips. Beat 01 switches Library to Record and back. Beat 03 jumps to a brake point, plays for two seconds, then rewinds with the ruler. Beat 04 opens compare, picks the reference lap, jumps to a brake point, and scrubs through the corner.
 
-Record two or three takes per beat. Injected input has about 100 to 300 ms of jitter per command, so the pause and rewind in beat 04 will land a few frames off between runs. Keep the take where the rewind starts just after the caption leaves at 32.0.
+Record two or three takes per beat. Injected input has about 100 to 300 ms of jitter per command, so the pause and rewind will land a few frames off between runs. Keep the take where the rewind reads clearly.
 
 Each take is saved to `tools/demo/beats/<beat>.mkv` with about 0.6 s of pre-roll. `conform.sh` trims that pre-roll.
 

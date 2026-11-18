@@ -10,9 +10,13 @@ FONT="$ROOT/app/src/main/res/font/geist_regular.ttf"
 FONTDIR="$ROOT/app/src/main/res/font"
 PRE_ROLL=0.6
 
-CAPTIONS="$TOOLS/captions.srt"
+trim_for() {
+  echo "$PRE_ROLL"
+}
+
+CAPTIONS="$TOOLS/captions-30s.srt"
 OUTPUT="$TOOLS/master.mp4"
-DURATION=40
+DURATION=30
 SHORT=0
 DRY_RUN=0
 MUSIC=""
@@ -50,13 +54,16 @@ segment() {
     margin=80
   fi
 
+  local trim
+  trim="$(trim_for "$name")"
+
   local srt="$WORK/$name.srt"
   run python3 "$PY" slice-srt "$CAPTIONS" "$start" "$length" "$srt" \
     --font-size "$font_size" --margin "$margin"
   local ass="$WORK/$name.ass"
 
   local filter
-  filter="[0:v]trim=start=$PRE_ROLL:duration=$length,setpts=PTS-STARTPTS,fps=30,split=2[bg][fg];"
+  filter="[0:v]trim=start=$trim:duration=$length,setpts=PTS-STARTPTS,fps=30,split=2[bg][fg];"
   filter+="[bg]scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,boxblur=24:2,eq=brightness=-0.25:saturation=0.6[back];"
   filter+="[fg]scale=$scale[phone];"
   filter+="[back][phone]overlay=(W-w)/2:(H-h)/2[stage];"
@@ -72,7 +79,7 @@ endcard() {
   local filter
   filter="drawtext=fontfile='$FONT':text='LapCraft':fontsize=104:fontcolor=0xF8FAFC:x=(w-text_w)/2:y=(h-text_h)/2-90:expansion=none,"
   filter+="drawtext=fontfile='$FONT':text='Free, open source':fontsize=34:fontcolor=0x94A3B8:x=(w-text_w)/2:y=(h-text_h)/2+50:expansion=none"
-  run ffmpeg -y -f lavfi -i "color=c=0x0D1114:s=1920x1080:r=30:d=4" -vf "$filter" \
+  run ffmpeg -y -f lavfi -i "color=c=0x0D1114:s=1920x1080:r=30:d=2" -vf "$filter" \
     -c:v libx264 -crf 18 -preset medium -pix_fmt yuv420p -an "$WORK/end.mp4"
   printf "file '%s'\n" "$WORK/end.mp4" >> "$WORK/list.txt"
 }
@@ -109,11 +116,10 @@ if (( SHORT )); then
   segment 03 7.5 3.5 portrait "03 ANALYZE"
   segment 04 11 4 landscape "04 COMPARE"
 else
-  segment 01 0 9 portrait "01 CAPTURE"
-  segment 02 9 4.5 portrait "02 REPLAY"
-  segment 02b 13.5 4.5 portrait "02 REPLAY"
-  segment 03 18 9 portrait "03 ANALYZE"
-  segment 04 27 9 landscape "04 COMPARE"
+  segment 01 0 7 portrait "01 CAPTURE"
+  segment 02 7 4 portrait "02 REPLAY"
+  segment 03 11 7 portrait "03 ANALYZE"
+  segment 04 18 10 landscape "04 COMPARE"
   endcard
 fi
 
