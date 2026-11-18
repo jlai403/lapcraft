@@ -53,7 +53,7 @@ mise exec -- ./tools/demo/capture.sh --beat 04
 mise exec -- ./tools/demo/capture.sh --beat all --dry-run
 ```
 
-`--dry-run` prints the UI lookups and gestures instead of running them. `--touches on|off` overrides the default, which is on for beats 03 and 04 and off for the rest. `--reference` sets the lap time text used to pick the reference in beat 04; the default `1:` chooses the first candidate.
+`--dry-run` prints the UI lookups and gestures instead of running them. `--touches on|off` overrides the default, which is on for beats 03 and 04 and off for the rest. `--lap` and `--reference` select laps by their exact on-screen times. The defaults are `1:36.131` for the primary and `1:35.842` for the reference. Change them if those laps are replaced.
 
 Taps are found through `uiautomator dump`, matching either UI text or a content description such as `Frame ruler` and `Next brake point`. Coordinates are read from the node bounds, so one script works on a phone and on an emulator at any density.
 

@@ -29,21 +29,31 @@ def bounds(node: ET.Element) -> tuple[int, int, int, int]:
     return x1, y1, x2, y2
 
 
-def find(pattern: str) -> list[ET.Element]:
+def find(pattern: str, min_y: int = 0, row: bool = False) -> list[ET.Element]:
     adb("shell", "uiautomator", "dump", DUMP_PATH)
     root = ET.fromstring(adb("exec-out", "cat", DUMP_PATH))
+    parents = {child: parent for parent in root.iter() for child in parent}
     hits = []
     for node in root.iter("node"):
-        for key in ("text", "content-desc"):
-            value = node.get(key, "")
-            if value and re.search(pattern, value, re.IGNORECASE):
-                hits.append(node)
-                break
+        if min_y and bounds(node)[1] < min_y:
+            continue
+        matched = any(
+            node.get(key, "") and re.search(pattern, node.get(key, ""), re.IGNORECASE)
+            for key in ("text", "content-desc")
+        )
+        if not matched:
+            continue
+        if row:
+            while node is not None and node.get("clickable") != "true":
+                node = parents.get(node)
+            if node is None:
+                continue
+        hits.append(node)
     return hits
 
 
-def target(pattern: str) -> ET.Element:
-    hits = find(pattern)
+def target(pattern: str, min_y: int = 0, row: bool = False) -> ET.Element:
+    hits = find(pattern, min_y, row)
     if not hits:
         raise SystemExit(f"no UI node matches {pattern!r}")
     if len(hits) > 1:
@@ -51,24 +61,24 @@ def target(pattern: str) -> ET.Element:
     return hits[0]
 
 
-def wait_for(pattern: str, timeout: float) -> None:
+def wait_for(pattern: str, timeout: float, min_y: int = 0) -> None:
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
-        if find(pattern):
+        if find(pattern, min_y):
             return
         time.sleep(0.4)
     raise SystemExit(f"timed out waiting for {pattern!r}")
 
 
-def tap(pattern: str) -> None:
-    x1, y1, x2, y2 = bounds(target(pattern))
+def tap(pattern: str, min_y: int = 0, row: bool = False) -> None:
+    x1, y1, x2, y2 = bounds(target(pattern, min_y, row))
     x, y = (x1 + x2) // 2, (y1 + y2) // 2
     adb("shell", "input", "tap", str(x), str(y))
     print(f"tap {x},{y}")
 
 
-def swipe(pattern: str, dx: int, duration: int) -> None:
-    x1, y1, x2, y2 = bounds(target(pattern))
+def swipe(pattern: str, dx: int, duration: int, min_y: int = 0) -> None:
+    x1, y1, x2, y2 = bounds(target(pattern, min_y))
     y = (y1 + y2) // 2
     middle = (x1 + x2) // 2
     start = middle + dx // 2 if dx < 0 else middle - dx // 2
@@ -169,12 +179,16 @@ def main() -> None:
     wait = commands.add_parser("wait", help="wait for a UI node")
     wait.add_argument("pattern")
     wait.add_argument("--timeout", type=float, default=12)
+    wait.add_argument("--min-y", type=int, default=0)
 
     tap_cmd = commands.add_parser("tap", help="tap a UI node")
     tap_cmd.add_argument("pattern")
+    tap_cmd.add_argument("--min-y", type=int, default=0)
+    tap_cmd.add_argument("--row", action="store_true", help="tap the clickable ancestor row")
 
     swipe_cmd = commands.add_parser("swipe", help="drag a UI node horizontally")
     swipe_cmd.add_argument("pattern")
+    swipe_cmd.add_argument("--min-y", type=int, default=0)
     swipe_cmd.add_argument("--dx", type=int, required=True)
     swipe_cmd.add_argument("--duration", type=int, default=800)
 
@@ -190,11 +204,11 @@ def main() -> None:
 
     args = parser.parse_args()
     if args.command == "wait":
-        wait_for(args.pattern, args.timeout)
+        wait_for(args.pattern, args.timeout, args.min_y)
     elif args.command == "tap":
-        tap(args.pattern)
+        tap(args.pattern, args.min_y, args.row)
     elif args.command == "swipe":
-        swipe(args.pattern, args.dx, args.duration)
+        swipe(args.pattern, args.dx, args.duration, args.min_y)
     elif args.command == "dump":
         adb("shell", "uiautomator", "dump", DUMP_PATH)
         print(adb("exec-out", "cat", DUMP_PATH))
