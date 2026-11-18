@@ -3,6 +3,7 @@ package io.github.jlai403.lapcraft.app.ui
 import android.app.Application
 import android.content.Context
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -11,6 +12,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.test.core.app.ApplicationProvider
 import io.github.jlai403.lapcraft.core.profile.DriverProfile
@@ -65,6 +67,41 @@ class LapPlayerScreenTest {
         compose.onNodeWithText("Speed / Gear").assertExists()
         compose.onNodeWithText("Track map").assertExists()
         compose.onNodeWithText("1:30.000").assertExists()
+        compose.onNodeWithContentDescription("Frame ruler").assertExists()
+        compose.onNodeWithText("1×").assertExists()
+        assertEquals(0, compose.onAllNodesWithTag("frame-back").fetchSemanticsNodes().size)
+        assertEquals(0, compose.onAllNodesWithTag("frame-forward").fetchSemanticsNodes().size)
+    }
+
+    @Test
+    fun `a lap without a clip plays its telemetry`() {
+        SessionFixtures.install(
+            context,
+            SessionFixtures.session(lapTimesMs = listOf(90_000), withReplay = false),
+        )
+
+        compose.setContent {
+            LapCraftTheme {
+                LapPlayerScreen(
+                    lapId = LapId("session-1"),
+                    onBack = {},
+                    onImportSync = {},
+                )
+            }
+        }
+
+        compose.waitUntil(TIMEOUT) {
+            compose.onAllNodesWithText("0:00.000 / 1:30.000").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.mainClock.autoAdvance = false
+        compose.onNodeWithContentDescription("Play").performClick()
+        repeat(60) { compose.mainClock.advanceTimeBy(50) }
+
+        val moved = compose.onAllNodesWithText("0:00.000 / 1:30.000")
+            .fetchSemanticsNodes().isEmpty()
+        val pause = compose.onAllNodesWithContentDescription("Pause")
+            .fetchSemanticsNodes().isNotEmpty()
+        org.junit.Assert.assertTrue("moved=$moved pause=$pause", moved && pause)
     }
 
     @Test
@@ -87,7 +124,7 @@ class LapPlayerScreenTest {
         compose.waitUntil(TIMEOUT) {
             compose.onAllNodesWithText("Add replay").fetchSemanticsNodes().isNotEmpty()
         }
-        compose.onNodeWithText("Add replay").performClick()
+        compose.onNodeWithText("Add replay").performScrollTo().performClick()
         compose.onNodeWithText("Files").assertExists()
         compose.onNodeWithText("PlayStation App").assertExists()
         compose.onNodeWithText("Pick a video from this phone").assertExists()

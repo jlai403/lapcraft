@@ -174,6 +174,7 @@ internal fun PlaybackFooter(
     frameNumber: Int? = null,
     frameTotal: Int? = null,
     markersMs: List<Long> = emptyList(),
+    frameSteps: Boolean = true,
 ) {
     Column(
         modifier = Modifier
@@ -198,6 +199,7 @@ internal fun PlaybackFooter(
                     onPlayPause = onPlayPause,
                     onForward = onForward,
                     onStep = onStep,
+                    showSteps = frameSteps,
                 )
                 FrameRuler(
                     valueMs = cursorMs.toLong(),
@@ -296,6 +298,7 @@ internal fun PlaybackFooter(
                         onPlayPause = onPlayPause,
                         onForward = onForward,
                         onStep = onStep,
+                        showSteps = frameSteps,
                     )
                 }
             }
@@ -313,21 +316,24 @@ private fun TransportControls(
     onForward: () -> Unit,
     onStep: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    showSteps: Boolean = true,
 ) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        StepButton(
-            text = "−1",
-            onClick = { onStep(-1) },
-            enabled = enabled,
-            hapticsEnabled = hapticsEnabled,
-            compact = true,
-            description = "Step back one frame",
-            modifier = Modifier.testTag("frame-back"),
-        )
+        if (showSteps) {
+            StepButton(
+                text = "−1",
+                onClick = { onStep(-1) },
+                enabled = enabled,
+                hapticsEnabled = hapticsEnabled,
+                compact = true,
+                description = "Step back one frame",
+                modifier = Modifier.testTag("frame-back"),
+            )
+        }
         TransportButton(
             icon = TransportIcons.SkipPrevious,
             description = "Previous brake point",
@@ -353,15 +359,17 @@ private fun TransportControls(
             size = 36.dp,
             iconSize = 20.dp,
         )
-        StepButton(
-            text = "+1",
-            onClick = { onStep(1) },
-            enabled = enabled,
-            hapticsEnabled = hapticsEnabled,
-            compact = true,
-            description = "Step forward one frame",
-            modifier = Modifier.testTag("frame-forward"),
-        )
+        if (showSteps) {
+            StepButton(
+                text = "+1",
+                onClick = { onStep(1) },
+                enabled = enabled,
+                hapticsEnabled = hapticsEnabled,
+                compact = true,
+                description = "Step forward one frame",
+                modifier = Modifier.testTag("frame-forward"),
+            )
+        }
     }
 }
 
