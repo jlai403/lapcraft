@@ -51,7 +51,7 @@ The launcher icon is an illustrated mascot on an orange disc. It stays on the la
 
 - Adaptive icon: a full-bleed foreground over `#0D1114`, plus a vector monochrome layer (`drawable/ic_launcher_monochrome`) for Android 13 themed icons.
 - Status bar: `drawable/ic_stat_lapcraft`, a 24 dp white trace, which the telemetry notification sets as its small icon.
-- `Theme.LapCraft` paints the launch window and the API 31 splash with `#0D1114`, so cold start matches `Ink`.
+- `Theme.LapCraft` paints the launch window and the splash background `#0D1114`. The API 31 splash draws `drawable/splash_icon`, generated at 288 dp for every density from `docs/branding/launcher-icon-master.jpg`, so it is not upscaled from the 108 dp adaptive icon.
 
 ## Typography
 

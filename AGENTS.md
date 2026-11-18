@@ -25,7 +25,7 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
 ## Key conventions
 
 - Telemetry-only: no screen capture, MediaProjection, phone audio, Remote Play, or burned-in overlays.
-- Launcher icon: adaptive `mipmap-anydpi-v26/ic_launcher*.xml` (full-bleed foreground over `#0D1114`, vector monochrome layer in `drawable/ic_launcher_monochrome.xml`) plus legacy PNGs; master art and the 512 px store icon live in `docs/branding/`. The status bar glyph is `drawable/ic_stat_lapcraft.xml`, and `Theme.LapCraft` (`values/themes.xml`, `values-v31/themes.xml`) paints the window and splash `#0D1114`.
+- Launcher icon: adaptive `mipmap-anydpi-v26/ic_launcher*.xml` (full-bleed foreground over `#0D1114`, vector monochrome layer in `drawable/ic_launcher_monochrome.xml`) plus legacy PNGs; master art and the 512 px store icon live in `docs/branding/`. The status bar glyph is `drawable/ic_stat_lapcraft.xml`, and `Theme.LapCraft` (`values/themes.xml`, `values-v31/themes.xml`) paints the window and splash `#0D1114`. The API 31 splash uses `drawable-*/splash_icon.webp`, generated at 288 dp by `tools/generate-splash-icon.py` from `docs/branding/launcher-icon-master.jpg`; regenerate it when the master changes.
 - The PS5 IPv4 address is edited only in Settings. Record reads the saved address, and its `Connect` pill reads `Set address` (opens Settings) when none is set. Stream failures and packets from another host render in one `WarningBanner` above the cards.
 - Local-first: no accounts, analytics, or background cloud calls.
 - `PacketAParser` reads the steering wheel angle from packet B/C at `0x128` and stores it in `Sample.steering` as `-1..1` (+ = left); packet A has none.
