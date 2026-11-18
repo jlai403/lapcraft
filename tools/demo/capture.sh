@@ -42,6 +42,11 @@ swipe() { ui swipe "$1" --dx "$2" --duration "$3"; }
 preflight() {
   local touch_value=0
   [[ "$TOUCHES" == on ]] && touch_value=1
+  if [[ -z "${ADB:-}" ]]; then
+    ADB="$(command -v adb || true)"
+    [[ -n "$ADB" ]] && export ADB
+  fi
+  run adb shell input keyevent 224
   run adb shell settings put system pointer_location 0
   run adb shell settings put system show_touches "$touch_value"
   run adb shell settings put global stay_awake 1
@@ -54,14 +59,14 @@ record_start() {
   local file="$BEATS/$1.mkv"
   log "recording $file"
   if (( DRY_RUN )); then
-    printf 'DRY scrcpy --record=%q --no-audio --max-fps=60 --bit-rate=80M\n' "$file"
+    printf 'DRY scrcpy --no-window --record=%q --no-audio --max-fps=60 --bit-rate=80M\n' "$file"
     pause 0.6
     return
   fi
   if [[ -n "$ADB_SERIAL" ]]; then
-    scrcpy --serial "$ADB_SERIAL" --record="$file" --no-audio --max-fps=60 --bit-rate=80M >/dev/null 2>&1 &
+    scrcpy --no-window --serial "$ADB_SERIAL" --record="$file" --no-audio --max-fps=60 --bit-rate=80M >/dev/null 2>&1 &
   else
-    scrcpy --record="$file" --no-audio --max-fps=60 --bit-rate=80M >/dev/null 2>&1 &
+    scrcpy --no-window --record="$file" --no-audio --max-fps=60 --bit-rate=80M >/dev/null 2>&1 &
   fi
   CAPTURE_PID=$!
   sleep 0.6

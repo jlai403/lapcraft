@@ -19,7 +19,9 @@ sudo pacman -S android-tools
 
 Python 3 is the only other requirement. The helper uses the standard library.
 
-A phone with adb access is needed for the takes. The development container has no USB path to the phone and no display, so no take can be recorded here. Both scripts have a `--dry-run` mode that prints every command without touching a device. Run the scripts through `mise exec --` unless your shell has `mise activate`, because they call `adb` and `scrcpy` from `PATH`.
+A phone with adb access is needed for the takes. `capture.sh` runs scrcpy with `--no-window`, so the recording machine needs no display. The phone screen must be on and unlocked: preflight wakes it, but a PIN or biometric lock has to be dismissed beforehand. `capture.sh` also exports `ADB` so a mise-installed scrcpy can find the system adb.
+
+The development container has no USB or network path to the phone, so no take can be recorded here. Both scripts have a `--dry-run` mode that prints every command without touching a device. Run the scripts through `mise exec --` unless your shell has `mise activate`, because they call `adb` and `scrcpy` from `PATH`.
 
 For a TCP/IP connection, enable Wireless debugging in Developer options, then pair and connect from the recording machine:
 
