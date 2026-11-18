@@ -1,6 +1,7 @@
 package io.github.jlai403.lapcraft.app.ui
 
 import android.content.Context
+import io.github.jlai403.lapcraft.core.events.EventTag
 import io.github.jlai403.lapcraft.core.lap.LapTimeSource
 import io.github.jlai403.lapcraft.core.model.Sample
 import io.github.jlai403.lapcraft.core.session.LapId
@@ -23,6 +24,7 @@ object SessionFixtures {
         val withReplay: Boolean = true,
         val pendingSource: Boolean = false,
         val driverPsnId: String? = null,
+        val event: EventTag? = null,
     )
 
     // Backwards-compatible alias for tests that call SessionFixtures.session(...)
@@ -37,6 +39,7 @@ object SessionFixtures {
         withReplay: Boolean = true,
         pendingSource: Boolean = false,
         driverPsnId: String? = null,
+        event: EventTag? = null,
     ): SessionSpec = SessionSpec(
         id = id,
         trackLabel = trackLabel,
@@ -48,6 +51,7 @@ object SessionFixtures {
         withReplay = withReplay,
         pendingSource = pendingSource,
         driverPsnId = driverPsnId,
+        event = event,
     )
 
     fun install(context: Context, metadata: SessionSpec) {
@@ -72,6 +76,7 @@ object SessionFixtures {
             )
             store.save(lapId, record)
             store.writeSamples(lapId, samplesFor(startNanos, endNanos, lapTime))
+            metadata.event?.let { store.setEvent(lapId, it) }
             val dir = store.lapDir(lapId)
             if (metadata.withReplay && !metadata.needsCut) {
                 File(dir, "replay.mp4").writeText("video")

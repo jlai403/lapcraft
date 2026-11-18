@@ -2,6 +2,7 @@ package io.github.jlai403.lapcraft.app.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -206,26 +208,37 @@ fun SegmentedChoice(
     selectedIndex: Int,
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    scrollable: Boolean = false,
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.surfaceVariant)
+            .then(
+                if (scrollable) {
+                    Modifier.horizontalScroll(rememberScrollState())
+                } else {
+                    Modifier
+                },
+            )
             .padding(4.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         options.forEachIndexed { index, label ->
             val selected = index == selectedIndex
+            val segment = Modifier
+                .clip(CircleShape)
+                .background(
+                    if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                )
+                .clickable { onSelect(index) }
+                .padding(
+                    vertical = 10.dp,
+                    horizontal = if (scrollable) 14.dp else 0.dp,
+                )
             Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .clip(CircleShape)
-                    .background(
-                        if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
-                    )
-                    .clickable { onSelect(index) }
-                    .padding(vertical = 10.dp),
+                modifier = if (scrollable) segment else Modifier.weight(1f).then(segment),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(

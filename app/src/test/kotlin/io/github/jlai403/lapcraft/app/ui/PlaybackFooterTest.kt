@@ -110,4 +110,40 @@ class PlaybackFooterTest {
         assertEquals(1, loops)
         assertEquals(1.5f, speed)
     }
+
+    @Test
+    fun `frame steps disappear without a clip`() {
+        compose.setContent {
+            LapCraftTheme {
+                PlaybackFooter(
+                    cursorMs = 1_000,
+                    endMs = 90_000,
+                    frameStepMs = 16,
+                    enabled = true,
+                    playing = false,
+                    looping = false,
+                    speed = 1f,
+                    events = emptyList(),
+                    hapticsEnabled = false,
+                    onScrubStart = {},
+                    onScrub = {},
+                    onScrubEnd = {},
+                    onSeekFraction = {},
+                    onRewind = {},
+                    onPlayPause = {},
+                    onForward = {},
+                    onToggleLoop = {},
+                    onSpeedChange = {},
+                    onStep = {},
+                    frameSteps = false,
+                )
+            }
+        }
+
+        compose.onNodeWithContentDescription("Play").assertExists()
+        compose.onNodeWithContentDescription("Step back one frame").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Step forward one frame").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Previous brake point").assertExists()
+        compose.onNodeWithText("Loop").assertExists()
+    }
 }

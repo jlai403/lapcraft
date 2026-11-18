@@ -44,6 +44,7 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -179,6 +180,7 @@ fun LapPlayerScreen(
 
     val lapDir = store.lapDir(lapId)
     val videoFile = File(lapDir, "replay.mp4").takeIf { it.isFile }
+    val hasClip = videoFile != null
     val player = remember(lapId) {
         ExoPlayer.Builder(context).build().apply {
             setSeekParameters(SeekParameters.EXACT)
@@ -189,10 +191,11 @@ fun LapPlayerScreen(
     }
 
     var positionMs by remember { mutableLongStateOf(0L) }
+    var clockMs by remember(lapId) { mutableLongStateOf(0L) }
     var renderedUs by remember { mutableLongStateOf(-1L) }
     var durationMs by remember { mutableLongStateOf(0L) }
-    var frameStepMs by remember { mutableLongStateOf(33L) }
-    var frameDurationUs by remember { mutableLongStateOf(33_000L) }
+    var frameStepMs by remember { mutableLongStateOf(if (hasClip) 33L else 16L) }
+    var frameDurationUs by remember { mutableLongStateOf(if (hasClip) 33_000L else 16_667L) }
     var frameTimeline by remember { mutableStateOf<FrameTimeline?>(null) }
     var scrubBaseUs by remember { mutableLongStateOf(0L) }
     var message by remember { mutableStateOf<String?>(null) }
@@ -226,14 +229,41 @@ fun LapPlayerScreen(
     }
 
     fun seekClip(targetMs: Long) {
-        applySeek(targetMs)
-        player.pause()
+        if (hasClip) {
+            applySeek(targetMs)
+            player.pause()
+        } else {
+            clockMs = targetMs.coerceIn(0L, (lap?.lapTimeMs ?: 0).toLong())
+            playing = false
+        }
         scrubTargetMs = null
         scrubSeeker.clearPending()
     }
 
     LaunchedEffect(playbackSpeed) {
         player.setPlaybackSpeed(playbackSpeed)
+    }
+    LaunchedEffect(playing, hasClip, playbackSpeed, looping, lap?.lapTimeMs) {
+        if (hasClip || !playing) return@LaunchedEffect
+        val active = lap ?: return@LaunchedEffect
+        val end = active.lapTimeMs.toLong()
+        var last = withFrameNanos { it } / 1_000_000L
+        while (playing) {
+            val now = withFrameNanos { it } / 1_000_000L
+            val delta = now - last
+            last = now
+            if (delta > 0) {
+                clockMs += (delta * playbackSpeed).toLong()
+                if (clockMs >= end) {
+                    if (looping) {
+                        clockMs = 0L
+                    } else {
+                        clockMs = end
+                        playing = false
+                    }
+                }
+            }
+        }
     }
     LaunchedEffect(looping) {
         player.repeatMode = if (looping) Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF
@@ -342,15 +372,20 @@ fun LapPlayerScreen(
     fun seekLap(targetMs: Long) {
         val active = lap ?: return
         val clamped = targetMs.coerceIn(0L, active.lapTimeMs.toLong())
-        seekClip(LapClock.forTrimmedLap(active.leadInMs, active.lapTimeMs).clipMs(clamped.toInt()))
+        if (hasClip) {
+            seekClip(LapClock.forTrimmedLap(active.leadInMs, active.lapTimeMs).clipMs(clamped.toInt()))
+        } else {
+            seekClip(clamped)
+        }
     }
 
     val displayedUs = scrubTargetMs?.times(1_000)
-        ?: if (renderedUs >= 0) renderedUs else positionMs * 1_000
+        ?: if (hasClip && renderedUs >= 0) renderedUs else (if (hasClip) positionMs else clockMs) * 1_000
     val displayedMs = scrubTargetMs
-        ?: if (renderedUs >= 0) renderedUs / 1_000 else positionMs
+        ?: if (hasClip && renderedUs >= 0) renderedUs / 1_000 else (if (hasClip) positionMs else clockMs)
     val cursorMs = lap?.let {
-        LapClock.forTrimmedLap(it.leadInMs, it.lapTimeMs).telemetryMs(displayedMs)
+        if (hasClip) LapClock.forTrimmedLap(it.leadInMs, it.lapTimeMs).telemetryMs(displayedMs)
+        else displayedMs.toInt()
     } ?: 0
 
     fun stepFrames(frames: Int) {
@@ -377,6 +412,10 @@ fun LapPlayerScreen(
 
     fun scrubTarget(baseUs: Long, frames: Int): Long? {
         val active = lap ?: return null
+        if (!hasClip) {
+            val target = frameStepMs(baseUs, frames, frameDurationUs, null)
+            return target.coerceIn(0L, active.lapTimeMs.toLong())
+        }
         val startMs = LapClock.forTrimmedLap(active.leadInMs, active.lapTimeMs).clipMs(0)
             .coerceAtLeast(0)
         val endMs = LapClock.forTrimmedLap(active.leadInMs, active.lapTimeMs).clipMs(active.lapTimeMs)
@@ -516,7 +555,7 @@ fun LapPlayerScreen(
                 .padding(top = 14.dp, bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            if (videoFile != null) {
+            if (hasClip) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -548,35 +587,6 @@ fun LapPlayerScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                }
-            } else {
-                SectionCard(title = "Replay") {
-                    if (File(store.lapDir(lapId), "source.mp4").isFile) {
-                        Text(
-                            "Clip imported — sync not finished",
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                        PrimaryPill(
-                            text = "Resume sync",
-                            onClick = { onImportSync(null) },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    } else {
-                        Text("No replay attached", style = MaterialTheme.typography.titleLarge)
-                        Text(
-                            "Record the single-lap replay on the PS5, upload it to the PS App, " +
-                                "then add it here.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        ReplaySourcePill(
-                            text = "Add replay",
-                            primary = true,
-                            onFiles = { importLauncher.launch(arrayOf("video/*")) },
-                            onPlayStation = { openPlayStationApp() },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
                 }
             }
 
@@ -634,54 +644,94 @@ fun LapPlayerScreen(
                 )
             }
 
+            if (!hasClip) {
+                SectionCard(title = "Replay") {
+                    if (File(store.lapDir(lapId), "source.mp4").isFile) {
+                        Text(
+                            "Clip imported — sync not finished",
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        PrimaryPill(
+                            text = "Resume sync",
+                            onClick = { onImportSync(null) },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    } else {
+                        Text("No replay attached", style = MaterialTheme.typography.titleLarge)
+                        Text(
+                            "Telemetry plays without one. Record the single-lap replay on the " +
+                                "PS5, upload it to the PS App, then add it here.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        ReplaySourcePill(
+                            text = "Add replay",
+                            primary = true,
+                            onFiles = { importLauncher.launch(arrayOf("video/*")) },
+                            onPlayStation = { openPlayStationApp() },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
+            }
+
             Spacer(Modifier.padding(bottom = 8.dp))
         }
 
-        if (videoFile != null) {
-            PlaybackFooter(
-                cursorMs = cursorMs,
-                endMs = currentLap.lapTimeMs,
-                frameStepMs = frameStepMs,
-                enabled = durationMs > 0,
-                playing = playing,
-                looping = looping,
-                speed = playbackSpeed,
-                events = events,
-                hapticsEnabled = settings.hapticsEnabled,
-                onScrubStart = {
-                    scrubBaseUs = displayedUs
-                    scrubTargetMs = null
-                    scrubbing = true
-                    player.pause()
-                },
-                onScrub = { frames ->
-                    scrubTarget(scrubBaseUs, frames)?.let { target ->
-                        scrubTargetMs = target
-                        scrubSeeker.submit(target)
-                    }
-                },
-                onScrubEnd = {
-                    scrubbing = false
-                    scrubTargetMs?.let { seekClip(it) }
-                },
-                onSeekFraction = { fraction ->
-                    seekLap((fraction * currentLap.lapTimeMs).roundToLong())
-                },
-                onRewind = { seekBrake(-1) },
-                onPlayPause = {
+        PlaybackFooter(
+            cursorMs = cursorMs,
+            endMs = currentLap.lapTimeMs,
+            frameStepMs = frameStepMs,
+            enabled = if (hasClip) durationMs > 0 else true,
+            playing = playing,
+            looping = looping,
+            speed = playbackSpeed,
+            events = events,
+            hapticsEnabled = settings.hapticsEnabled,
+            frameSteps = hasClip,
+            onScrubStart = {
+                scrubBaseUs = displayedUs
+                scrubTargetMs = null
+                scrubbing = true
+                playing = false
+                player.pause()
+            },
+            onScrub = { frames ->
+                scrubTarget(scrubBaseUs, frames)?.let { target ->
+                    scrubTargetMs = target
+                    if (hasClip) scrubSeeker.submit(target)
+                }
+            },
+            onScrubEnd = {
+                scrubbing = false
+                scrubTargetMs?.let { seekClip(it) }
+            },
+            onSeekFraction = { fraction ->
+                seekLap((fraction * currentLap.lapTimeMs).roundToLong())
+            },
+            onRewind = { seekBrake(-1) },
+            onPlayPause = {
+                if (hasClip) {
                     if (player.isPlaying) {
                         player.pause()
                     } else {
                         if (cursorMs >= currentLap.lapTimeMs) seekLap(0)
                         player.play()
                     }
-                },
-                onForward = { seekBrake(1) },
-                onToggleLoop = { looping = !looping },
-                onSpeedChange = { playbackSpeed = it },
-                onStep = { stepFrames(it) },
-            )
-        }
+                } else {
+                    if (playing) {
+                        playing = false
+                    } else {
+                        if (clockMs >= currentLap.lapTimeMs) clockMs = 0L
+                        playing = true
+                    }
+                }
+            },
+            onForward = { seekBrake(1) },
+            onToggleLoop = { looping = !looping },
+            onSpeedChange = { playbackSpeed = it },
+            onStep = { stepFrames(it) },
+        )
     }
 
     if (editing) {
