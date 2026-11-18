@@ -8,8 +8,8 @@ WORK="$TOOLS/.build"
 PY="$TOOLS/demo.py"
 FONTDIR="$ROOT/app/src/main/res/font"
 ICON="$ROOT/docs/branding/ic_launcher_playstore.png"
-PRE_ROLL=0.6
-TURN1_TRIM=4.8
+PRE_ROLL=0.5
+TURN1_TRIM=4.5
 DURATION=26
 
 CAPTIONS="$TOOLS/captions.srt"
@@ -34,13 +34,13 @@ layout_vars() {
   if [[ "$LAYOUT" == tall ]]; then
     W=1080
     H=1920
-    PORTRAIT_SCALE="-2:1600"
+    PORTRAIT_SCALE="-2:1400"
     LANDSCAPE_SCALE="1000:-2"
     CAPTION_FONT=54
     LANDSCAPE_FONT=44
     MARGIN=48
-    CAPTION_ALIGN=8
-    CAPTION_MARGINV=230
+    CAPTION_ALIGN=2
+    CAPTION_MARGINV=90
     CHAPTER_MARGINV=70
     ICON_SIZE=440
     TITLE_SIZE=96
@@ -75,22 +75,29 @@ segment() {
   local take="$BEATS/$take_name.mkv"
   [[ -f "$take" || $DRY_RUN -eq 1 ]] || die "missing $take, run capture.sh first"
 
-  local scale font_size margin
+  local scale font_size margin align margin_v
   if [[ "$layout" == landscape ]]; then
     scale="$LANDSCAPE_SCALE"
     font_size="$LANDSCAPE_FONT"
     margin="$MARGIN"
+    # The landscape stage fills the height, so its caption sits underneath
+    # instead of in the side gutter, where it would run onto the frame.
+    align=1
+    margin_v=90
+    [[ "$LAYOUT" == tall ]] && align=2
   else
     scale="$PORTRAIT_SCALE"
     font_size="$CAPTION_FONT"
     margin="$MARGIN"
+    align="$CAPTION_ALIGN"
+    margin_v="$CAPTION_MARGINV"
   fi
 
   local srt="$WORK/$name.srt"
   run python3 "$PY" slice-srt "$CAPTIONS" "$start" "$length" "$srt" \
     --font-size "$font_size" --margin "$margin" --chapter "$label" \
-    --width "$W" --height "$H" --align "$CAPTION_ALIGN" \
-    --margin-v "$CAPTION_MARGINV" --chapter-margin "$CHAPTER_MARGINV"
+    --width "$W" --height "$H" --align "$align" \
+    --margin-v "$margin_v" --chapter-margin "$CHAPTER_MARGINV"
   local ass="$WORK/$name.ass"
 
   local fg
@@ -115,6 +122,23 @@ segment() {
   run ffmpeg -y -i "$take" -filter_complex "$filter" -map '[out]' \
     -c:v libx264 -crf 18 -preset medium -pix_fmt yuv420p -an "$WORK/$name.mp4"
   printf "file '%s'\n" "$WORK/$name.mp4" >> "$WORK/list.txt"
+}
+
+compare_trim() {
+  local take="$BEATS/04.mkv" cut
+  if (( DRY_RUN )) || [[ ! -f "$take" ]]; then
+    printf '%s' "$PRE_ROLL"
+    return
+  fi
+  cut="$(ffmpeg -v info -i "$take" -vf "select='gt(scene,0.25)',showinfo" -an -f null - 2>&1 |
+    grep -oE 'pts_time:[0-9.]+' | head -1 | cut -d: -f2)"
+  if [[ -z "$cut" ]]; then
+    log "no tab switch found in 04, using $PRE_ROLL"
+    printf '%s' "$PRE_ROLL"
+    return
+  fi
+  # Four seconds of replay before the cut to the telemetry tab.
+  awk -v cut="$cut" 'BEGIN { t = cut - 4.0; if (t < 0) t = 0; printf "%.3f", t }'
 }
 
 hero() {
@@ -164,7 +188,7 @@ hero
 segment 01 01 2 5 portrait "01 CAPTURE"
 segment 02 02 7 4 portrait "02 REPLAY"
 segment 02 03 11 6 portrait "03 ANALYZE" "$TURN1_TRIM"
-segment 04 04 17 9 landscape "04 COMPARE"
+segment 04 04 17 9 landscape "04 COMPARE" "$(compare_trim)"
 
 run ffmpeg -y -f concat -safe 0 -i "$WORK/list.txt" -c copy "$WORK/joined.mp4"
 

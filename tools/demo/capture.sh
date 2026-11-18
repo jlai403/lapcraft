@@ -10,7 +10,7 @@ BEAT=""
 DRY_RUN=0
 TOUCHES_REQUESTED=""
 LAP="1:36.131"
-REFERENCE="1:35.842"
+REFERENCE="1:34.208"
 ADB_SERIAL=""
 
 log() { printf '%s\n' "$*"; }
@@ -56,11 +56,14 @@ ensure_chrome() {
   fi
   if chrome_visible; then return; fi
   local attempt
-  for attempt in 1 2 3 4 5 6; do
+  for attempt in 1 2 3; do
     run adb shell input keyevent 4
     sleep 0.5
     if chrome_visible; then return; fi
   done
+  run adb shell am start -n io.github.jlai403.lapcraft/.app.MainActivity
+  sleep 1.0
+  if chrome_visible; then return; fi
   die "Lapcraft is not in the foreground"
 }
 
@@ -89,7 +92,7 @@ preflight() {
 
 beat_limit() {
   case "$1" in
-    02) echo 18 ;;
+    02|04) echo 14 ;;
     *) echo 12 ;;
   esac
 }
@@ -161,6 +164,20 @@ ensure_library() {
 
 scroll_to() {
   local pattern="$1" y1="${2:-1900}" y2="${3:-600}" attempt
+  local size w h rotation
+  size="$(adb shell wm size | sed 's/.*: //')"
+  w="${size%x*}"
+  h="${size#*x}"
+  rotation="$(adb shell settings get system user_rotation | tr -dc '0-9')"
+  rotation="${rotation:-0}"
+  local cx
+  if [[ "$rotation" == 1 || "$rotation" == 3 ]]; then
+    y1=$(( h * 80 / 100 ))
+    y2=$(( h * 25 / 100 ))
+    cx=$(( h / 2 ))
+  else
+    cx=$(( w / 2 ))
+  fi
   if (( DRY_RUN )); then
     printf 'DRY scroll to %s\n' "$pattern"
     return
@@ -168,7 +185,7 @@ scroll_to() {
   for attempt in 1 2 3 4 5 6; do
     if python3 "$PY" wait "$pattern" --timeout 1 >/dev/null 2>&1; then return; fi
     log "scroll $attempt for $pattern"
-    run adb shell input swipe 540 "$y1" 540 "$y2" 500
+    run adb shell input swipe "$cx" "$y1" "$cx" "$y2" 500
     sleep 0.5
   done
   die "could not find $pattern after scrolling"
@@ -194,32 +211,114 @@ tap_if_present() {
   local pattern="$1"
   if (( DRY_RUN )); then
     printf 'DRY tap if present %s\n' "$pattern"
-    return
+    return 0
   fi
   if python3 "$PY" wait "$pattern" --timeout 1 >/dev/null 2>&1; then
     python3 "$PY" tap "$pattern"
-  else
-    log "no $pattern control, skipping"
+    return 0
   fi
+  return 1
 }
 
-pause_playback() {
+control_xy() {
   if (( DRY_RUN )); then
-    printf 'DRY pause playback\n'
+    printf '540 2306'
     return
   fi
-  if python3 "$PY" wait "^Pause$" --timeout 1 >/dev/null 2>&1; then
-    python3 "$PY" tap "^Pause$"
+  python3 "$PY" coords "$1" "${@:2}"
+}
+
+tap_xy() {
+  run adb shell input tap $1 $2
+}
+
+screen_hash() {
+  adb exec-out screencap -p | md5sum | cut -d' ' -f1
+}
+
+# Playback is confirmed by the picture changing, not by the play/pause label:
+# uiautomator dumps lag behind a tap and a stale label looks like a failed start,
+# which is what made the script tap Play a second time and pause the replay.
+screen_moving() {
+  local first second
+  first="$(screen_hash)"
+  sleep 0.6
+  second="$(screen_hash)"
+  [[ "$first" != "$second" ]]
+}
+
+ensure_playing() {
+  local attempt
+  for attempt in 1 2 3; do
+    if (( DRY_RUN )); then
+      printf 'DRY ensure playing\n'
+      return
+    fi
+    if screen_moving; then return; fi
+    log "playback still, tapping play (attempt $attempt)"
+    tap_if_present "^Play$" || log "no play control found"
+    sleep 0.4
+  done
+  die "playback did not start"
+}
+
+restart_app() {
+  if (( DRY_RUN )); then
+    printf 'DRY restart app\n'
+    return
   fi
+  run adb shell am force-stop io.github.jlai403.lapcraft
+  sleep 0.6
+  run adb shell am start -n io.github.jlai403.lapcraft/.app.MainActivity
+  sleep 2.0
+  ensure_chrome
+}
+
+set_rotation() {
+  local target="$1"
+  if (( DRY_RUN )); then
+    printf 'DRY rotate to %s\n' "$target"
+    return
+  fi
+  run adb shell settings put system accelerometer_rotation 0
+  run adb shell settings put system user_rotation "$target"
+  sleep 1.5
+}
+
+set_speed() {
+  local target="$1" attempt
+  if (( DRY_RUN )); then
+    printf 'DRY set speed %s\n' "$target"
+    return
+  fi
+  for attempt in 1 2 3; do
+    if python3 "$PY" wait "^$target$" --timeout 1 >/dev/null 2>&1; then return; fi
+    tap "^\\+$"
+    sleep 0.4
+  done
+  die "could not set playback speed to $target"
+}
+
+ensure_streaming() {
+  if (( DRY_RUN )); then
+    printf 'DRY ensure streaming\n'
+    return
+  fi
+  if python3 "$PY" wait "^Streaming$" --timeout 1 >/dev/null 2>&1; then return; fi
+  tap_if_present "^(Connect|Disconnect)$" || true
+  if python3 "$PY" wait "^Streaming$" --timeout 8 >/dev/null 2>&1; then return; fi
+  die "GT7 is not sending telemetry: start a race or time trial on the PS5, then rerun --beat 01"
 }
 
 beat_01() {
   if (( ! DRY_RUN )); then
+    set_rotation 0
     ensure_library
     wait_ui "packets/s" --timeout 5 || {
       tap "^Record$" --min-y 2000
       wait_ui "packets/s" --timeout 20
     }
+    ensure_streaming
   fi
   record_start 01
   pause 1.2
@@ -233,16 +332,17 @@ beat_01() {
 }
 
 beat_02() {
+  restart_app
+  set_rotation 0
   ensure_player
+  set_speed "2×"
+  local play_xy
+  play_xy="$(control_xy "^Play$")"
   record_start 02
-  pause 0.4
-  tap "^\\+$"
-  pause 0.3
-  tap "^\\+$"
-  pause 0.3
-  tap_if_present "^Play$"
-  pause 11.0
-  tap_if_present "^Pause$"
+  tap_xy $play_xy
+  ensure_playing
+  pause 4.0
+  tap_xy $play_xy
   pause 0.3
   swipe "Frame ruler" -200 900
   pause 2.0
@@ -252,24 +352,38 @@ beat_02() {
 }
 
 beat_04() {
+  restart_app
   ensure_player
   tap "^Compare$"
   wait_ui "Compare with"
-  local pattern
-  pattern="$(time_pattern "$REFERENCE")"
-  scroll_to "$pattern" 1400 700
-  tap_row "$pattern"
+  # Compare is landscape-only: on a portrait-locked display the screen is
+  # letterboxed into a scaled window and every tap lands somewhere else.
+  set_rotation 1
+  tap_row "$(time_pattern "$REFERENCE")"
   log "reference lap $REFERENCE selected"
   wait_ui "^Video$"
+  pause 2.0
+  local play_xy brake_xy telemetry_xy video_xy
+  play_xy="$(control_xy "^Play$")"
+  brake_xy="$(control_xy "Next brake point")"
+  telemetry_xy="$(control_xy "^Telemetry$")"
+  video_xy="$(control_xy "^Video$")"
+  # Lay out the map and charts once before the take: on a cold switch they take
+  # about two seconds to compose, which would land on the wrong frame.
+  tap_xy $telemetry_xy
+  pause 2.0
+  tap_xy $video_xy
+  pause 1.0
   record_start 04
-  pause 0.4
-  tap "Next brake point"
-  pause 0.8
-  tap_if_present "^Play$"
-  pause 6.0
-  tap_if_present "^Pause$"
+  tap_xy $brake_xy
   pause 0.5
+  tap_xy $play_xy
+  ensure_playing
+  pause 3.8
+  tap_xy $telemetry_xy
+  pause 5.0
   record_stop
+  set_rotation 0
 }
 
 usage() {

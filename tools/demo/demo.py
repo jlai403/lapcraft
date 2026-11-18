@@ -18,7 +18,10 @@ def adb(*args: str) -> str:
     binary = os.environ.get("ADB", "adb")
     serial = os.environ.get("ADB_SERIAL", "")
     command = [binary] + (["-s", serial] if serial else []) + list(args)
-    return subprocess.check_output(command, text=True).strip()
+    result = subprocess.run(command, capture_output=True, text=True, timeout=15)
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr.strip() or "adb failed")
+    return result.stdout.strip()
 
 
 def bounds(node: ET.Element) -> tuple[int, int, int, int]:
@@ -30,8 +33,14 @@ def bounds(node: ET.Element) -> tuple[int, int, int, int]:
 
 
 def find(pattern: str, min_y: int = 0, row: bool = False) -> list[ET.Element]:
-    adb("shell", "uiautomator", "dump", DUMP_PATH)
-    root = ET.fromstring(adb("exec-out", "cat", DUMP_PATH))
+    try:
+        adb("shell", "rm", "-f", DUMP_PATH)
+        output = adb("shell", "uiautomator", "dump", DUMP_PATH)
+        if "ERROR" in output:
+            return []
+        root = ET.fromstring(adb("exec-out", "cat", DUMP_PATH))
+    except (subprocess.TimeoutExpired, RuntimeError, ET.ParseError):
+        return []
     parents = {child: parent for parent in root.iter() for child in parent}
     hits = []
     for node in root.iter("node"):
@@ -75,6 +84,11 @@ def tap(pattern: str, min_y: int = 0, row: bool = False) -> None:
     x, y = (x1 + x2) // 2, (y1 + y2) // 2
     adb("shell", "input", "tap", str(x), str(y))
     print(f"tap {x},{y}")
+
+
+def coords(pattern: str, min_y: int = 0, row: bool = False) -> None:
+    x1, y1, x2, y2 = bounds(target(pattern, min_y, row))
+    print(f"{(x1 + x2) // 2} {(y1 + y2) // 2}")
 
 
 def swipe(pattern: str, dx: int, duration: int, min_y: int = 0) -> None:
@@ -234,6 +248,11 @@ def main() -> None:
     tap_cmd.add_argument("--min-y", type=int, default=0)
     tap_cmd.add_argument("--row", action="store_true", help="tap the clickable ancestor row")
 
+    coords_cmd = commands.add_parser("coords", help="print the centre of a UI node")
+    coords_cmd.add_argument("pattern")
+    coords_cmd.add_argument("--min-y", type=int, default=0)
+    coords_cmd.add_argument("--row", action="store_true")
+
     swipe_cmd = commands.add_parser("swipe", help="drag a UI node horizontally")
     swipe_cmd.add_argument("pattern")
     swipe_cmd.add_argument("--min-y", type=int, default=0)
@@ -261,6 +280,8 @@ def main() -> None:
         wait_for(args.pattern, args.timeout, args.min_y)
     elif args.command == "tap":
         tap(args.pattern, args.min_y, args.row)
+    elif args.command == "coords":
+        coords(args.pattern, args.min_y, args.row)
     elif args.command == "swipe":
         swipe(args.pattern, args.dx, args.duration, args.min_y)
     elif args.command == "dump":

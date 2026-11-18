@@ -1,8 +1,8 @@
 # Demo video kit
 
-Builds a 24 second showcase of LapCraft from scripted takes. The app itself is not modified.
+Builds a 26 second showcase of LapCraft from scripted takes. The app itself is not modified.
 
-The four pillars are capture, replay, analyze, and compare. See `shotlist.md` for the shot card of each beat. The captions in `captions.srt` are the source of truth. `conform.sh` slices them per beat into an SRT and a styled ASS, then burns the ASS into the master. The ASS pins 1920x1080 coordinates, Geist, and the left gutter. The same SRT can be uploaded as YouTube captions.
+The four pillars are capture, replay, analyze, and compare. See `shotlist.md` for the shot card of each beat. The captions in `captions.srt` are the source of truth. `conform.sh` slices them per beat into an SRT and a styled ASS, then burns the ASS into the master. The ASS pins canvas coordinates, Geist, and the left gutter. The same SRT can be uploaded as YouTube captions.
 
 ## Requirements
 
@@ -37,7 +37,7 @@ adb devices
 
 On Android 10 or older, run `adb tcpip 5555` over USB first, then `adb connect`. Pass the connected address with `--serial`, for example `mise exec -- ./tools/demo/capture.sh --beat 01 --serial 192.168.1.50:5555`. Use it whenever more than one device appears in `adb devices`, so scrcpy and the UI helper target the same phone.
 
-The two Suzuka laps tagged W47 must already be in the app, and both must have a replay clip. The console is connected for beat 01, but no lap is captured during the take.
+The two Suzuka laps tagged W47 must already be in the app, and both must have a replay clip. The primary is `1:36.131` and the reference is `1:34.208`, both from Daily Race C W47. Beat 01 needs a live stream: the script waits for the `Streaming` label on the Record screen and stops with an error when GT7 is not sending packets. Start a race or time trial on the PS5 first, or record only the playback beats with `--beat '02 04'`.
 
 ## Record the beats
 
@@ -49,31 +49,36 @@ mise exec -- ./tools/demo/capture.sh --beat all --dry-run
 mise exec -- ./tools/demo/capture.sh --beat all
 ```
 
-`--dry-run` prints the UI lookups and gestures instead of running them. `--touches on|off` overrides the default, which is on for beats 03 and 04 and off for the rest. `--lap` and `--reference` select laps by their exact on-screen times. The defaults are `1:36.131` for the primary and `1:35.842` for the reference. Change them if those laps are replaced.
+`--dry-run` prints the UI lookups and gestures instead of running them. `--touches on|off` overrides the default, which is on for beat 04 and off for the rest. `--lap` and `--reference` select laps by their exact on-screen times. The defaults are `1:36.131` for the primary and `1:34.208` for the reference. Change them if those laps are replaced.
 
-Taps are found through `uiautomator dump`, matching either UI text or a content description such as `Frame ruler` and `Next brake point`. Coordinates are read from the node bounds, so one script works on a phone and on an emulator at any density.
+Taps are found through `uiautomator dump`, matching either UI text or a content description such as `Frame ruler` and `Next brake point`. Coordinates are read from the node bounds, so one script works on a phone and on an emulator at any density. Every dump deletes the previous file first and is rejected when uiautomator reports an error, because a stale tree is what makes a scripted tap look like it missed.
 
-There is no manual picker step. Both laps already have clips. Beat 01 switches Library to Record and back. Beat 03 jumps to a brake point, plays for two seconds, then rewinds with the ruler. Beat 04 opens compare, picks the reference lap, jumps to a brake point, and scrubs through the corner.
+Playback is confirmed by the picture changing, not by the play/pause label: two screenshots are hashed 0.6 s apart, and Play is tapped again only when they match. Tapping on the label alone led to double taps that paused the replay a moment after it started.
 
-Record two or three takes per beat. Injected input has about 100 to 300 ms of jitter per command, so the pause and rewind will land a few frames off between runs. Keep the take where the rewind reads clearly.
+The compare screen is landscape only, so beat 04 pins the display with `user_rotation 1` before opening the reference and restores portrait afterwards. On a portrait-locked display the app is letterboxed into a scaled window and every landscape tap lands somewhere else. The Telemetry tab is also visited once before recording, since a cold switch takes about two seconds to lay out the map and the charts.
 
-Each take is saved to `tools/demo/beats/<beat>.mkv` with about 0.6 s of pre-roll. `conform.sh` trims that pre-roll.
+There is no manual picker step. Both laps already have clips. Beat 01 switches Library to Record and back. Beat 02 plays the primary lap at 2x from the start line for four seconds, pauses, then steps back through the corner with the ruler. Beat 04 picks the reference, jumps to the first brake point, plays for four seconds and switches to the Telemetry tab.
+
+Record two or three takes per beat. Injected input has about 100 to 300 ms of jitter per command, so the pause and the tab switch land a few frames off between runs. Keep the take where the rewind and the switch read clearly.
+
+Each take is saved to `tools/demo/beats/<beat>.mkv`. `conform.sh` trims the leading second of scrcpy start-up.
 
 ## Build the master
 
 ```sh
-mise exec -- ./tools/demo/conform.sh --dry-run
-mise exec -- ./tools/demo/conform.sh
-mise exec -- ./tools/demo/conform.sh --short --dry-run
-mise exec -- ./tools/demo/conform.sh --short
-mise exec -- ./tools/demo/conform.sh --music tools/demo/music.wav
+mise exec -- ./tools/demo/conform.sh --layout wide --dry-run
+mise exec -- ./tools/demo/conform.sh --layout wide
+mise exec -- ./tools/demo/conform.sh --layout tall
+mise exec -- ./tools/demo/conform.sh --layout wide --music tools/demo/music.wav
 ```
 
-Each beat is fitted to a dark blurred 1920 by 1080 backdrop with a phone shadow, hairline border, and a mint progress bar along the bottom. Portrait beats use a 1000 px tall device and 46 px Geist Medium captions in the left gutter. Beat 04 uses a 1200 px wide device and 32 px captions. Chapter labels are Geist Mono in the top-left. There is no end card; the master ends on the compare shot.
+`--layout wide` writes `master.mp4` at 1920 by 1080 for YouTube and the website. `--layout tall` writes `master-vertical.mp4` at 1080 by 1920 for the Play Store. Each beat is fitted to a dark blurred backdrop with a phone shadow, hairline border, and a mint progress bar along the bottom. Portrait beats use a device about 1000 px tall in the wide layout and 1400 px in the tall one, with Geist Medium captions in the side gutter on wide and under the device on tall. Beat 04 uses a landscape stage with its caption underneath the device. Chapter labels are Geist Mono in the top-left. There is no end card; the master ends on the compare shot.
+
+The compare segment is trimmed automatically: `conform.sh` finds the frame where beat 04 switches to the Telemetry tab and starts four seconds earlier, so the cut always shows four seconds of replay and five of telemetry. Beat 02 and its analysis share one take, cut at `TURN1_TRIM`.
 
 The audio track is silent unless `--music` is given. Speech and music are added in the edit, never recorded from the device.
 
-Intermediates are kept in `tools/demo/.build/` for debugging. `master.mp4` and `master-15s.mp4` are written to this directory.
+Intermediates are kept in `tools/demo/.build/` for debugging.
 
 ## Checks before publishing
 
