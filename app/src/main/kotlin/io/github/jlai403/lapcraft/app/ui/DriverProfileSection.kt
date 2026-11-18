@@ -213,7 +213,7 @@ internal fun DriverProfileSection(
         }
         val others = savedProfiles.filterNot { it.psnId.equals(profile?.psnId, ignoreCase = true) }
         if (others.isNotEmpty()) {
-            Text("Saved drivers", style = MaterialTheme.typography.titleMedium)
+            SectionLabel("Saved drivers")
             others.forEach { saved ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -280,12 +280,9 @@ internal fun DriverProfileSection(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+        SectionLabel("GT GridStats API key (optional)")
         Text(
-            "GT GridStats API key (optional)",
-            style = MaterialTheme.typography.titleMedium,
-        )
-        Text(
-            "Enables DR/SR and car names. Get one at gt-gridstats.com; stored only on this device.",
+            "Enables DR/SR and car names. Stored only on this device.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
