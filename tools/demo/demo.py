@@ -15,8 +15,9 @@ TIME = r"(\d{2}):(\d{2}):(\d{2}),(\d{3})"
 
 
 def adb(*args: str) -> str:
+    binary = os.environ.get("ADB", "adb")
     serial = os.environ.get("ADB_SERIAL", "")
-    command = ["adb"] + (["-s", serial] if serial else []) + list(args)
+    command = [binary] + (["-s", serial] if serial else []) + list(args)
     return subprocess.check_output(command, text=True).strip()
 
 

@@ -21,7 +21,7 @@ Python 3 is the only other requirement. The helper uses the standard library.
 
 Run `mise run demo:setup` after `mise install`. The ubi backend installs the scrcpy binary but not `scrcpy-server`, which scrcpy pushes to the phone at the start of every take. The task downloads the matching server file.
 
-A phone with adb access is needed for the takes. `capture.sh` runs scrcpy with `--no-window` and sets `SDL_VIDEODRIVER=dummy`, so the recording machine needs no display. The phone screen must be on and unlocked: preflight wakes it, but a PIN or biometric lock has to be dismissed beforehand. `capture.sh` also exports `ADB` so a mise-installed scrcpy can find the system adb.
+A phone with adb access is needed for the takes. `capture.sh` runs scrcpy with `--no-window` and sets `SDL_VIDEODRIVER=dummy`, so the recording machine needs no display. Preflight wakes the phone, dismisses a swipe-only keyguard, and launches Lapcraft if it is not already in front. A PIN or biometric lock still has to be dismissed beforehand. The console connection must be made on the Record screen before the run; launching the app does not restore it. `capture.sh` also exports `ADB` so a mise-installed scrcpy can find the system adb.
 
 For wireless adb, `adb mdns services` prints the current serial, such as `adb-55231FDCR008EW-AAt5uJ._adb-tls-connect._tcp`. That name stays stable across port changes, so it is a good value for `--serial`.
 

@@ -16,10 +16,11 @@ log() { printf '%s\n' "$*"; }
 die() { printf 'error: %s\n' "$*" >&2; exit 1; }
 
 adb() {
+  local binary="${ADB:-adb}"
   if [[ -n "$ADB_SERIAL" ]]; then
-    command adb -s "$ADB_SERIAL" "$@"
+    command "$binary" -s "$ADB_SERIAL" "$@"
   else
-    command adb "$@"
+    command "$binary" "$@"
   fi
 }
 
@@ -39,6 +40,21 @@ tap() { ui tap "$1"; }
 wait_ui() { ui wait "$1"; }
 swipe() { ui swipe "$1" --dx "$2" --duration "$3"; }
 
+ensure_chrome() {
+  if (( DRY_RUN )); then
+    printf 'DRY ensure app in foreground\n'
+    return
+  fi
+  if python3 "$PY" wait "^Record$" --timeout 2 >/dev/null 2>&1; then return; fi
+  local attempt
+  for attempt in 1 2 3 4; do
+    run adb shell input keyevent 4
+    sleep 0.4
+    if python3 "$PY" wait "^Record$" --timeout 1 >/dev/null 2>&1; then return; fi
+  done
+  die "Lapcraft is not in the foreground"
+}
+
 preflight() {
   local touch_value=0
   [[ "$TOUCHES" == on ]] && touch_value=1
@@ -48,6 +64,9 @@ preflight() {
   fi
   export SDL_VIDEODRIVER=dummy
   run adb shell input keyevent 224
+  run adb shell wm dismiss-keyguard
+  run adb shell am start -n io.github.jlai403.lapcraft/.app.MainActivity
+  ensure_chrome
   run adb shell settings put system pointer_location 0
   run adb shell settings put system show_touches "$touch_value"
   run adb shell settings put global stay_awake 1
@@ -127,8 +146,20 @@ pause_playback() {
   fi
 }
 
+ensure_record() {
+  if (( DRY_RUN )); then
+    printf 'DRY ensure Record screen\n'
+    ui wait "packets/s"
+    return
+  fi
+  tap "^Record$"
+  if ! python3 "$PY" wait "packets/s" --timeout 20 >/dev/null 2>&1; then
+    die "no telemetry on the Record screen. Connect to the console first."
+  fi
+}
+
 beat_01() {
-  wait_ui "packets/s"
+  ensure_record
   record_start 01
   pause 3.9
   tap "^Library$"
