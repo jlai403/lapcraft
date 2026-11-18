@@ -7,7 +7,7 @@ BEATS="$TOOLS/beats"
 WORK="$TOOLS/.build"
 PY="$TOOLS/demo.py"
 FONTDIR="$ROOT/app/src/main/res/font"
-ICON="$ROOT/docs/branding/ic_launcher_playstore.png"
+ICON="$ROOT/app/src/main/res/drawable-xxxhdpi/splash_icon.webp"
 PRE_ROLL=0.5
 TURN1_TRIM=4.5
 DURATION=26
@@ -151,10 +151,24 @@ hero() {
   local title_y="(h-text_h)/2+$TITLE_Y"
   local tag_y="(h-text_h)/2+$TAGLINE_Y"
   local icon_y="(H-h)/2+$ICON_Y"
+  local glow_cx=$(( W / 2 ))
+  local glow_cy=$(( H / 2 + ICON_Y ))
+  local glow_r=$(( ICON_SIZE * 135 / 100 ))
   local filter
-  filter="[0:v]scale=$ICON_SIZE:-1,format=rgba,split=2[icon][glowsrc];"
-  filter+="[glowsrc]scale=iw*1.4:ih*1.4,gblur=sigma=50,colorchannelmixer=aa=0.30[glow];"
-  filter+="[1:v][glow]overlay=(W-w)/2:$icon_y[gl];"
+  # The splash icon carries the artwork on transparency, so nothing square is
+  # left behind the icon. Its content fills the middle two thirds of the
+  # canvas, so crop that before scaling.
+  filter="[0:v]crop=iw*2/3:ih*2/3,scale=$ICON_SIZE:-1,format=rgba,split=2[icon][bloomsrc];"
+  filter+="[bloomsrc]scale=iw*1.15:ih*1.15,pad=iw+200:ih+200:100:100:color=0x00000000,"
+  filter+="gblur=sigma=34,colorchannelmixer=aa=0.24[bloom];"
+  # A round pool of accent light, so the halo cannot read as a square.
+  filter+="[1:v]split=2[base][radialsrc];"
+  filter+="[radialsrc]format=rgba,geq=r='52':g='211':b='153':"
+  filter+="a='255*0.14*pow(max(0,1-hypot(X-$glow_cx,Y-$glow_cy)/$glow_r),2)'[radglow];"
+  # Blur so the 8-bit ramp does not band across the dark backdrop.
+  filter+="[radglow]gblur=sigma=40[radial];"
+  filter+="[base][radial]overlay=0:0[lit];"
+  filter+="[lit][bloom]overlay=(W-w)/2:$icon_y[gl];"
   filter+="[gl][icon]overlay=(W-w)/2:$icon_y[withicon];"
   filter+="[withicon]drawtext=fontfile='$FONTDIR/geist_semibold.ttf':text='LapCraft':fontsize=$TITLE_SIZE:fontcolor=0xF8FAFC:x=(w-text_w)/2:y=$title_y:expansion=none,"
   filter+="drawtext=fontfile='$FONTDIR/geist_regular.ttf':text='Find the tenth.':fontsize=$TAGLINE_SIZE:fontcolor=0x94A3B8:x=(w-text_w)/2:y=$tag_y:expansion=none,"
