@@ -37,7 +37,11 @@ adb devices
 
 On Android 10 or older, run `adb tcpip 5555` over USB first, then `adb connect`. Pass the connected address with `--serial`, for example `mise exec -- ./tools/demo/capture.sh --beat 01 --serial 192.168.1.50:5555`. Use it whenever more than one device appears in `adb devices`, so scrcpy and the UI helper target the same phone.
 
-The two Suzuka laps tagged W47 must already be in the app, and both must have a replay clip. The primary is `1:36.131` and the reference is `1:34.208`, both from Daily Race C W47. Beat 01 needs a live stream: the script waits for the `Streaming` label on the Record screen and stops with an error when GT7 is not sending packets. Start a race or time trial on the PS5 first, or record only the playback beats with `--beat '02 04'`.
+The two Suzuka laps tagged W47 must already be in the app, and both must have a replay clip. The primary is `1:36.131` and the reference is `1:34.208`, both from Daily Race C W47.
+
+Beat 01 needs a live stream: the script waits for the `Streaming` label on the Record screen and stops with an error when GT7 is not sending packets. Start a race or time trial on the PS5 first, or record only the playback beats with `--beat '02 04'`.
+
+The last live capture take is archived at `tools/demo/legacy/capture-01.mp4`, cropped from the device panel of the earlier master. `conform.sh` uses it whenever `beats/01.mkv` is missing, so a fresh clone can rebuild both cuts without a console. A new take replaces it once `capture.sh --beat 01` succeeds.
 
 ## Record the beats
 
@@ -57,7 +61,7 @@ Playback is confirmed by the picture changing, not by the play/pause label: two 
 
 The compare screen is landscape only, so beat 04 pins the display with `user_rotation 1` before opening the reference and restores portrait afterwards. On a portrait-locked display the app is letterboxed into a scaled window and every landscape tap lands somewhere else. The Telemetry tab is also visited once before recording, since a cold switch takes about two seconds to lay out the map and the charts.
 
-There is no manual picker step. Both laps already have clips. Beat 01 switches Library to Record and back. Beat 02 plays the primary lap at 2x from the start line for four seconds, pauses, then steps back through the corner with the ruler. Beat 04 picks the reference, jumps to the first brake point, plays for four seconds and switches to the Telemetry tab.
+There is no manual picker step. Both laps already have clips. Beat 01 sits on the Record screen with a live stream. Beat 02 plays the primary lap at 2x from the start line for four seconds, pauses, then steps back through the corner with the ruler. Beat 04 picks the reference, jumps to the first brake point, plays for four seconds and switches to the Telemetry tab.
 
 Record two or three takes per beat. Injected input has about 100 to 300 ms of jitter per command, so the pause and the tab switch land a few frames off between runs. Keep the take where the rewind and the switch read clearly.
 

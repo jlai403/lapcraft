@@ -71,8 +71,14 @@ layout_vars() {
 }
 
 segment() {
-  local take_name="$1" name="$2" start="$3" length="$4" layout="$5" label="$6" trim="${7:-$PRE_ROLL}"
+  local take_name="$1" name="$2" start="$3" length="$4" layout="$5" label="$6"
   local take="$BEATS/$take_name.mkv"
+  local trim="${7:-$PRE_ROLL}"
+  if [[ ! -f "$take" && -f "$TOOLS/legacy/capture-$take_name.mp4" ]]; then
+    # Archived take: already framed on the device, no scrcpy pre-roll to drop.
+    take="$TOOLS/legacy/capture-$take_name.mp4"
+    [[ -n "${7:-}" ]] || trim=0
+  fi
   [[ -f "$take" || $DRY_RUN -eq 1 ]] || die "missing $take, run capture.sh first"
 
   local scale font_size margin align margin_v

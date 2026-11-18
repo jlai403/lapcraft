@@ -10,11 +10,7 @@ App icon over the near-black backdrop, the `LapCraft` wordmark, and `Find the te
 
 ## 01 Capture, 2 to 7
 
-| Time | Shot |
-|---|---|
-| 2 to 3.2 | Library with the W47 header and the laps. |
-| 3.2 to 5.2 | Record screen. `packets/s`, `GT7 lap`, speed, stream summary, Capture card. |
-| 5.2 to 7 | Back to the Library. |
+Record screen with a live stream: `Streaming`, `packets/s`, `GT7 lap`, speed, and the Capture card. The take is archived at `tools/demo/legacy/capture-01.mp4` because the live session no longer exists; `conform.sh` uses it when `beats/01.mkv` is absent.
 
 Caption `Capture telemetry from every hot lap.` runs from 2.3 to 6.0. Touches off.
 
