@@ -125,16 +125,21 @@ def ass_document(
     margin: int,
     chapter: str,
     length_ms: int,
+    width: int,
+    height: int,
+    align: int,
+    margin_v: int,
+    chapter_margin: int,
 ) -> str:
     caption_style = (
         "Style: Caption,Geist Medium,"
         f"{font_size},&H00FCFAF8,&H00FCFAF8,&H00000000,&H00000000,"
-        f"0,0,0,0,100,100,8,0,1,0,0,4,{margin},0,0,1"
+        f"0,0,0,0,100,100,8,0,1,0,0,{align},{margin},0,{margin_v},1"
     )
     chapter_style = (
         "Style: Chapter,Geist Mono Medium,20,&H00B0BEC5,&H00B0BEC5,"
         "&H00000000,&H00000000,0,0,0,0,100,100,2,0,1,0,0,7,"
-        f"{margin},0,54,1"
+        f"{margin},0,{chapter_margin},1"
     )
     number, _, label = chapter.partition(" ")
     chapter_text = "{\\c&H0099D334&}" + number + "{\\c&H00B0BEC5&}"
@@ -144,8 +149,8 @@ def ass_document(
     lines = [
         "[Script Info]",
         "ScriptType: v4.00+",
-        "PlayResX: 1920",
-        "PlayResY: 1080",
+        f"PlayResX: {width}",
+        f"PlayResY: {height}",
         "WrapStyle: 2",
         "ScaledBorderAndShadow: no",
         "",
@@ -175,6 +180,11 @@ def slice_srt(
     font_size: int,
     margin: int,
     chapter: str,
+    width: int,
+    height: int,
+    align: int,
+    margin_v: int,
+    chapter_margin: int,
 ) -> None:
     start_ms = round(start * 1000)
     end_ms = start_ms + round(duration * 1000)
@@ -201,7 +211,10 @@ def slice_srt(
     )
     ass = out.with_suffix(".ass")
     ass.write_text(
-        ass_document(cues, font_size, margin, chapter, round(duration * 1000)),
+        ass_document(
+            cues, font_size, margin, chapter, round(duration * 1000),
+            width, height, align, margin_v, chapter_margin,
+        ),
         encoding="utf-8",
     )
     print(f"wrote {out} and {ass} with {len(cues)} cue(s)")
@@ -237,6 +250,11 @@ def main() -> None:
     cut.add_argument("--font-size", type=int, default=44)
     cut.add_argument("--margin", type=int, default=80)
     cut.add_argument("--chapter", default="01 CAPTURE")
+    cut.add_argument("--width", type=int, default=1920)
+    cut.add_argument("--height", type=int, default=1080)
+    cut.add_argument("--align", type=int, default=4)
+    cut.add_argument("--margin-v", type=int, default=0)
+    cut.add_argument("--chapter-margin", type=int, default=54)
 
     args = parser.parse_args()
     if args.command == "wait":
@@ -252,6 +270,7 @@ def main() -> None:
         slice_srt(
             args.source, args.start, args.duration, args.out,
             args.font_size, args.margin, args.chapter,
+            args.width, args.height, args.align, args.margin_v, args.chapter_margin,
         )
 
 

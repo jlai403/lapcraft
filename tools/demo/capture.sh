@@ -89,7 +89,7 @@ preflight() {
 
 beat_limit() {
   case "$1" in
-    02) echo 7 ;;
+    02) echo 18 ;;
     *) echo 12 ;;
   esac
 }
@@ -236,23 +236,18 @@ beat_02() {
   ensure_player
   record_start 02
   pause 0.4
+  tap "^\\+$"
+  pause 0.3
+  tap "^\\+$"
+  pause 0.3
   tap_if_present "^Play$"
-  pause 2.0
+  pause 11.0
   tap_if_present "^Pause$"
-  pause 1.6
-  record_stop
-}
-
-beat_03() {
-  ensure_player
-  record_start 03
-  pause 0.4
-  tap "Next brake point"
-  pause 0.6
-  swipe "Frame ruler" -160 900
-  pause 2.5
-  swipe "Frame ruler" -120 600
-  pause 2.5
+  pause 0.3
+  swipe "Frame ruler" -200 900
+  pause 2.0
+  swipe "Frame ruler" -140 700
+  pause 2.0
   record_stop
 }
 
@@ -269,17 +264,17 @@ beat_04() {
   record_start 04
   pause 0.4
   tap "Next brake point"
-  pause 0.6
-  swipe "Frame ruler" -200 900
-  pause 2.5
-  swipe "Frame ruler" -120 700
-  pause 2.5
+  pause 0.8
+  tap_if_present "^Play$"
+  pause 6.0
+  tap_if_present "^Pause$"
+  pause 0.5
   record_stop
 }
 
 usage() {
-  log "usage: capture.sh --beat 01|02|03|04|all [--touches on|off] [--lap '1:36.131'] [--reference '1:35.842'] [--serial ip:port] [--dry-run]"
-  log "beats: 01 Library and Record, 02 lap, 03 brake point and ruler, 04 compare"
+  log "usage: capture.sh --beat 01|02|04|all [--touches on|off] [--lap '1:36.131'] [--reference '1:35.842'] [--serial ip:port] [--dry-run]"
+  log "beats: 01 Library and Record, 02 2x replay and ruler, 04 compare turn 1 to turn 2"
 }
 
 while (( $# > 0 )); do
@@ -296,7 +291,7 @@ while (( $# > 0 )); do
 done
 
 [[ -n "$BEAT" ]] || { usage; die "missing --beat"; }
-if [[ "$BEAT" == all ]]; then BEAT="01 02 03 04"; fi
+if [[ "$BEAT" == all ]]; then BEAT="01 02 04"; fi
 export ADB_SERIAL
 
 if (( ! DRY_RUN )); then
@@ -306,7 +301,7 @@ if (( ! DRY_RUN )); then
 fi
 
 for beat in $BEAT; do
-  [[ "$beat" == 01 || "$beat" == 02 || "$beat" == 03 || "$beat" == 04 ]] ||
+  [[ "$beat" == 01 || "$beat" == 02 || "$beat" == 04 ]] ||
     die "unknown beat $beat"
 done
 
