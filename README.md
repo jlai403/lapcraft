@@ -4,6 +4,12 @@ Android telemetry and synchronized replay for Gran Turismo 7. Capture one lap of
 
 **Status:** v0.2 development. Telemetry-only capture, replay import, frame-step sync, and lap review are implemented. On-device verification is pending.
 
+## Demo
+
+https://github.com/user-attachments/assets/e616998d-5f0e-4135-b3c8-54d89e909675
+
+A 26 second cut of the lap workflow, without voice. The portrait version for the Play Store is [master-vertical.mp4](tools/demo/master-vertical.mp4). Both cuts are built by the kit in [tools/demo](tools/demo/README.md).
+
 ## Documents
 
 - [Product and technical spec](docs/specs/2026-11-10-lapcraft.md)
