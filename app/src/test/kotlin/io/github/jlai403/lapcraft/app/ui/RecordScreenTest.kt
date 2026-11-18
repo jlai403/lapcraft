@@ -177,7 +177,7 @@ class RecordScreenTest {
             ),
         )
 
-        compose.onNodeWithText("Packets are arriving from", substring = true).assertExists()
+        compose.onNodeWithText("Packets come from", substring = true).assertExists()
     }
 
     @Test

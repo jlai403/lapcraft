@@ -73,7 +73,7 @@ fun presetCaption(preset: ReplayPreset): String = when (preset) {
     ReplayPreset.Original ->
         "Stores the trimmed clip as-is. Largest files, no quality loss, slowest scrubbing."
     ReplayPreset.Balanced ->
-        "1080p HEVC ~5 Mbps at 60 fps. Replays ~50% smaller with near-original detail and faster scrubbing."
+        "1080p HEVC, about 5 Mbps at 60 fps. Clips are about 50% smaller and seek faster."
     ReplayPreset.Compact ->
         "720p HEVC ~3 Mbps at 60 fps. Replays ~75% smaller, slightly softer, fastest scrubbing."
 }
@@ -83,10 +83,10 @@ private const val SHORT_GOP_SECONDS = 0.2f
 private const val SHORT_GOP_PERCENT = 135L
 
 fun keyframesCaption(keyframes: ReplayKeyframes): String = when (keyframes) {
-    ReplayKeyframes.Frame -> "Smoothest scrubbing: an exact seek decodes at most six frames. About 35% larger than Fast."
+    ReplayKeyframes.Frame -> "Smoothest scrubbing. An exact seek decodes at most six frames. About 35% larger than Fast."
     ReplayKeyframes.Fast -> "About 25% smaller than Frame; an exact seek may decode up to 30 frames."
     ReplayKeyframes.Standard -> "Balanced scrub speed and size."
-    ReplayKeyframes.Sparse -> "Smallest files, but dragging feels steppier."
+    ReplayKeyframes.Sparse -> "Smallest files. Dragging steps in bigger jumps."
 }
 
 fun audioCaption(audio: ReplayAudio): String = when (audio) {

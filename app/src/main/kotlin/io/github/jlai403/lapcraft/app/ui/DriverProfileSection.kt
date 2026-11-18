@@ -275,14 +275,14 @@ internal fun DriverProfileSection(
                 }
             }
             Text(
-                "Missing profiles and ratings older than a week are refreshed from GT GridStats.",
+                "Refresh fetches missing profiles and ratings older than a week from GT GridStats.",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         SectionLabel("GT GridStats API key (optional)")
         Text(
-            "Enables DR/SR and car names. Stored only on this device.",
+            "Enables DR/SR and car names. The key stays on this device.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

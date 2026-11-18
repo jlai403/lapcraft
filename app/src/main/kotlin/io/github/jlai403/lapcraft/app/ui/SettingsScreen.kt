@@ -180,7 +180,7 @@ fun SettingsScreen(
 
         SectionCard(title = "Replay compression") {
             Text(
-                "Defaults for new imports. The import screen can override them for one lap. Existing laps are left untouched.",
+                "New imports use these. The import screen can override them for one lap; existing laps keep their clips.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -342,7 +342,7 @@ fun SettingsScreen(
                         shape = RoundedCornerShape(14.dp),
                     )
                     Text(
-                        "Used for telemetry heartbeats.",
+                        "The app sends heartbeats to this address.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -474,7 +474,7 @@ private fun updateSummary(update: UpdateManager.State): String = when (update) {
         if (update.manifest.notes.isNotBlank()) append(" ${update.manifest.notes}")
     }
     is UpdateManager.State.Downloading -> "Downloading ${update.percent}%…"
-    is UpdateManager.State.Ready -> "Downloaded. Install hands it to Android's installer."
+    is UpdateManager.State.Ready -> "Downloaded. Install opens Android's installer."
     is UpdateManager.State.Installing -> "Waiting for the system installer…"
     is UpdateManager.State.Failed -> update.message
 }

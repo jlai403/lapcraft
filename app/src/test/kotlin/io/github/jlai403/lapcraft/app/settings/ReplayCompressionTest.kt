@@ -74,7 +74,7 @@ class ReplayCompressionTest {
     fun `captions explain the selection`() {
         assertTrue(presetCaption(ReplayPreset.Compact).contains("75% smaller"))
         assertTrue(keyframesCaption(ReplayKeyframes.Frame).contains("six frames"))
-        assertTrue(keyframesCaption(ReplayKeyframes.Sparse).contains("steppier"))
+        assertTrue(keyframesCaption(ReplayKeyframes.Sparse).contains("bigger jumps"))
         assertTrue(audioCaption(ReplayAudio.Remove).contains("no audio"))
         assertTrue(resolutionCaption(ReplayResolution.Hd).contains("25% smaller"))
         assertTrue(codecCaption(ReplayCodec.H264).contains("older devices"))

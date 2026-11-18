@@ -551,7 +551,7 @@ fun LapCompareScreen(
                 ) {
                     Text("Rotate to landscape", style = MaterialTheme.typography.titleLarge)
                     Text(
-                        "Comparing laps needs the wider view.",
+                        "Compare needs a landscape screen.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

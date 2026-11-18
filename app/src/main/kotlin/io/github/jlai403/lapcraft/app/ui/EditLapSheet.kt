@@ -514,7 +514,7 @@ private fun RemoveDriverDialog(profile: DriverProfile, onConfirm: () -> Unit, on
         onDismissRequest = onDismiss,
         title = { Text("Remove ${profile.nickname}?") },
         text = {
-            Text("Laps keep the PSN ID; only the cached profile is deleted. Refresh profiles later to bring the rating back.")
+            Text("Laps keep the PSN ID; only the cached profile is deleted. Refresh profiles later to fetch the rating again.")
         },
         confirmButton = {
             TextButton(

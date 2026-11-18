@@ -101,7 +101,7 @@ internal fun ExportLapsSheet(
                 }
             }
             Text(
-                "Clips and telemetry travel with each lap. Settings and your driver profile stay on this device.",
+                "Each lap is exported with its clip and telemetry. Settings and your driver profile stay on this device.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

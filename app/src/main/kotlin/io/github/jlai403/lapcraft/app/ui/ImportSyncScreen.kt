@@ -389,7 +389,7 @@ fun ImportSyncScreen(
             modifier = Modifier.fillMaxWidth(),
         )
         Text(
-            "The lap start is the first frame of the lap. The replay and telemetry are clamped to it.",
+            "The lap start is the first frame of the lap. The replay and telemetry both start there.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -672,13 +672,13 @@ fun ImportSyncScreen(
                                         error = if (hadClip) {
                                             "Trim failed. The current replay is unchanged; try again."
                                         } else {
-                                            "Trim failed. The replay stays attached; try again."
+                                            "Trim failed. No replay was attached; try again."
                                         }
                                     } else {
                                         if (result.second) {
                                             Toast.makeText(
                                                 context,
-                                                "Compaction failed; kept the uncompressed clip.",
+                                                "Compaction failed. The clip stays uncompressed.",
                                                 Toast.LENGTH_SHORT,
                                             ).show()
                                         }

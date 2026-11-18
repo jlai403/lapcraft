@@ -648,7 +648,7 @@ fun LapPlayerScreen(
                 SectionCard(title = "Replay") {
                     if (File(store.lapDir(lapId), "source.mp4").isFile) {
                         Text(
-                            "Clip imported — sync not finished",
+                            "Clip imported. Sync not finished.",
                             style = MaterialTheme.typography.titleMedium,
                         )
                         PrimaryPill(
