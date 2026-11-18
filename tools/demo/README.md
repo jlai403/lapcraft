@@ -19,7 +19,11 @@ sudo pacman -S android-tools
 
 Python 3 is the only other requirement. The helper uses the standard library.
 
-A phone with adb access is needed for the takes. `capture.sh` runs scrcpy with `--no-window`, so the recording machine needs no display. The phone screen must be on and unlocked: preflight wakes it, but a PIN or biometric lock has to be dismissed beforehand. `capture.sh` also exports `ADB` so a mise-installed scrcpy can find the system adb.
+Run `mise run demo:setup` after `mise install`. The ubi backend installs the scrcpy binary but not `scrcpy-server`, which scrcpy pushes to the phone at the start of every take. The task downloads the matching server file.
+
+A phone with adb access is needed for the takes. `capture.sh` runs scrcpy with `--no-window` and sets `SDL_VIDEODRIVER=dummy`, so the recording machine needs no display. The phone screen must be on and unlocked: preflight wakes it, but a PIN or biometric lock has to be dismissed beforehand. `capture.sh` also exports `ADB` so a mise-installed scrcpy can find the system adb.
+
+For wireless adb, `adb mdns services` prints the current serial, such as `adb-55231FDCR008EW-AAt5uJ._adb-tls-connect._tcp`. That name stays stable across port changes, so it is a good value for `--serial`.
 
 The development container has no USB or network path to the phone, so no take can be recorded here. Both scripts have a `--dry-run` mode that prints every command without touching a device. Run the scripts through `mise exec --` unless your shell has `mise activate`, because they call `adb` and `scrcpy` from `PATH`.
 
@@ -39,6 +43,7 @@ The two Suzuka laps tagged W47 must already be in the app, and both must have a 
 
 ```sh
 mise install
+mise run demo:setup
 mise exec -- adb devices
 mise exec -- ./tools/demo/capture.sh --beat 01
 mise exec -- ./tools/demo/capture.sh --beat 02

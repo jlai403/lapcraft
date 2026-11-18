@@ -1,3 +1,17 @@
 [tools]
 "ubi:Genymobile/scrcpy" = "5.0.1"
 "conda:ffmpeg" = "9.0.2"
+
+[tasks."demo:setup"]
+description = "Install the scrcpy-server file that the ubi binary does not ship"
+run = """
+set -eu
+version=5.0.1
+bin=$(mise which scrcpy)
+server=$(dirname "$bin")/scrcpy-server
+if [ ! -s "$server" ]; then
+  curl -fsSL -o "$server" "https://github.com/Genymobile/scrcpy/releases/download/v${version}/scrcpy-server-v${version}"
+fi
+chmod +x "$server"
+echo "$server"
+"""

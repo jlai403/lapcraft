@@ -46,6 +46,7 @@ preflight() {
     ADB="$(command -v adb || true)"
     [[ -n "$ADB" ]] && export ADB
   fi
+  export SDL_VIDEODRIVER=dummy
   run adb shell input keyevent 224
   run adb shell settings put system pointer_location 0
   run adb shell settings put system show_touches "$touch_value"
