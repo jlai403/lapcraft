@@ -315,8 +315,8 @@ fun SettingsScreen(
                 BuildRow("Update channel", BuildConfig.UPDATE_CHANNEL)
                 BuildRow("Build number", BuildConfig.BUILD_NUMBER)
                 BuildRow("Commit", BuildConfig.GIT_SHA)
-                AcknowledgementsRow()
             }
+            AcknowledgementsRow()
         }
     }
 
