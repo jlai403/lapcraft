@@ -142,7 +142,7 @@ record_stop() {
 
 default_touches() {
   case "$1" in
-    03|04) echo on ;;
+    04) echo on ;;
     *) echo off ;;
   esac
 }
@@ -387,8 +387,8 @@ beat_04() {
 }
 
 usage() {
-  log "usage: capture.sh --beat 01|02|04|all [--touches on|off] [--lap '1:36.131'] [--reference '1:35.842'] [--serial ip:port] [--dry-run]"
-  log "beats: 01 Library and Record, 02 2x replay and ruler, 04 compare turn 1 to turn 2"
+  log "usage: capture.sh --beat 01|02|04|all [--touches on|off] [--lap '1:36.131'] [--reference '1:34.208'] [--serial ip:port] [--dry-run]"
+  log "beats: 01 Library and Record, 02 2x replay then ruler scrubs, 04 compare playback then Telemetry tab"
 }
 
 while (( $# > 0 )); do
