@@ -452,9 +452,9 @@ fun SettingRow(
 fun SettingToggleRow(
     label: String,
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     supporting: String? = null,
+    onCheckedChange: (Boolean) -> Unit,
 ) {
     SettingRow(
         label = label,

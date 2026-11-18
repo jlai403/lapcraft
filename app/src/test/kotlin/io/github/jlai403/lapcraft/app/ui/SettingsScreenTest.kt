@@ -43,6 +43,7 @@ class SettingsScreenTest {
     fun clearProfile() {
         DriverProfileStore(context).clear()
         SettingsStore(context).previewEmptyLibrary = false
+        SettingsStore(context).developerTools = false
         SettingsStore(context).hapticsEnabled = true
         SettingsStore(context).replayPreset = ReplayPreset.Balanced
     }
@@ -71,8 +72,8 @@ class SettingsScreenTest {
             }
         }
 
-        compose.onNodeWithTag("settings-profile-psn").performTextInput("skino2024")
-        compose.onNodeWithTag("settings-profile-fetch").performClick()
+        compose.onNodeWithTag("settings-profile-psn").performScrollTo().performTextInput("skino2024")
+        compose.onNodeWithTag("settings-profile-fetch").performScrollTo().performClick()
         compose.waitUntil(TIMEOUT) {
             compose.onAllNodesWithText("Skino").fetchSemanticsNodes().isNotEmpty()
         }
@@ -92,8 +93,8 @@ class SettingsScreenTest {
             }
         }
 
-        compose.onNodeWithTag("settings-profile-psn").performTextInput("other")
-        compose.onNodeWithTag("settings-profile-fetch").performClick()
+        compose.onNodeWithTag("settings-profile-psn").performScrollTo().performTextInput("other")
+        compose.onNodeWithTag("settings-profile-fetch").performScrollTo().performClick()
         compose.waitUntil(TIMEOUT) {
             compose.onAllNodesWithText("No GT GridStats profile found for that PSN ID.")
                 .fetchSemanticsNodes().isNotEmpty()
@@ -110,10 +111,10 @@ class SettingsScreenTest {
             LapCraftTheme { SettingsScreen() }
         }
 
-        compose.onNodeWithTag("settings-profile-remove").performClick()
+        compose.onNodeWithTag("settings-profile-remove").performScrollTo().performClick()
 
         assertNull(DriverProfileStore(context).owner())
-        compose.onNodeWithText("Fetch profile").assertExists()
+        compose.onNodeWithText("Fetch profile").performScrollTo().assertExists()
     }
 
     @Test
@@ -147,6 +148,7 @@ class SettingsScreenTest {
     @Test
     fun `shows an available update and downloads it`() {
         var downloads = 0
+        SettingsStore(context).developerTools = true
         compose.setContent {
             LapCraftTheme {
                 SettingsScreen(
@@ -169,6 +171,7 @@ class SettingsScreenTest {
 
     @Test
     fun `up to date says so`() {
+        SettingsStore(context).developerTools = true
         compose.setContent {
             LapCraftTheme {
                 SettingsScreen(update = UpdateManager.State.UpToDate)
@@ -177,6 +180,18 @@ class SettingsScreenTest {
 
         compose.onNodeWithText("You are on the latest build.").assertExists()
         compose.onNodeWithText("Check for updates").assertExists()
+    }
+
+    @Test
+    fun `update controls stay hidden while developer tools are off`() {
+        compose.setContent {
+            LapCraftTheme {
+                SettingsScreen(update = UpdateManager.State.UpToDate)
+            }
+        }
+
+        compose.onNodeWithText("You are on the latest build.").assertDoesNotExist()
+        compose.onNodeWithText("Check for updates").assertDoesNotExist()
     }
 
     @Test
@@ -237,15 +252,17 @@ class SettingsScreenTest {
             LapCraftTheme { SettingsScreen() }
         }
 
-        compose.onNodeWithTag("settings-ps5-ip").performScrollTo().performTextInput("192.168.001.050")
-        compose.onNodeWithText("Save IP").performScrollTo().performClick()
+        compose.onNodeWithTag("settings-ps5-edit").performScrollTo().performClick()
+        compose.onNodeWithTag("settings-ps5-ip").performTextInput("192.168.001.050")
+        compose.onNodeWithText("Save IP").performClick()
 
         assertEquals("192.168.1.50", SettingsStore(context).ps5Ip)
         compose.onNodeWithText("Saved 192.168.1.50").assertExists()
 
-        compose.onNodeWithTag("settings-ps5-ip").performScrollTo().performTextClearance()
+        compose.onNodeWithTag("settings-ps5-edit").performClick()
+        compose.onNodeWithTag("settings-ps5-ip").performTextClearance()
         compose.onNodeWithTag("settings-ps5-ip").performTextInput("999.1.1.1")
-        compose.onNodeWithText("Save IP").performScrollTo().performClick()
+        compose.onNodeWithText("Save IP").performClick()
 
         compose.onNodeWithText("Enter a valid IPv4 address").assertExists()
         assertEquals("192.168.1.50", SettingsStore(context).ps5Ip)
