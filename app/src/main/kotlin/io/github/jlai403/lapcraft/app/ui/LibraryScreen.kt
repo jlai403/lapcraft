@@ -707,8 +707,8 @@ private fun EmptyLibrary(onOpenRecord: () -> Unit, onImport: () -> Unit) {
     SectionCard {
         Text("No laps yet", style = MaterialTheme.typography.titleLarge)
         Text(
-            "Connect to GT7 on the Record tab to start capturing a lap. " +
-                "A replay can be added later to the recorded lap.",
+            "Connect to GT7 on the Record tab to capture a lap. " +
+                "You can add a replay later.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

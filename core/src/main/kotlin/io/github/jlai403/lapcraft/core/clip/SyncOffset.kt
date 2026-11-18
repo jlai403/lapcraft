@@ -3,8 +3,8 @@ package io.github.jlai403.lapcraft.core.clip
 /**
  * Parses the HUD lap time on a picked frame into milliseconds.
  * Accepts the shapes GT7 actually shows: `0.019`, `.019`, `0:00.019`, `0:12.345`.
- * A bare integer is rejected on purpose — 19 could mean 19 ms or 19 s, and guessing is
- * worse than asking the user to type the dot.
+ * A bare integer is rejected on purpose. `19` could mean 19 ms or 19 s. Requiring the dot
+ * removes the guess.
  */
 object SyncOffset {
     fun parse(text: String): Long? {

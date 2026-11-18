@@ -70,7 +70,7 @@ fun RecordScreen(
         state.telemetryError?.takeIf { it.isNotBlank() }?.let { WarningBanner(it) }
         if (state.foreignPackets > 0 && state.lastForeignSource.isNotBlank()) {
             WarningBanner(
-                "Packets are arriving from ${state.lastForeignSource}, not ${state.ps5Ip}. " +
+                "Packets come from ${state.lastForeignSource}, not ${state.ps5Ip}. " +
                     "Check the console's current address in Settings.",
             )
         }

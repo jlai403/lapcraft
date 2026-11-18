@@ -18,7 +18,7 @@ lapcraft/
 └── app/    # Android: Compose UI, foreground telemetry service, replay trim, Media3
 ```
 
-`core` has no Android imports, so a future desktop app can reuse it and a future Rust core can replace it behind the same interfaces.
+`core` has no Android imports. A desktop app can reuse it, and a Rust core can replace it with the same data model.
 
 ## Workflow
 
@@ -27,8 +27,8 @@ lapcraft/
 2. Tap **Capture this lap** after crossing the start line. The app saves exactly one lap at the next crossing.
 3. In GT7, record the single-lap replay with HUD on and the race camera. Use the PS5 Create menu and keep a few seconds of lead-in.
 4. Media Gallery → **Upload to PlayStation App**; in the PS App, **Download** or **Share** to LapCraft. The lap screen's replay source button opens Files or the PlayStation App (or its store listing).
-5. Open the lap → **Add replay** → **Files**. The playhead starts at the clip's end with a suggested anchor there; drag the timeline or the frame ruler, or frame-step back to the lap-end line, then **Set anchor at this frame**.
-6. **Check start frame**, preview, save, and review. The trimmed clip is one lap; the imported original is deleted.
+5. Open the lap → **Add replay** → **Files**. The playhead starts at the clip's end with a suggested lap start. Drag the timeline or the frame ruler, or frame-step back to the line, then **Use this frame**.
+6. Check the finish frame, preview, save, and review. The trimmed clip is one lap; the imported original is deleted.
 
 The phone records no video and no audio. Telemetry uses UDP 33739/33740; the only other network calls are update checks and the optional profile lookup.
 
@@ -36,7 +36,7 @@ The phone records no video and no audio. Telemetry uses UDP 33739/33740; the onl
 
 Settings → Library exports the laps you select to one `.zip` (`lapcraft-library-<date>.zip`). Each lap is a directory inside the archive holding `lap.json`, its `.gt7lap` telemetry, and any clip or pending source the lap references, so the file is inspectable with any zip tool. Clips are passed through uncompressed; telemetry and JSON are deflated.
 
-Import merges: ids that already exist are skipped, so importing the same file twice is safe. A lap whose clip is missing still imports, without a replay. Cached driver profiles travel with the laps; settings and the owner stay on this device. The empty library also offers **Import a backup**.
+Import merges: ids that already exist are skipped, so importing the same file twice is safe. A lap whose clip is missing still imports, without a replay. The archive includes cached profiles for the exported laps' drivers. Settings and the owner stay on this device. The empty library also offers **Import a backup**.
 
 ## What works
 
@@ -44,7 +44,7 @@ Import merges: ids that already exist are skipped, so importing the same file tw
 - Decode-failure diagnostics with packet size and reason.
 - Single-lap capture: line-to-line, one session per lap, no video required.
 - Track identification from lap coordinates and bundled racing lines, including reverse layouts; ambiguous laps offer a candidate picker, and old `Unknown` laps are backfilled.
-- Flat lap feed: no card boxes or rounded corners, lap time as the hero number, per-track `Fastest lap` marker or delta, the lap's driver with flag, swipe to edit or delete, hairline dividers, pull to refresh, and filters for replay state and track.
+- Flat lap feed: no card boxes or rounded corners, lap time as the hero number, per-track `Fastest lap` marker or delta, the lap's driver with flag, swipe to edit or delete, hairline dividers, pull to refresh, and filters for event kind, event, and track.
 - Edit sheet per lap: track name (with candidates for `Unknown` laps), driver, and replay (`Add`, `Replace`, or `Resume sync`).
 - Developer preview toggle renders the empty library without deleting laps; it only appears on preview builds.
 - Driver book: new captures default to the owner; the lap screen's Driver card selects a cached driver, adds one by PSN (with manual name/country fallback), or clears it.
@@ -60,10 +60,10 @@ Import merges: ids that already exist are skipped, so importing the same file tw
 
 ## Update channels
 
-- **Preview** — every push to `main` replaces the `preview-latest` prerelease: `LapCraft-preview.apk` plus `latest.json`. Preview builds check this channel.
-- **Stable** — a `v*` tag creates the latest release with `LapCraft-<tag>.apk` plus `latest.json`. Tag builds check `releases/latest`.
+- **Preview.** Every push to `main` replaces the `preview-latest` prerelease with `LapCraft-preview.apk` and `latest.json`. Preview builds check this channel.
+- **Stable.** A `v*` tag creates the latest release with `LapCraft-<tag>.apk` and `latest.json`. Tag builds check `releases/latest`.
 
-The app checks once a day (or from Settings → Updates), compares `versionCode`, downloads the APK, verifies its SHA-256, and hands it to Android's installer. The user always confirms the install. Checks are skipped when the app was installed by F-Droid or Play.
+The app checks once a day (or from Settings → Updates), compares `versionCode`, downloads the APK, verifies its SHA-256, and opens Android's installer. The user always confirms the install. Checks are skipped when the app was installed by F-Droid or Play.
 
 **Play Protect will likely warn about this app.** It flags APKs that download and install updates outside a store, which is exactly what the in-app updater does. This is a deliberate trade-off: keeping one-tap updates means accepting the warning (choose `Install anyway`, or turn off scanning for this app). If Play Protect blocks an install, [appeal it](https://support.google.com/googleplay/android-developer/contact/protectappeals); the verdict is server-side. Stripping `REQUEST_INSTALL_PACKAGES` is the only reliable way to stop the warning, at the cost of handing every update to the browser.
 
@@ -92,8 +92,8 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 ./gradlew :core:test :app:testDebugUnitTest
 ```
 
-- `:core` — protocol/decrypt/decode, lap detection, capture coordination, track signatures, clip sync/trim planning, track progress, codecs, lap summaries, CSV, remux planning, lap clock.
-- `:app` (JVM) — lap saver, replay copy, decode-failure text, telemetry notification text, settings, frame-ruler stepping, Compose UI for Record, Library, lap player, and import sync.
+- `:core` holds protocol decrypt and decode, lap detection, capture coordination, track signatures, clip sync and trim planning, track progress, codecs, lap summaries, CSV, remux planning, and the lap clock.
+- `:app` (JVM) holds the lap saver, replay copy, decode-failure text, telemetry notification text, settings, frame-ruler stepping, and Compose UI for Record, Library, lap player, and import sync.
 - Not covered by JVM tests: real `MediaExtractor`/`MediaMuxer` trim output, real GT7 packets, actual video decode. Those stay device checks.
 
 ## Known gaps

@@ -101,7 +101,7 @@ class ImportSyncScreenTest {
         compose.onNodeWithContentDescription("Previous brake point").assertExists()
         compose.onNodeWithContentDescription("Next brake point").assertExists()
         compose.onNodeWithContentDescription("Play").assertExists()
-        compose.onNodeWithText("The lap start is the first frame of the lap. The replay and telemetry are clamped to it.").assertExists()
+        compose.onNodeWithText("The lap start is the first frame of the lap. The replay and telemetry both start there.").assertExists()
         compose.onNodeWithContentDescription("Step back one frame").assertExists()
         compose.onNodeWithContentDescription("Step forward one frame").assertExists()
     }

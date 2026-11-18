@@ -29,7 +29,7 @@ _Avoid_: steering value, wheel angle, input
 ## Library
 
 **Library archive**:
-A zip of the selected laps, one directory per lap, carried with its clips and telemetry.
+A zip of the selected laps, one directory per lap, each with its clip and telemetry.
 _Avoid_: backup file, export bundle
 
 **Import (library)**:
@@ -101,7 +101,7 @@ Cumulative distance along the racing line, normalised to 0-100 % of the lap; the
 _Avoid_: position, lap percentage, distance axis
 
 **Place alignment**:
-Matching two laps by position along lap 1's driven path instead of by distance covered, so a corner is compared with the same corner when the lines differ.
+Matching two laps by position along lap 1's driven path, so the same corner is compared when the lines differ.
 _Avoid_: distance alignment, track position, sync
 
 ## Review

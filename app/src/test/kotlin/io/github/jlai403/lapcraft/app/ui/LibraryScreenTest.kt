@@ -247,8 +247,8 @@ class LibraryScreenTest {
             compose.onAllNodesWithText("No laps yet").fetchSemanticsNodes().isNotEmpty()
         }
         compose.onNodeWithText(
-            "Connect to GT7 on the Record tab to start capturing a lap. " +
-                "A replay can be added later to the recorded lap.",
+            "Connect to GT7 on the Record tab to capture a lap. " +
+                "You can add a replay later.",
         ).assertExists()
         compose.onNodeWithText("Go to Record").performClick()
         assertEquals(1, record)

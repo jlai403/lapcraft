@@ -1,4 +1,4 @@
-# AGENTS.md — LapCraft
+# AGENTS.md for LapCraft
 
 Android app for GT7 telemetry-only lap review. Kotlin + Jetpack Compose, `minSdk 29`,
 `targetSdk 36`, package `io.github.jlai403.lapcraft`.
@@ -19,8 +19,8 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
 
 ## Modules
 
-- `:core` — pure Kotlin: samples, sessions, playback cursor, clip trim math, track identification. No Android UI.
-- `:app` — Compose UI, capture service, replay import/playback, settings, updater.
+- `:core` holds pure Kotlin: samples, sessions, playback cursor, clip trim math, track identification. No Android UI.
+- `:app` holds Compose UI, capture service, replay import/playback, settings, updater.
 
 ## Key conventions
 
@@ -29,6 +29,7 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
 - The PS5 IPv4 address is edited only in Settings. Record reads the saved address, and its `Connect` pill reads `Set address` (opens Settings) when none is set. The Settings Console row shows the saved value or `Not set`; tapping it opens a dialog with the IP field. Stream failures and packets from another host render in one `WarningBanner` above the cards.
 - Settings is ordered Display & playback → Console → Replay compression → Driver profile → Library → Event tags → Developer → About. Every setting uses `SettingRow` / `SettingToggleRow` (`ui/Components.kt`); toggles use `toggleable` with a display-only `Switch`. Updates live inside the Developer card and render only when `Developer tools` is on; on `stable` builds there is no manual update entry (the launch check and update dialog remain).
 - Local-first: no accounts, analytics, or background cloud calls.
+- UI copy and docs use sentence case and plain words. No em dashes, curly quotes, or benefit framing; see `DESIGN.md` under Copy and tone.
 - `PacketAParser` reads the steering wheel angle from packet B/C at `0x128` and stores it in `Sample.steering` as `-1..1` (+ = left); packet A has none.
 - The lap HUD traces the last 2 s before the cursor. The F1 wheel under the tire tiles is hidden for laps with no steering samples.
 - Replay clips live under `laps/<id>/replay.mp4` (new layout) or `sessions/<id>/laps/lap-NNN.mp4` (legacy, migrated on first launch); telemetry is `lap.gt7lap` (new) or `lap-NNN.gt7lap` (legacy).
@@ -130,7 +131,7 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
   the reference is muted and seeked frame-exactly to the primary's place on track via `ScrubSeeker`.
 - The screen is two tabs under a 44 dp chrome row (back, `Video`/`Telemetry`, delta). `Video` shows
   both panes, each with `TelemetryHud` at the top centre and `CompareReadoutRow` underneath; the
-  panes carry no text overlay — GT7's own HUD is in the frame, so the lap and cursor times live in
+  panes carry no text overlay. GT7's own HUD is in the frame, so the lap and cursor times live in
   the pane's accessibility label (`compare-cursor-<tag>`). `Telemetry` shows the map in a fixed
   320 dp pane (capped at 42 % of the width) with the map canvas clipped and lap 1's marker pinned
   to the pane centre; `CompareCharts` fills the rest, with no readout strip.
