@@ -16,13 +16,13 @@ Caption `Capture telemetry from every hot lap.` runs from 0.3 to 4.0. Touches of
 
 ## 02 Replay, 7 to 11
 
-Open the primary lap and hold on the player with the HUD over the replay.
+Open the primary lap, play for two seconds, then pause on the HUD over the replay.
 
 Caption `Replay your laps on your phone.` runs from 7.3 to 11.0. Touches off.
 
 ## 03 Analyze, 11 to 18
 
-Tap Next brake point to jump to the corner, play for two seconds, pause, then drag the ruler back through the corner. Avoid the figure-8 crossing: `TrackProgress.align` searches 10 m behind to 30 m ahead, and its full path search can pick the wrong branch at the crossing.
+Tap Next brake point to jump to the corner, then drag the ruler back through it twice. Avoid the figure-8 crossing: `TrackProgress.align` searches 10 m behind to 30 m ahead, and its full path search can pick the wrong branch at the crossing.
 
 Caption `Analyze each lap with telemetry on the replay.` runs from 11.3 to 18.0. Touches on.
 

@@ -63,7 +63,7 @@ segment() {
   local ass="$WORK/$name.ass"
 
   local filter
-  filter="[0:v]trim=start=$trim:duration=$length,setpts=PTS-STARTPTS,fps=30,split=2[bg][fg];"
+  filter="[0:v]trim=start=$trim:duration=$length,setpts=PTS-STARTPTS,tpad=stop_mode=clone:stop_duration=$length,trim=duration=$length,fps=30,split=2[bg][fg];"
   filter+="[bg]scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,boxblur=24:2,eq=brightness=-0.25:saturation=0.6[back];"
   filter+="[fg]scale=$scale[phone];"
   filter+="[back][phone]overlay=(W-w)/2:(H-h)/2[stage];"

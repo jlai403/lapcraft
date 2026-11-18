@@ -235,7 +235,11 @@ beat_01() {
 beat_02() {
   ensure_player
   record_start 02
-  pause 4.0
+  pause 0.4
+  tap_if_present "^Play$"
+  pause 2.0
+  tap_if_present "^Pause$"
+  pause 1.6
   record_stop
 }
 
@@ -245,11 +249,9 @@ beat_03() {
   pause 0.4
   tap "Next brake point"
   pause 0.6
-  tap_if_present "^Play$"
-  pause 2.0
-  tap_if_present "^Pause$"
-  pause 0.3
   swipe "Frame ruler" -160 900
+  pause 2.5
+  swipe "Frame ruler" -120 600
   pause 2.5
   record_stop
 }
