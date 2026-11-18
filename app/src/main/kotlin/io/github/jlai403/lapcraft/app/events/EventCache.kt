@@ -10,7 +10,10 @@ data class EventCacheFile(
     val gridstatsFetchedAtMs: Long = 0,
     val polyphonyFetchedAtMs: Long = 0,
     val events: List<CachedEvent> = emptyList(),
-)
+) {
+    /** Newest of the two feeds: whichever refreshed last owns the "updated" line. */
+    val lastFetchedAtMs: Long get() = maxOf(gridstatsFetchedAtMs, polyphonyFetchedAtMs)
+}
 
 class EventCache(private val rootDir: File) {
     constructor(context: android.content.Context) : this(java.io.File(context.filesDir, "events").also { it.mkdirs() })

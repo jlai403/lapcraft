@@ -95,7 +95,9 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
   `LapStore` (with `LapId`/`LapRecord`) is lap storage; `lapStore(context)` returns one. Legacy sessions are migrated once by `LayoutMigration` (sessions -> laps, convert-and-delete); no `SessionStore`.
 - Event tags: `core/events` (EventTag, CachedEvent, EventMatcher, EventDates), `app/events` (EventCache, EventRefresh,
   GridStatsEventParser, PolyphonyCdnParser, EventTagger). Settings toggle `eventTags`; refresh from
-  Settings or from the edit sheet's empty state. Daily labels carry the ISO week (`Daily Race A · W47`)
+  Settings or from the edit sheet's empty state. `Refresh events` forces both feeds even while the
+  toggle is off, and `EventCacheFile.lastFetchedAtMs` (newest of the schedule and GridStats stamps)
+  drives the card's last-updated line. Daily labels carry the ISO week (`Daily Race A · W47`)
   while ids stay week-free; Time Trials label by track (`Time Trial · Suzuka`). The edit sheet's event
   field suggests cached events and stores free text as a manual Championship tag. `LapView.event` /
   `LapSummary.event`; `LapFilter`/`LapSort` event dimensions.

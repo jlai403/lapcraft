@@ -47,6 +47,8 @@ import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
 import io.github.jlai403.lapcraft.app.updater.UpdateManager
 import io.github.jlai403.lapcraft.core.network.Ipv4
+import java.text.DateFormat
+import java.util.Date
 
 @Composable
 fun SettingsScreen(
@@ -77,6 +79,7 @@ fun SettingsScreen(
     var eventTags by remember { mutableStateOf(settings.eventTags) }
     var refreshingEvents by remember { mutableStateOf(false) }
     var eventStatus by remember { mutableStateOf<String?>(null) }
+    var eventCache by remember { mutableStateOf(EventCache(context).load()) }
     var replayPreset by remember { mutableStateOf(settings.replayPreset) }
     var replayKeyframes by remember { mutableStateOf(settings.replayKeyframes) }
     var replayAudio by remember { mutableStateOf(settings.replayAudio) }
@@ -238,13 +241,16 @@ fun SettingsScreen(
                         scope.launch {
                             try {
                                 val result = EventRefresh.refresh(context, force = true)
-                                val cache = EventCache(context)
-                                val msg = mutableListOf<String>()
-                                msg += "CDN ${result.polyphonyCount}"
-                                if (DriverProfileStore(context).apiKey?.isNotBlank() == true) {
-                                    msg += "GridStats ${result.gridStatsCount}"
+                                eventCache = EventCache(context).load()
+                                val written = buildList {
+                                    if (result.polyphonyWritten) add("CDN ${result.polyphonyCount}")
+                                    if (result.gridStatsWritten) add("GridStats ${result.gridStatsCount}")
                                 }
-                                eventStatus = "Updated · ${cache.events().size} events (${msg.joinToString(", ")})"
+                                eventStatus = if (written.isEmpty()) {
+                                    "Nothing refreshed"
+                                } else {
+                                    "Updated · ${eventCache.events.size} events (${written.joinToString(", ")})"
+                                }
                                 if (result.errors.isNotEmpty()) {
                                     eventStatus = (eventStatus ?: "") + " · " + result.errors.joinToString("; ")
                                 }
@@ -262,9 +268,9 @@ fun SettingsScreen(
                     Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            val cache = remember { EventCache(context) }
             Text(
-                "Last updated: ${cache.load().gridstatsFetchedAtMs.takeIf { it > 0 }?.let { java.text.DateFormat.getDateTimeInstance().format(java.util.Date(it)) } ?: "never"}",
+                "Last updated: ${formatEventDate(eventCache.lastFetchedAtMs)}",
+                modifier = Modifier.testTag("events-last-updated"),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -464,6 +470,9 @@ private fun AcknowledgementsRow() {
         }
     }
 }
+
+private fun formatEventDate(timestampMs: Long): String =
+    if (timestampMs <= 0) "never" else DateFormat.getDateTimeInstance().format(Date(timestampMs))
 
 private fun updateSummary(update: UpdateManager.State): String = when (update) {
     is UpdateManager.State.Idle -> "Checks the rolling debug build once a day."

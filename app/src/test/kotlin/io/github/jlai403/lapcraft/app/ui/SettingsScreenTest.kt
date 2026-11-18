@@ -3,6 +3,7 @@ package io.github.jlai403.lapcraft.app.ui
 import android.app.Application
 import android.content.Context
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -12,6 +13,8 @@ import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ApplicationProvider
 import io.github.jlai403.lapcraft.core.profile.DriverProfile
+import io.github.jlai403.lapcraft.app.events.EventCache
+import io.github.jlai403.lapcraft.app.events.EventCacheFile
 import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
 import io.github.jlai403.lapcraft.app.settings.ReplayPreset
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
@@ -29,6 +32,8 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import java.io.IOException
+import java.text.DateFormat
+import java.util.Date
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], application = Application::class)
@@ -42,6 +47,7 @@ class SettingsScreenTest {
     @Before
     fun clearProfile() {
         DriverProfileStore(context).clear()
+        EventCache(context).save(EventCacheFile())
         SettingsStore(context).previewEmptyLibrary = false
         SettingsStore(context).developerTools = false
         SettingsStore(context).hapticsEnabled = true
@@ -185,6 +191,33 @@ class SettingsScreenTest {
         }
 
         compose.onNodeWithText("DR (B) · SR (S) · updated", substring = true).assertExists()
+    }
+
+    @Test
+    fun `event tags card shows the newest fetch from either feed`() {
+        val scheduleFetchedAt = 1_764_000_000_000L
+        EventCache(context).save(
+            EventCacheFile(
+                gridstatsFetchedAtMs = scheduleFetchedAt - 60_000,
+                polyphonyFetchedAtMs = scheduleFetchedAt,
+            ),
+        )
+        compose.setContent {
+            LapCraftTheme { SettingsScreen() }
+        }
+
+        val expected = "Last updated: " + DateFormat.getDateTimeInstance().format(Date(scheduleFetchedAt))
+        compose.onNodeWithTag("events-last-updated").performScrollTo().assertTextEquals(expected)
+    }
+
+    @Test
+    fun `event tags card says never before the first refresh`() {
+        compose.setContent {
+            LapCraftTheme { SettingsScreen() }
+        }
+
+        compose.onNodeWithTag("events-last-updated").performScrollTo()
+            .assertTextEquals("Last updated: never")
     }
 
     @Test

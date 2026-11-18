@@ -12,6 +12,8 @@ import java.util.zip.GZIPInputStream
 data class RefreshResult(
     val polyphonyCount: Int = 0,
     val gridStatsCount: Int = 0,
+    val polyphonyWritten: Boolean = false,
+    val gridStatsWritten: Boolean = false,
     val errors: List<String> = emptyList(),
 )
 
@@ -28,8 +30,12 @@ object EventRefresh {
         val errors = mutableListOf<String>()
         var polyphonyCount = 0
         var gridStatsCount = 0
+        var polyphonyWritten = false
+        var gridStatsWritten = false
 
-        if (settings.eventTags && (force || cache.isPolyphonyStale(now))) {
+        // A forced refresh fills the cache before the toggle is turned on; the
+        // toggle only gates the background refresh.
+        if ((force || settings.eventTags) && (force || cache.isPolyphonyStale(now))) {
             try {
                 val url = "https://static.gt7.game.gran-turismo.com/championship/seasons/2/active.json"
                 val body = fetchCdn(url)
@@ -37,10 +43,9 @@ object EventRefresh {
                     errors += "CDN: unavailable"
                 } else {
                     val events = PolyphonyCdnParser.parseActive(body)
-                    if (events.isNotEmpty() || true) {
-                        cache.replacePolyphony(events, now)
-                        polyphonyCount = events.size
-                    }
+                    cache.replacePolyphony(events, now)
+                    polyphonyWritten = true
+                    polyphonyCount = events.size
                 }
             } catch (e: Exception) {
                 errors += "CDN: ${e.message ?: "failed"}"
@@ -48,7 +53,7 @@ object EventRefresh {
         }
 
         val key = DriverProfileStore(context).apiKey
-        if (settings.eventTags && !key.isNullOrBlank() && (force || cache.isGridstatsStale(now))) {
+        if ((force || settings.eventTags) && !key.isNullOrBlank() && (force || cache.isGridstatsStale(now))) {
             try {
                 val ownerPsn = DriverProfileStore(context).owner()?.psnId
                 val thisWeek = fetchApi("/api/dailies/this-week", key)
@@ -61,6 +66,7 @@ object EventRefresh {
                     GridStatsEventParser.parseTimeTrials(ttLive, ownerPsn, ownerTt)
                 if (anySuccess) {
                     cache.replaceGridstats(events, now)
+                    gridStatsWritten = true
                     gridStatsCount = events.size
                 } else {
                     errors += "GridStats: unavailable"
@@ -69,7 +75,13 @@ object EventRefresh {
                 errors += "GridStats: ${e.message ?: "failed"}"
             }
         }
-        RefreshResult(polyphonyCount, gridStatsCount, errors)
+        RefreshResult(
+            polyphonyCount = polyphonyCount,
+            gridStatsCount = gridStatsCount,
+            polyphonyWritten = polyphonyWritten,
+            gridStatsWritten = gridStatsWritten,
+            errors = errors,
+        )
     }
 
     private suspend fun httpGet(url: String): String? {
