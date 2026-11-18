@@ -1,0 +1,17 @@
+1
+00:00:00,300 --> 00:00:03,800
+Capture telemetry
+from your hot laps.
+
+2
+00:00:04,000 --> 00:00:07,500
+Replay your laps
+on your phone.
+
+3
+00:00:07,700 --> 00:00:11,000
+Telemetry on the replay.
+
+4
+00:00:11,300 --> 00:00:15,000
+LapCraft. Free, open source.

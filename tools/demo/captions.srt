@@ -1,0 +1,19 @@
+1
+00:00:00,500 --> 00:00:05,000
+Capture telemetry from
+every hot lap.
+
+2
+00:00:09,300 --> 00:00:14,000
+Replay your laps
+on your phone.
+
+3
+00:00:18,300 --> 00:00:23,000
+Analyze each lap with
+telemetry on the replay.
+
+4
+00:00:27,300 --> 00:00:32,000
+Compare your laps
+on one clock.

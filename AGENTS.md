@@ -183,6 +183,13 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
 - Storage helpers: `lapStore(context)`; legacy sessions are migrated once by `LayoutMigration` (sessions -> laps, convert-and-delete). `LapView` is the UI projection of `LapRecord`.
 - New module file: `core/.../clip/LapClock.kt`, `core/.../clip/SyncOffset.kt`, `core/.../clip/FrameTimeline.kt`, `core/.../session/LapView.kt`, `core/.../session/LayoutMigration.kt`, `core/.../events/EventKind.kt`, `core/.../events/EventFilter.kt`, `core/.../lap/LapTimeSource.kt`.
 
+## Demo video kit
+
+- `tools/demo/` holds the showcase video kit: `shotlist.md` (four pillars, nine seconds each), `captions.srt` and `captions-15s.srt` (source of truth for burned captions and YouTube CC), `capture.sh` (scripted adb takes found via `uiautomator dump`), `conform.sh` (1920x1080 master with blurred backdrop, chapter labels, end card), `demo.py` (adb and SRT helpers), and `beats/` plus `.build/` for intermediates.
+- Record beats with `./tools/demo/capture.sh --beat 01|02|02b|03|04|all [--touches on|off] [--reference '1:49'] [--dry-run]`. Beat 02b pauses for the system document picker. Touches default on for 03 and 04.
+- Build with `./tools/demo/conform.sh [--short] [--music file.wav] [--dry-run]`; output is `tools/demo/master.mp4` or `master-15s.mp4`. Both scripts have `--dry-run` because this container has no adb, scrcpy, or ffmpeg.
+- The master uses the two Suzuka laps tagged W47, both with clips. Beat 01 shows the connected Record screen without capturing a lap, then the Library. Beat 04 skips to the first corner with Next brake point, plays, then rewinds by dragging the ruler.
+
 ## Release
 
 - Work in a branch, merge to `main`, push. Pushing `main` triggers CI and preview publish.

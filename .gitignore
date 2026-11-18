@@ -5,3 +5,7 @@ local.properties
 .idea/
 *.iml
 .superpowers/
+__pycache__/
+tools/demo/.build/
+tools/demo/beats/
+tools/demo/*.mp4
