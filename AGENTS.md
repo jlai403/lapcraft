@@ -22,7 +22,7 @@ bun run dev             # local dev server
 ./tools/site-assets.sh --check  # budget + all-intra check
 ```
 
-Deploy is `.github/workflows/site.yml`, path-filtered to `site/**` and `tools/site-assets.sh`. Production on push to `main`, preview on PR, both under the `website` GitHub environment (`CLOUDFLARE_API_TOKEN` secret; `CLOUDFLARE_ACCOUNT_ID`, `PUBLIC_GTM_ID`, `PUBLIC_CF_BEACON_TOKEN` variables). Custom domain `lapcraft.jlai.ca`.
+Deploy is `.github/workflows/site.yml`, path-filtered to `site/**` and `tools/site-assets.sh`. Production on push to `main`, preview on PR, both under the `website` GitHub environment (`CLOUDFLARE_API_TOKEN` secret; `CLOUDFLARE_ACCOUNT_ID`, `PUBLIC_GTM_ID`, `PUBLIC_CF_BEACON_TOKEN` variables). Hosted as a Cloudflare Worker with static assets (`site/wrangler.jsonc`, `wrangler deploy`), not Pages; PRs upload a version with `wrangler versions upload`. Custom domain `lapcraft.jlai.ca`.
 
 Focused unit tests:
 
