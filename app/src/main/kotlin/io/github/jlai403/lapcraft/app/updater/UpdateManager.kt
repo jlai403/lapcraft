@@ -11,6 +11,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.net.HttpURLConnection
 import java.net.URL
@@ -24,14 +25,34 @@ object UpdateManager {
         "https://github.com/jlai403/lapcraft/releases/download/preview-latest/latest.json"
     private const val STABLE_MANIFEST =
         "https://github.com/jlai403/lapcraft/releases/latest/download/latest.json"
-    private const val PREVIEW_PAGE = "https://github.com/jlai403/lapcraft/releases/tag/preview-latest"
+    private const val PREVIEW_PAGE = "https://github.com/jlai403/lapcraft/releases"
     private const val STABLE_PAGE = "https://github.com/jlai403/lapcraft/releases/latest"
 
     private const val PREFS = "updates"
     private const val LAST_CHECK = "last_check_ms"
     private const val STABLE_CHECK_INTERVAL_MS = 24L * 60 * 60 * 1000
-    private const val STORE_FDROID = "org.fdroid.fdroid"
-    private const val STORE_PLAY = "com.android.vending"
+
+    // Installers and updaters that manage their own updates: stay quiet for them.
+    private val MANAGED_INSTALLERS = setOf(
+        "org.fdroid.fdroid",
+        "com.android.vending",
+        "dev.imranr.obtainium",
+        "dev.imranr.obtainium.fdroid",
+    )
+
+    private data class Channel(
+        val manifestUrl: String,
+        val pageUrl: String,
+        val checkIntervalMs: Long,
+    )
+
+    private val channel: Channel = if (BuildConfig.UPDATE_CHANNEL == "stable") {
+        Channel(STABLE_MANIFEST, STABLE_PAGE, STABLE_CHECK_INTERVAL_MS)
+    } else {
+        Channel(PREVIEW_MANIFEST, PREVIEW_PAGE, 0L)
+    }
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     sealed interface State {
         data object Idle : State
@@ -41,36 +62,35 @@ object UpdateManager {
         data class Failed(val message: String) : State
     }
 
-    val state = MutableStateFlow<State>(State.Idle)
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val _state = MutableStateFlow<State>(State.Idle)
+    val state: StateFlow<State> = _state
 
     fun checkIfStale(context: Context) {
         val app = context.applicationContext
-        if (!supportedInstallSource(app)) return
+        if (managedByUpdater(app)) return
         val last = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .getLong(LAST_CHECK, 0)
-        val interval = if (BuildConfig.UPDATE_CHANNEL == "stable") STABLE_CHECK_INTERVAL_MS else 0L
-        if (System.currentTimeMillis() - last < interval) return
-        if (state.value !is State.Idle && state.value !is State.UpToDate) return
+        if (System.currentTimeMillis() - last < channel.checkIntervalMs) return
+        if (_state.value !is State.Idle && _state.value !is State.UpToDate) return
         check(app)
     }
 
     fun check(context: Context) {
         val app = context.applicationContext
-        if (!supportedInstallSource(app)) return
-        if (state.value is State.Checking) return
-        state.value = State.Checking
+        if (managedByUpdater(app)) return
+        if (_state.value is State.Checking) return
+        _state.value = State.Checking
         scope.launch {
             val manifest = runCatching { fetchManifest() }
                 .getOrElse {
-                    state.value = State.Failed("Update check failed: ${it.message}")
+                    _state.value = State.Failed("Update check failed: ${it.message}")
                     return@launch
                 }
             app.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 .edit()
                 .putLong(LAST_CHECK, System.currentTimeMillis())
                 .apply()
-            state.value = if (manifest.isNewerThan(BuildConfig.VERSION_CODE)) {
+            _state.value = if (manifest.isNewerThan(BuildConfig.VERSION_CODE)) {
                 State.Available(manifest)
             } else {
                 State.UpToDate
@@ -80,14 +100,13 @@ object UpdateManager {
 
     /** Opens the release page for this build's channel in the browser. */
     fun openReleasePage(context: Context) {
-        val url = if (BuildConfig.UPDATE_CHANNEL == "stable") STABLE_PAGE else PREVIEW_PAGE
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(channel.pageUrl))
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         runCatching { context.startActivity(intent) }
     }
 
     private fun fetchManifest(): UpdateManifest {
-        val connection = open(manifestUrl())
+        val connection = open(channel.manifestUrl)
         try {
             check(connection.responseCode == HttpURLConnection.HTTP_OK) {
                 "HTTP ${connection.responseCode}"
@@ -99,9 +118,6 @@ object UpdateManager {
         }
     }
 
-    private fun manifestUrl(): String =
-        if (BuildConfig.UPDATE_CHANNEL == "stable") STABLE_MANIFEST else PREVIEW_MANIFEST
-
     private fun open(url: String): HttpURLConnection =
         (URL(url).openConnection() as HttpURLConnection).apply {
             connectTimeout = 15_000
@@ -109,15 +125,13 @@ object UpdateManager {
             instanceFollowRedirects = true
         }
 
-    // Store-managed installs update through the store, so the check stays quiet there.
-    @Suppress("DEPRECATION")
-    private fun supportedInstallSource(context: Context): Boolean = runCatching {
+    private fun managedByUpdater(context: Context): Boolean = runCatching {
         val manager = context.packageManager
         val installer = if (Build.VERSION.SDK_INT >= 30) {
             manager.getInstallSourceInfo(context.packageName).installingPackageName
         } else {
             manager.getInstallerPackageName(context.packageName)
         }
-        installer != STORE_FDROID && installer != STORE_PLAY
-    }.getOrDefault(true)
+        installer in MANAGED_INSTALLERS
+    }.getOrDefault(false)
 }

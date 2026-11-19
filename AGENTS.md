@@ -66,6 +66,9 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
   On failure the trimmed original is kept and the save shows a "Compaction failed" toast.
 - `app/.../replay/ClipFrameTimes.kt` reads a clip's real frame PTS via `MediaExtractor`; frame stepping
   (`FrameTimeline`) and trim snapping use it, falling back to the estimated duration when unavailable.
+- `ClipTrimmer` sees samples in decode order, where PTS is not monotonic across B-frames. It writes
+  every sample from the keyframe to the trim end and stops only a guard second past it
+  (`core/clip/TrimTail`); stopping at the first late sample cut the last 1-3 frames of the lap.
 - `LapSummary` carries `videoBytes`, `telemetryBytes`, and `pendingBytes`, computed in
   `LapStore.summaries()`. `EditLapSheet` shows them under a `Data` section.
 - The lap player, compare screen, and sync screen all use `SeekParameters.EXACT`. `ScrubSeeker`
@@ -117,6 +120,8 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
 - Build: `org.gradle.caching` and configuration cache are on; app unit tests run with 2 forks and a
   1 GB heap (`app/build.gradle.kts`). Inner loop is `:app:assembleDebug` (~3 s) plus targeted
   `--tests`; `:app:lintDebug` (~25 s) is CI/pre-merge only. TrackMap's root carries `testTag("track-map")`.
+  Build types: `debug` (dev), `stable` (production id, UPDATE_CHANNEL=stable), `preview` (id suffix `.preview`).
+  Preview icons and label live in `app/src/preview/res`; regenerate with `tools/generate-preview-icon.py`.
 - Device tests live in `app/src/androidTest` (Espresso + Compose, `AndroidJUnitRunner`). They are
   device-gated (no emulator/`/dev/kvm` in this environment): run with
   `:app:connectedDebugAndroidTest` or a Gradle managed device once `/dev/kvm` is exposed.
@@ -202,6 +207,10 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
 
 ## Release
 
-- Work in a branch, merge to `main`, push. Pushing `main` triggers CI and preview publish.
+- Work in a branch, merge to `main`, push. Pushing `main` triggers CI: unit tests, lint, a debug build, then a per-build preview release.
 - The updater only checks versions: `UpdateManager` reads `latest.json` and `openReleasePage` opens the GitHub release in the browser. There is no install-packages permission, so Play Protect has nothing to flag; downloads and installs stay with the browser.
-- `versionCode = 1000 + git commit count`; `v*` tags are stable builds.
+- `versionCode = 1000 + git commit count`; `versionName = 0.2.<commit count>`. A stable `v*` tag must equal its version name (`v0.2.<count>`) so Obtainium and the version check can compare.
+- Each push to `main` publishes a prerelease `v0.2.<count>` carrying `LapCraft-preview.apk` plus `latest.json`, and refreshes a lone rolling `preview-latest` release that holds only `latest.json` for the in-app check. Older previews are pruned to the last 10.
+- A stable release is a promotion, not a tag push: Actions → `promote` with `promote_tag = v0.2.<count>` rebuilds that commit as `assembleStable` (UPDATE_CHANNEL=stable), uploads `LapCraft.apk` plus the versioned APK and `latest.json`, and flips the prerelease flag. Its versionCode matches the preview build, so it installs over it.
+- Two installable packages: `io.github.jlai403.lapcraft` (stable) and `io.github.jlai403.lapcraft.preview` (preview). Build variants `assembleStable` and `assemblePreview`; preview resources live in `app/src/preview/res` (label and icon).
+- Installers and updaters (F-Droid, Play, Obtainium) handle their own updates; the in-app check stays quiet for them.`

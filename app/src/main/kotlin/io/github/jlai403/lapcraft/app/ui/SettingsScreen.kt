@@ -303,7 +303,7 @@ fun SettingsScreen(
         SectionCard(title = "About") {
             SettingRow(
                 label = "Version",
-                value = "${BuildConfig.VERSION_NAME} · ${BuildConfig.UPDATE_CHANNEL} · ${BuildConfig.GIT_SHA}",
+                value = "${BuildConfig.VERSION_NAME} · ${BuildConfig.UPDATE_CHANNEL}",
                 modifier = Modifier.testTag("about-expand"),
                 onClick = { aboutExpanded = !aboutExpanded },
                 trailing = { Chevron(expanded = aboutExpanded) },
@@ -453,13 +453,16 @@ private fun formatEventDate(timestampMs: Long): String =
     if (timestampMs <= 0) "never" else DateFormat.getDateTimeInstance().format(Date(timestampMs))
 
 private fun updateSummary(update: UpdateManager.State): String = when (update) {
-    is UpdateManager.State.Idle -> "Checks GitHub releases once a day."
+    is UpdateManager.State.Idle -> if (BuildConfig.UPDATE_CHANNEL == "stable") {
+        "Checks GitHub releases once a day."
+    } else {
+        "Checks GitHub releases on every launch."
+    }
     is UpdateManager.State.Checking -> "Checking for updates…"
     is UpdateManager.State.UpToDate -> "You are on the latest build."
     is UpdateManager.State.Available -> buildString {
         append("Version ${update.manifest.versionName} (build ${update.manifest.versionCode}) is available.")
         if (update.manifest.notes.isNotBlank()) append(" ${update.manifest.notes}")
-        append(" Download it from the releases page.")
     }
     is UpdateManager.State.Failed -> update.message
 }

@@ -6,6 +6,10 @@ on:
     tags: ["v*"]
   pull_request:
   workflow_dispatch:
+    inputs:
+      promote_tag:
+        description: "Release tag to rebuild as stable and promote (e.g. v0.2.313)"
+        required: false
 
 permissions:
   contents: read
@@ -92,8 +96,8 @@ jobs:
       - name: Lint
         run: ./gradlew :app:lintDebug --stacktrace
 
-      - name: Build debug APK
-        run: ./gradlew :app:assembleDebug --stacktrace
+      - name: Build APKs
+        run: ./gradlew :app:assembleStable :app:assemblePreview --stacktrace
         env:
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
           GITHUB_SHA: ${{ github.sha }}
@@ -106,6 +110,7 @@ jobs:
           version_code=$((1000 + $(git rev-list --count HEAD)))
           echo "version_name=$version_name" >> "$GITHUB_OUTPUT"
           echo "version_code=$version_code" >> "$GITHUB_OUTPUT"
+          echo "version_tag=v${version_name}" >> "$GITHUB_OUTPUT"
 
       - name: Stage APK
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
@@ -129,7 +134,6 @@ jobs:
           name: lint-build-reports-${{ github.sha }}
           path: app/build/reports/lint-results-debug.html
           if-no-files-found: ignore
-
   preview:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [test, build]
@@ -138,31 +142,140 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/download-artifact@v8
+      - name: Download APK
+        uses: actions/download-artifact@v8
         with:
           name: lapcraft-debug-${{ github.sha }}
           path: dist
 
-      - name: Publish preview build
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          TAG: preview-latest
-          VERSION_NAME: ${{ needs.build.outputs.version_name }}
-          VERSION_CODE: ${{ needs.build.outputs.version_code }}
+      - name: Stage files
         run: |
-          apk=$(ls dist/*.apk | head -1)
-          cp "$apk" dist/LapCraft-preview.apk
+          mkdir -p dist
+          preview=$(find dist -name 'app-preview.apk' | head -1)
+          cp "$preview" dist/LapCraft-preview.apk
           jq -n \
-            --argjson code "$VERSION_CODE" \
-            --arg name "$VERSION_NAME" \
+            --argjson code "${{ needs.build.outputs.version_code }}" \
+            --arg name "${{ needs.build.outputs.version_name }}" \
             --arg notes "Preview build ${{ github.run_number }} · ${GITHUB_SHA:0:7}" \
             '{versionCode:$code,versionName:$name,notes:$notes}' \
             > dist/latest.json
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" dist/LapCraft-preview.apk dist/latest.json --clobber
+
+      - name: Publish per-build prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          tag="${{ needs.build.outputs.version_tag }}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" dist/LapCraft-preview.apk dist/latest.json --clobber
           else
-            gh release create "$TAG" dist/LapCraft-preview.apk dist/latest.json \
-              --prerelease --title "Preview builds" \
-              --notes "Rolling debug build from main. Android will ask before installing."
+            gh release create "$tag" dist/LapCraft-preview.apk dist/latest.json \
+              --prerelease --title "Preview ${{ needs.build.outputs.version_name }}" \
+              --notes "Preview build ${{ github.run_number }} · ${GITHUB_SHA:0:7}"
           fi
+
+      - name: Refresh rolling manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if gh release view "preview-latest" >/dev/null 2>&1; then
+            gh release upload "preview-latest" dist/latest.json --clobber
+          else
+            gh release create "preview-latest" dist/latest.json \
+              --prerelease --title "Preview builds" \
+              --notes "Rolling manifest for the in-app update check."
+          fi
+
+      - name: Prune old previews
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release list --limit 100 --json tagName,isPrerelease \
+            | jq -r '.[] | select(.isPrerelease and (.tagName | startswith("v0.2."))) | .tagName' \
+            | tail -n +11 | while read -r old; do
+                gh release delete "$old" --yes --cleanup-tag || true
+              done
+
+  promote:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.promote_tag != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.inputs.promote_tag }}
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: android-actions/setup-android@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.android
+            ${{ env.ANDROID_HOME }}/platforms
+            ${{ env.ANDROID_HOME }}/build-tools
+          key: android-sdk-${{ runner.os }}-36
+
+      - name: Install SDK packages
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools"
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Build stable APK
+        run: ./gradlew :app:assembleStable --stacktrace
+        env:
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          GITHUB_SHA: ${{ github.sha }}
+
+      - name: Compute version
+        id: version
+        run: |
+          version_name=$(sed -n 's/.*versionName = "\(.*\)"/\1/p' app/build.gradle.kts | head -1)
+          version_code=$((1000 + $(git rev-list --count HEAD)))
+          echo "version_name=$version_name" >> "$GITHUB_OUTPUT"
+          echo "version_code=$version_code" >> "$GITHUB_OUTPUT"
+
+      - name: Guard tag
+        run: |
+          if [ "v${{ steps.version.outputs.version_name }}" != "${{ github.event.inputs.promote_tag }}" ]; then
+            echo "Tag ${{ github.event.inputs.promote_tag }} does not match versionName ${{ steps.version.outputs.version_name }}"
+            exit 1
+          fi
+
+      - name: Stage files
+        run: |
+          mkdir -p dist
+          stable=$(find . -path '*/apk/stable/app-stable.apk' | head -1)
+          cp "$stable" "dist/LapCraft-${{ steps.version.outputs.version_name }}-${{ steps.version.outputs.version_code }}-debug.apk"
+          cp "$stable" dist/LapCraft.apk
+          jq -n \
+            --argjson code "${{ steps.version.outputs.version_code }}" \
+            --arg name "${{ steps.version.outputs.version_name }}" \
+            --arg notes "Stable build ${{ github.event.inputs.promote_tag }}" \
+            '{versionCode:$code,versionName:$name,notes:$notes}' \
+            > dist/latest.json
+
+      - name: Publish and promote
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          tag="${{ github.event.inputs.promote_tag }}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" dist/*.apk dist/latest.json --clobber
+          else
+            gh release create "$tag" dist/*.apk dist/latest.json \
+              --title "LapCraft ${{ steps.version.outputs.version_name }}" \
+              --notes "Stable build ${{ github.event.inputs.promote_tag }}"
+          fi
+          gh release edit "$tag" --prerelease=false --latest
