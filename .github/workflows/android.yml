@@ -106,11 +106,13 @@ jobs:
       - name: Compute version
         id: version
         run: |
-          version_name=$(sed -n 's/.*versionName = "\(.*\)"/\1/p' app/build.gradle.kts | head -1)
-          version_code=$((1000 + $(git rev-list --count HEAD)))
+          count=$(git rev-list --count HEAD)
+          version_name="0.2.${count}"
+          version_code=$((1000 + count))
           echo "version_name=$version_name" >> "$GITHUB_OUTPUT"
           echo "version_code=$version_code" >> "$GITHUB_OUTPUT"
           echo "version_tag=v${version_name}" >> "$GITHUB_OUTPUT"
+          [[ "$version_name" =~ ^0\.2\.[0-9]+$ ]] || { echo "bad version $version_name"; exit 1; }
 
       - name: Upload APK
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
@@ -235,10 +237,12 @@ jobs:
       - name: Compute version
         id: version
         run: |
-          version_name=$(sed -n 's/.*versionName = "\(.*\)"/\1/p' app/build.gradle.kts | head -1)
-          version_code=$((1000 + $(git rev-list --count HEAD)))
+          count=$(git rev-list --count HEAD)
+          version_name="0.2.${count}"
+          version_code=$((1000 + count))
           echo "version_name=$version_name" >> "$GITHUB_OUTPUT"
           echo "version_code=$version_code" >> "$GITHUB_OUTPUT"
+          [[ "$version_name" =~ ^0\.2\.[0-9]+$ ]] || { echo "bad version $version_name"; exit 1; }
 
       - name: Guard tag
         run: |
