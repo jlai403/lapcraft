@@ -48,8 +48,9 @@
 {#if visible}
   <div class="banner" role="dialog" aria-label="Cookie consent">
     <p>
-      This site uses a cookieless page counter. If you accept, Google Tag Manager may load tags
-      that set cookies. You can change this later by clearing site data.
+      Cloudflare's page counter sets no cookies. A Google Analytics tag loads on every visit. If you
+      accept, Google Tag Manager may load tags that set cookies. You can change this later by
+      clearing site data.
     </p>
     <div class="actions">
       <button class="btn small" on:click={decline}>Decline</button>
