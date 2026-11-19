@@ -11,6 +11,19 @@ Full check before merging:
 ANDROID_HOME=/opt/android-sdk ./gradlew :core:test :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
 ```
 
+Site (Astro + Svelte, Cloudflare Pages):
+
+```sh
+cd site
+bun install --frozen-lockfile
+bun run verify          # tsc --noEmit + astro build
+bun run dev             # local dev server
+./tools/site-assets.sh  # regenerate media/stills/og from demo takes
+./tools/site-assets.sh --check  # budget + all-intra check
+```
+
+Deploy is `.github/workflows/site.yml`, path-filtered to `site/**` and `tools/site-assets.sh`. Production on push to `main`, preview on PR, both under the `website` GitHub environment (`CLOUDFLARE_API_TOKEN` secret; `CLOUDFLARE_ACCOUNT_ID`, `PUBLIC_GTM_ID`, `PUBLIC_CF_BEACON_TOKEN` variables). Custom domain `lapcraft.jlai.ca`.
+
 Focused unit tests:
 
 ```sh
@@ -21,6 +34,8 @@ ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --tests '*LapPlay
 
 - `:core` holds pure Kotlin: samples, sessions, playback cursor, clip trim math, track identification. No Android UI.
 - `:app` holds Compose UI, capture service, replay import/playback, settings, updater.
+- `site/` holds the marketing site: Astro 5 static, Svelte 5 islands, Bun, TypeScript 7. Logic lives in `src/lib/*.ts` (type checked); `.astro` and `.svelte` files are not type checked in CI. Two islands: `ScrollVideo` (scroll-scrubbed demo) and `ConsentBanner` (gates GTM). Compare section uses real screenshots with a vanilla tab switcher (`src/lib/compare.ts`); full demo opens in a native `<dialog>` (`src/lib/demo.ts`). Tokens in `src/styles/tokens.css` mirror `DESIGN.md`. Assets come from `tools/site-assets.sh`.
+- The walkthrough pins its phone stage beside the copy on desktop and in the top `46vh` on mobile (`order: -1`, `position: sticky`, copy scrolls underneath). `showcase.ts` moves the IntersectionObserver band to the lower half at `max-width: 900px` and activates the step with the highest `intersectionRatio`, rebuilding the observer when the breakpoint flips. The compare step turns the phone 90deg and counter-rotates the shot so the app stays upright; mobile inline figures are the no-JS and reduced-motion fallback only.
 
 ## Key conventions
 

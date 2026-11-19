@@ -11,3 +11,12 @@ tools/demo/beats/
 tools/demo/*.mp4
 !tools/demo/master.mp4
 !tools/demo/master-vertical.mp4
+
+# site
+site/node_modules/
+site/dist/
+site/.astro/
+site/.wrangler/
+site/test-results/
+site/playwright-report/
+site/blob-report/

@@ -1,0 +1,24 @@
+{
+  "name": "lapcraft-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "tsc --noEmit -p tsconfig.check.json",
+    "verify": "bun run check && bun run build",
+    "test": "bun run build && playwright test"
+  },
+  "dependencies": {
+    "astro": "7.4.13",
+    "@astrojs/svelte": "9.1.6",
+    "svelte": "5.58.0",
+    "@astrojs/sitemap": "3.7.6"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.1",
+    "typescript": "7.0.2",
+    "wrangler": "4.45.0"
+  }
+}

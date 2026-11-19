@@ -1,0 +1,24 @@
+---
+import Base from '../layouts/Base.astro'
+---
+<Base title="Privacy · LapCraft" description="What this site and the app do with your data.">
+  <section>
+    <div class="wrap" style="max-width:720px">
+      <h1 class="display" style="font-size:2.4rem;margin:0 0 24px">Privacy</h1>
+      <h2 style="font-size:1.2rem;margin:24px 0 8px">This site</h2>
+      <ul style="color:var(--subtext);line-height:1.7">
+        <li>Cloudflare Web Analytics counts page views. It sets no cookies and does not fingerprint you.</li>
+        <li>If you accept, Google Tag Manager loads tags that may set cookies. Decline and only the cookieless count runs.</li>
+        <li>No account, no newsletter, no email capture.</li>
+      </ul>
+      <h2 style="font-size:1.2rem;margin:24px 0 8px">The app</h2>
+      <ul style="color:var(--subtext);line-height:1.7">
+        <li>Laps, clips and settings stay in the app's private storage on your phone.</li>
+        <li>Telemetry arrives from Gran Turismo 7 over UDP 33739 and 33740 on your own network.</li>
+        <li>The only outbound request is an optional GT GridStats profile lookup, using a key you paste in Settings.</li>
+        <li>Updates download from GitHub releases and are verified by SHA-256.</li>
+        <li>No accounts, no analytics, no ads, no cloud backup.</li>
+      </ul>
+    </div>
+  </section>
+</Base>
