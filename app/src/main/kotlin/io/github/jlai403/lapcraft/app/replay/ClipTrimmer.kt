@@ -5,6 +5,7 @@ import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.media.MediaMuxer
 import io.github.jlai403.lapcraft.core.clip.TrimRange
+import io.github.jlai403.lapcraft.core.clip.TrimTail
 import java.io.File
 import java.nio.ByteBuffer
 
@@ -70,15 +71,15 @@ class ClipTrimmer {
             started = true
 
             val endUs = range.endMs * 1_000
+            val tail = TrimTail(endUs)
             val info = MediaCodec.BufferInfo()
             var samples = 0
             while (true) {
                 val size = extractor.readSampleData(buffer, 0)
                 if (size < 0) break
                 val time = extractor.sampleTime
-                if (time > endUs) break
-                if (time >= keyframe) {
-                    val track = extractor.sampleTrackIndex
+                val track = extractor.sampleTrackIndex
+                if (time in keyframe..endUs) {
                     val muxTrack = if (track == videoIndex) muxVideo else muxAudio
                     if (muxTrack >= 0) {
                         val flags = if (extractor.sampleFlags and MediaExtractor.SAMPLE_FLAG_SYNC != 0) {
@@ -91,6 +92,7 @@ class ClipTrimmer {
                         samples++
                     }
                 }
+                if (tail.onSample(video = track == videoIndex, timeUs = time)) break
                 extractor.advance()
             }
 

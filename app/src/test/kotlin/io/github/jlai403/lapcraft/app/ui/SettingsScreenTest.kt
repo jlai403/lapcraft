@@ -238,7 +238,7 @@ class SettingsScreenTest {
         }
 
         compose.onNodeWithText(
-            "Version 0.1.1 (build 1035) is available. Build 35 Download it from the releases page.",
+            "Version 0.1.1 (build 1035) is available. Build 35",
         ).assertExists()
         compose.onNodeWithText("Open releases").performScrollTo().assertExists()
         compose.onNodeWithText("Download 0.1.1").assertDoesNotExist()

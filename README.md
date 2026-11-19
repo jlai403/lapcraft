@@ -122,8 +122,11 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 - Local-first: no accounts, cloud, ads, or tracking. The optional profile lookup sends only the PSN ID to gt-gridstats.com (plus a Bearer API key you paste in Settings when you want DR/SR and car names); manual driver entry stays offline. Car names come from a bundled catalogue generated from GT GridStats. Optional event tags use the same key plus the public GT championship schedule.
 - License: GPLv3 + contributor CLA.
 
-## Target
+## Updates
 
-- Pixel 10, Android 16.
-- `minSdk 29`, `targetSdk 36`, `compileSdk 36`.
-- Package: `io.github.jlai403.lapcraft`.
+Preview builds publish to the `preview-latest` GitHub release on every push to `main`; stable builds publish on `v*` tags. `UpdateManager` checks the matching `latest.json` on launch and opens the release page in the browser. There is no in-app installer.
+
+- **Preview**: GitHub source `https://github.com/jlai403/lapcraft`, include prereleases, APK filter `LapCraft-preview\.apk`.
+- **Stable**: Direct APK Link `https://github.com/jlai403/lapcraft/releases/latest/download/LapCraft.apk` (or the HTML source on `/releases/latest` with filter `LapCraft\.apk`).
+
+`obtainium://add/https://github.com/jlai403/lapcraft` adds the preview entry.
