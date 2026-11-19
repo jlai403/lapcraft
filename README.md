@@ -6,7 +6,7 @@ Android telemetry and synchronized replay for Gran Turismo 7. Capture one lap of
 
 ## Demo
 
-https://github.com/user-attachments/assets/e616998d-5f0e-4135-b3c8-54d89e909675
+https://github.com/user-attachments/assets/8b36ff58-3bde-449b-8a53-9378593979ac
 
 A 26 second cut of the lap workflow, without voice. The portrait version for the Play Store is [master-vertical.mp4](tools/demo/master-vertical.mp4). Both cuts are built by the kit in [tools/demo](tools/demo/README.md).
 
