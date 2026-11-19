@@ -1,0 +1,27 @@
+---
+import ConsentBanner from '../islands/ConsentBanner.svelte'
+const beacon = import.meta.env.PUBLIC_CF_BEACON_TOKEN
+---
+<!-- Consent Mode v2 defaults: deny until the user opts in. -->
+<script is:inline>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ window.dataLayer.push(arguments); }
+  gtag('consent', 'default', {
+    analytics_storage: 'denied',
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+    wait_for_update: 500
+  });
+</script>
+
+{beacon && (
+  <script
+    is:inline
+    defer
+    src="https://static.cloudflareinsights.com/beacon.min.js"
+    data-cf-beacon={JSON.stringify({ token: beacon })}
+  ></script>
+)}
+
+<ConsentBanner client:load />

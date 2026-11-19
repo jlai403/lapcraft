@@ -1,0 +1,9 @@
+---
+interface Props {
+  color?: string
+}
+const { color = 'var(--mint)' } = Astro.props
+---
+<div class="connector" data-connector style={`--c: ${color}`} aria-hidden="true">
+  <div class="track"><div class="fill"></div><div class="head"></div></div>
+</div>

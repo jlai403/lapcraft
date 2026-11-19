@@ -1,0 +1,267 @@
+---
+import Base from '../layouts/Base.astro'
+import Connector from '../components/Connector.astro'
+import { Image } from 'astro:assets'
+import ScrollVideo from '../islands/ScrollVideo.svelte'
+import capture from '../assets/capture.png'
+import compareVideo from '../assets/compare-video.png'
+import compareTelemetry from '../assets/compare-telemetry.png'
+import { speedPath, speedAreaPath } from '../lib/telemetry-art'
+
+const speedLine = speedPath(1120, 180)
+const speedArea = speedAreaPath(1120, 180)
+
+const title = 'LapCraft'
+const description = 'Gran Turismo 7 telemetry at 60 Hz, synced to the replay from your PS5, on one cursor.'
+---
+<Base title={title} description={description}>
+  <script is:inline type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'LapCraft',
+    description,
+    operatingSystem: 'Android 10 or later',
+    applicationCategory: 'UtilitiesApplication',
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    url: 'https://lapcraft.jlai.ca'
+  })} />
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-grid">
+        <div>
+          <p class="eyebrow reveal" style="--i:0">GT7 telemetry in your pocket</p>
+          <h1 class="display reveal" style="--i:1">Find the <span class="accent">tenth.</span></h1>
+          <p class="lead reveal" style="--i:2">LapCraft records a lap of Gran Turismo 7 telemetry at 60 Hz, syncs it to your PS5 replay, and keeps the charts on the same frame as the video.</p>
+          <div class="cta reveal" style="--i:3">
+            <a class="btn primary" href="#download">Download preview APK</a>
+            <a class="btn" href="https://github.com/jlai403/lapcraft">Source on GitHub</a>
+          </div>
+          <p class="hint reveal" style="--i:4">Preview build.</p>
+        </div>
+        <div class="stage reveal" style="--i:2">
+          <div class="stage-panel p1"><span class="eyebrow">lap time</span><p class="display stage-value-lg">1:36.131</p></div>
+          <div class="stage-panel p2"><span class="eyebrow">speed</span><p class="display stage-value-md">184 km/h</p></div>
+          <div class="stage-panel p3"><span class="eyebrow">track</span><p class="stage-value-sm">Suzuka · lap 3</p></div>
+        </div>
+      </div>
+      <div class="stats-stage">
+        <svg class="stats-chart" viewBox="0 0 1120 180" preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="stats-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="var(--cyan)" stop-opacity="0.12" />
+              <stop offset="100%" stop-color="var(--cyan)" stop-opacity="0" />
+            </linearGradient>
+            <mask id="stats-mask">
+              <rect x="0" y="0" width="1120" height="180" fill="url(#stats-fade)" />
+            </mask>
+            <linearGradient id="stats-fade" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="black" stop-opacity="0" />
+              <stop offset="12%" stop-color="black" stop-opacity="1" />
+              <stop offset="88%" stop-color="black" stop-opacity="1" />
+              <stop offset="100%" stop-color="black" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+          <path d={speedArea} fill="url(#stats-fill)" />
+          <path d={speedLine} fill="none" stroke="var(--cyan)" stroke-width="1.5" stroke-opacity="0.35" />
+        </svg>
+        <div class="stats">
+          <div class="stat reveal" style="--i:0"><b>60 Hz</b><span>telemetry samples</span></div>
+          <div class="stat reveal" style="--i:1"><b>60 fps</b><span>replay video</span></div>
+          <div class="stat reveal" style="--i:2"><b>±1</b><span>frame by frame</span></div>
+          <div class="stat reveal" style="--i:3"><b>10</b><span>metrics recorded</span></div>
+          <div class="stat reveal" style="--i:4"><b>6</b><span>visuals in compare</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Connector color="var(--mint)" />
+
+  <!-- One clock -->
+  <section class="alt" id="one-clock">
+    <div class="wrap">
+      <div class="head reveal">
+        <p class="eyebrow">Sync</p>
+        <h2 class="display">The replay shows the lap. The telemetry shows the numbers.</h2>
+        <p>LapCraft anchors the clip to the frame where the car crosses the line, so the video, the charts, and the track map move together.</p>
+      </div>
+      <ScrollVideo client:visible />
+    </div>
+  </section>
+
+  <Connector color="var(--cyan)" />
+
+  <!-- Showcase -->
+  <section id="showcase">
+    <div class="wrap">
+      <div class="head reveal">
+        <p class="eyebrow">Walkthrough</p>
+        <h2 class="display">Capture, import, compare.</h2>
+      </div>
+      <div class="showcase-grid">
+        <div class="showcase-copy">
+          <article class="showcase-step" data-step="0" data-orient="portrait" data-index="01">
+            <h3>Capture the lap</h3>
+            <p>Connect to GT7 on your network. Tap Capture this lap and the app saves the telemetry for the current lap.</p>
+            <ul>
+              <li>Track identified from the lap coordinates</li>
+            </ul>
+            <figure data-inline-media hidden>
+              <Image src={capture} alt="Record screen with a live telemetry stream" width={360} />
+            </figure>
+          </article>
+          <article class="showcase-step" data-step="1" data-orient="portrait" data-index="02">
+            <h3>Import the replay</h3>
+            <p>Record the single lap replay in GT7 with the HUD on, then send it to LapCraft. The clip opens at the end. Move back to the start line and pick that frame. The replay then runs with the telemetry.</p>
+            <ul>
+              <li>Share from the PlayStation App</li>
+              <li>Screenshare from the PS5 through the PS App</li>
+              <li>Or import a capture card recording</li>
+            </ul>
+            <figure data-inline-media hidden>
+              <video src="/media/replay.mp4" muted playsinline loop preload="metadata" poster="/media/replay-poster.jpg"></video>
+            </figure>
+          </article>
+          <article class="showcase-step" data-step="2" data-orient="landscape" data-index="03">
+            <h3>Compare two laps</h3>
+            <p>Pick a reference lap from the same track. Only the primary lap plays; the reference moves to the same place on track, frame exact.</p>
+            <ul>
+              <li>A running delta shows the gap</li>
+              <li>Same-track picks only</li>
+            </ul>
+            <figure data-inline-media hidden data-shape="landscape">
+              <div class="phone-landscape">
+                <div class="device-bar">
+                  <img src="/icon-128.png" width="12" height="12" alt="" style="border-radius:3px" />
+                  LapCraft
+                </div>
+                <Image class="phone-shot" src={compareVideo} alt="Compare screen, Video tab: two replay panes with telemetry HUDs" width={720} />
+              </div>
+            </figure>
+          </article>
+
+        </div>
+        <div class="showcase-stage" data-stage aria-hidden="true">
+          <div class="device" data-device data-orient="portrait">
+            <div class="device-bar">
+              <img src="/icon-128.png" width="18" height="18" alt="" style="border-radius:4px" />
+              LapCraft
+            </div>
+            <div class="device-media">
+              <div class="shot active" data-shot="0">
+                <Image src={capture} alt="" width={360} />
+              </div>
+              <div class="shot" data-shot="1">
+                <video src="/media/replay.mp4" muted playsinline loop preload="metadata" poster="/media/replay-poster.jpg"></video>
+              </div>
+              <div class="shot" data-shot="2">
+                <Image src={compareVideo} alt="" width={720} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Connector color="var(--mint)" />
+
+  <!-- Compare -->
+  <section id="compare">
+    <div class="wrap">
+      <div class="head reveal">
+        <p class="eyebrow">Compare</p>
+        <h2 class="display">Two laps, one clock.</h2>
+        <p>Only the primary lap plays. The reference stays muted and moves to the same place on track, frame exact. A running delta shows the gap, so you can see where the reference pulls away and what you did differently. That corner is your next tenth.</p>
+      </div>
+      <div class="window reveal">
+        <div class="window-bar">
+          <span class="dots"><i></i><i></i><i></i></span>
+          compare
+          <div class="compare-tabs" role="tablist" style="margin-left:auto;display:flex;gap:6px">
+            <button role="tab" aria-selected="true" aria-controls="cmp-video" data-compare-tab="video" class="compare-tab active">Video</button>
+            <button role="tab" aria-selected="false" aria-controls="cmp-telemetry" data-compare-tab="telemetry" class="compare-tab">Telemetry</button>
+          </div>
+        </div>
+        <div class="compare-panels">
+          <div role="tabpanel" id="cmp-video" data-compare-panel="video" class="compare-panel active">
+            <Image src={compareVideo} alt="Compare screen, Video tab: two replay panes with telemetry HUDs" width={1440} />
+            <p class="compare-caption">Both replays under one clock</p>
+          </div>
+          <div role="tabpanel" id="cmp-telemetry" data-compare-panel="telemetry" class="compare-panel" hidden>
+            <Image src={compareTelemetry} alt="Compare screen, Telemetry tab: shared track map and five charts" width={1440} />
+            <p class="compare-caption">Map and five charts, cyan lap 1, amber reference</p>
+          </div>
+        </div>
+      </div>
+      <div class="compare-footer reveal">
+        <h3>Review and compare</h3>
+        <p>The HUD follows the replay, with throttle, brake, speed, RPM, and gear on a track progress axis. Steering and four tyre temperatures ride along as readouts. All ten metrics are sampled 60 times a second; five of them get a chart.</p>
+        <button class="btn" type="button" data-demo-open>Watch the full demo</button>
+      </div>
+    </div>
+  </section>
+
+  <Connector color="var(--cyan)" />
+
+  <!-- Download + privacy -->
+  <section class="alt" id="download">
+    <div class="wrap">
+      <div class="head reveal">
+        <p class="eyebrow">Download</p>
+        <h2 class="display">Your laps stay on your phone.</h2>
+      </div>
+      <div class="download-grid">
+        <div class="reveal">
+          <ul style="list-style:none;padding:0;margin:0;display:grid;gap:10px;color:var(--subtext)">
+            <li>No video capture, no audio, no screen recording.</li>
+            <li>No accounts, no analytics, no cloud backup.</li>
+          </ul>
+        </div>
+        <div class="window reveal">
+          <div class="window-bar"><span class="dots"><i></i><i></i><i></i></span>preview build</div>
+          <div style="padding:24px">
+            <p style="margin:0 0 12px;font-weight:600">LapCraft preview</p>
+            <p style="margin:0 0 16px;color:var(--subtext);font-size:0.9rem">Android 10 or later. Every push to main replaces the preview APK.</p>
+            <a class="btn primary" href="https://github.com/jlai403/lapcraft/releases">Open releases</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Connector color="var(--amber)" />
+
+  <!-- Coming soon -->
+  <section id="hosted">
+    <div class="wrap">
+      <div class="head reveal">
+        <p class="eyebrow">Coming soon</p>
+        <h2 class="display">Upload a lap. Compare against the field.</h2>
+        <p>A hosted library is next. Upload a lap, pick a reference from another driver on the same track, and compare on the same clock. Local stays the default, and the app keeps working without an account.</p>
+      </div>
+      <ul class="hosted-list reveal">
+        <li>Upload a lap to the shared library</li>
+        <li>Pick a reference from another driver on the same track</li>
+        <li>Compare on the same clock, frame exact</li>
+      </ul>
+    </div>
+  </section>
+
+  <Connector color="var(--amber)" />
+
+  <!-- Closing -->
+  <section class="closing">
+    <div class="wrap">
+      <img src="/icon-512.png" width="120" height="120" alt="" style="margin:0 auto 28px;border-radius:24px;display:block" />
+      <h2 class="display reveal">Ready to find the tenth?</h2>
+      <p class="reveal">Download the preview, connect to GT7, and capture your next lap.</p>
+      <div class="cta reveal">
+        <a class="btn primary" href="#download">Download preview APK</a>
+        <a class="btn" href="https://github.com/jlai403/lapcraft">Source on GitHub</a>
+      </div>
+    </div>
+  </section>
+</Base>

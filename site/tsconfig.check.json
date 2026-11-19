@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["src/lib", "src/**/*.ts"],
+  "exclude": ["src/**/*.astro", "src/**/*.svelte", "dist", "node_modules"]
+}
