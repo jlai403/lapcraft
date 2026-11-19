@@ -7,8 +7,14 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
+      promote_minor:
+        description: "Minor line to promote (resolves to its newest prerelease)"
+        type: choice
+        options:
+          - v0.2
+        default: v0.2
       promote_tag:
-        description: "Release tag to rebuild as stable and promote (e.g. v0.2.313)"
+        description: "Optional exact tag (overrides the dropdown)"
         required: false
 
 permissions:
@@ -196,16 +202,33 @@ jobs:
               done
 
   promote:
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.promote_tag != ''
+    if: github.event_name == 'workflow_dispatch' && (github.event.inputs.promote_tag != '' || github.event.inputs.promote_minor != '')
     runs-on: ubuntu-latest
     permissions:
       contents: write
 
     steps:
+      - name: Resolve tag
+        id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if [ -n "${{ github.event.inputs.promote_tag }}" ]; then
+            tag="${{ github.event.inputs.promote_tag }}"
+          else
+            minor="${{ github.event.inputs.promote_minor }}"
+            tag=$(gh release list --limit 200 --json tagName,isPrerelease \\
+              --jq "[.[] | select(.isPrerelease and (.tagName | startswith(\"${minor}.\")))] | sort_by(.tagName) | last | .tagName")
+          fi
+          [ -n "$tag" ] || { echo "no release found for $minor"; exit 1; }
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "Resolved tag: $tag"
+
       - name: Checkout tag
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.inputs.promote_tag }}
+          ref: ${{ steps.resolve.outputs.tag }}
           fetch-depth: 0
 
       - uses: actions/setup-java@v6
@@ -246,8 +269,8 @@ jobs:
 
       - name: Guard tag
         run: |
-          if [ "v${{ steps.version.outputs.version_name }}" != "${{ github.event.inputs.promote_tag }}" ]; then
-            echo "Tag ${{ github.event.inputs.promote_tag }} does not match versionName ${{ steps.version.outputs.version_name }}"
+          if [ "v${{ steps.version.outputs.version_name }}" != "${{ steps.resolve.outputs.tag }}" ]; then
+            echo "Tag ${{ steps.resolve.outputs.tag }} does not match versionName ${{ steps.version.outputs.version_name }}"
             exit 1
           fi
 
@@ -260,7 +283,7 @@ jobs:
           jq -n \
             --argjson code "${{ steps.version.outputs.version_code }}" \
             --arg name "${{ steps.version.outputs.version_name }}" \
-            --arg notes "Stable build ${{ github.event.inputs.promote_tag }}" \
+            --arg notes "Stable build ${{ steps.resolve.outputs.tag }}" \
             '{versionCode:$code,versionName:$name,notes:$notes}' \
             > dist/latest.json
 
@@ -269,12 +292,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          tag="${{ github.event.inputs.promote_tag }}"
+          tag="${{ steps.resolve.outputs.tag }}"
           if gh release view "$tag" >/dev/null 2>&1; then
             gh release upload "$tag" dist/*.apk dist/latest.json --clobber
           else
             gh release create "$tag" dist/*.apk dist/latest.json \
               --title "LapCraft ${{ steps.version.outputs.version_name }}" \
-              --notes "Stable build ${{ github.event.inputs.promote_tag }}"
+              --notes "Stable build ${{ steps.resolve.outputs.tag }}"
           fi
           gh release edit "$tag" --prerelease=false --latest
