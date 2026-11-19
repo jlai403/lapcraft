@@ -218,10 +218,10 @@ jobs:
             tag="${{ github.event.inputs.promote_tag }}"
           else
             minor="${{ github.event.inputs.promote_minor }}"
-            tag=$(gh release list --limit 200 --json tagName,isPrerelease \\
-              --jq "[.[] | select(.isPrerelease and (.tagName | startswith(\"${minor}.\")))] | sort_by(.tagName) | last | .tagName")
+            tag=$(gh release list --limit 200 --json tagName,isPrerelease \
+              --jq "[.[] | select(.isPrerelease and (.tagName | startswith(\"${minor}.\")))] | sort_by(.tagName | ltrimstr(\"${minor}.\") | tonumber) | last | .tagName")
           fi
-          [ -n "$tag" ] || { echo "no release found for $minor"; exit 1; }
+          [ -n "$tag" ] || { echo "no release found"; exit 1; }
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "Resolved tag: $tag"
 
