@@ -16,12 +16,17 @@ const beacon = import.meta.env.PUBLIC_CF_BEACON_TOKEN
 </script>
 
 {beacon && (
-  <script
-    is:inline
-    defer
-    src="https://static.cloudflareinsights.com/beacon.min.js"
-    data-cf-beacon={JSON.stringify({ token: beacon })}
-  ></script>
+  <script is:inline define:vars={{ token: beacon }}>
+    // Preview URLs and localhost would only add noise, and the beacon's CORS
+    // preflight fails off the production host.
+    if (location.hostname === 'lapcraft.jlai.ca') {
+      var s = document.createElement('script');
+      s.defer = true;
+      s.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+      s.setAttribute('data-cf-beacon', JSON.stringify({ token: token }));
+      document.head.appendChild(s);
+    }
+  </script>
 )}
 
 <ConsentBanner client:load />
