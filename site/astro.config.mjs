@@ -21,3 +21,4 @@ export default defineConfig({
     }
   }
 })
+// path-isolation proof
