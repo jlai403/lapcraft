@@ -296,8 +296,10 @@ jobs:
           if gh release view "$tag" >/dev/null 2>&1; then
             gh release upload "$tag" dist/*.apk dist/latest.json --clobber
           else
-            gh release create "$tag" dist/*.apk dist/latest.json \
-              --title "LapCraft ${{ steps.version.outputs.version_name }}" \
-              --notes "Stable build ${{ steps.resolve.outputs.tag }}"
+            gh release create "$tag" dist/*.apk dist/latest.json
           fi
-          gh release edit "$tag" --prerelease=false --latest
+          gh release edit "$tag" \
+            --title "LapCraft ${{ steps.version.outputs.version_name }}" \
+            --notes "Stable build ${{ steps.resolve.outputs.tag }}" \
+            --prerelease=false \
+            --latest
