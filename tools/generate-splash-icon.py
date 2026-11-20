@@ -12,7 +12,7 @@ from PIL import Image, ImageFilter
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "docs/branding/launcher-icon-master.jpg"
-RES = ROOT / "app/src/main/res"
+RES = ROOT / "android/app/src/main/res"
 
 # Splash canvas per density: 288 dp.
 SIZES = {"mdpi": 288, "hdpi": 432, "xhdpi": 576, "xxhdpi": 864, "xxxhdpi": 1152}

@@ -6,7 +6,7 @@ set -euo pipefail
 : "${GRIDSTATS_API_KEY:?set GRIDSTATS_API_KEY to your GT GridStats token}"
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-OUT="$ROOT/app/src/main/assets/car-catalog.json"
+OUT="$ROOT/android/app/src/main/assets/car-catalog.json"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 

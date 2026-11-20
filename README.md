@@ -20,8 +20,9 @@ A 26 second cut of the lap workflow, without voice. The portrait version for the
 
 ```text
 lapcraft/
-├── core/   # Kotlin JVM: protocol, lap detection, track ID, clip sync math, session codecs
-└── app/    # Android: Compose UI, foreground telemetry service, replay trim, Media3
+└── android/
+    ├── core/   # Kotlin JVM: protocol, lap detection, track ID, clip sync math, session codecs
+    └── app/    # Android: Compose UI, foreground telemetry service, replay trim, Media3
 ```
 
 `core` has no Android imports. A desktop app can reuse it, and a Rust core can replace it with the same data model.
@@ -88,6 +89,7 @@ Requires JDK 17+ and the Android SDK (compileSdk 36).
 
 ```bash
 export ANDROID_HOME=/opt/android-sdk
+cd android
 ./gradlew :core:test :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
@@ -95,6 +97,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 ## Tests
 
 ```bash
+cd android
 ./gradlew :core:test :app:testDebugUnitTest
 ```
 
