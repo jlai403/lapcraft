@@ -4,7 +4,13 @@ on:
   push:
     branches: ["**"]
     tags: ["v*"]
+    paths:
+      - 'android/**'
+      - '.github/workflows/android.yml'
   pull_request:
+    paths:
+      - 'android/**'
+      - '.github/workflows/android.yml'
   workflow_dispatch:
     inputs:
       promote_minor:
@@ -28,6 +34,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: android
 
     steps:
       - uses: actions/checkout@v7
@@ -63,12 +72,15 @@ jobs:
         with:
           name: test-reports-${{ github.sha }}
           path: |
-            app/build/reports/tests/testDebugUnitTest
-            app/build/test-results/testDebugUnitTest
+            android/app/build/reports/tests/testDebugUnitTest
+            android/app/build/test-results/testDebugUnitTest
 
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: android
 
     outputs:
       version_code: ${{ steps.version.outputs.version_code }}
@@ -126,8 +138,8 @@ jobs:
         with:
           name: lapcraft-debug-${{ github.sha }}
           path: |
-            app/build/outputs/apk/stable/app-stable.apk
-            app/build/outputs/apk/preview/app-preview.apk
+            android/app/build/outputs/apk/stable/app-stable.apk
+            android/app/build/outputs/apk/preview/app-preview.apk
           if-no-files-found: error
 
       - name: Upload test reports
@@ -135,7 +147,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: lint-build-reports-${{ github.sha }}
-          path: app/build/reports/lint-results-debug.html
+          path: android/app/build/reports/lint-results-debug.html
           if-no-files-found: ignore
   preview:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -252,7 +264,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
 
       - name: Build stable APK
-        run: ./gradlew :app:assembleStable --stacktrace
+        run: cd android && ./gradlew :app:assembleStable --stacktrace
         env:
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
           GITHUB_SHA: ${{ github.sha }}

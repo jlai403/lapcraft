@@ -10,9 +10,9 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parent.parent
-RES = ROOT / "app/src/main/res"
-OUT = ROOT / "app/src/preview/res"
-FONT = ROOT / "app/src/main/res/font/geist_mono_bold.ttf"
+RES = ROOT / "android/app/src/main/res"
+OUT = ROOT / "android/app/src/preview/res"
+FONT = ROOT / "android/app/src/main/res/font/geist_mono_bold.ttf"
 BAND = (0, 224, 198, 255)   # mint accent
 TEXT = (13, 17, 20, 255)     # ink
 
