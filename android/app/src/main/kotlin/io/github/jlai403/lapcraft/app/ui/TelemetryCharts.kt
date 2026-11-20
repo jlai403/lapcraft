@@ -92,7 +92,7 @@ internal fun ChartColumn(
         return
     }
     val windowTimes = remember(window, lap) { IntArray(window.size) { window[it].lapTimeMs(lap) } }
-    val axis = chartWindow(cursorMs, lap.lapTimeMs, windowMs)
+    val axis = chartWindow(cursorMs, lap.lapSpanMs, windowMs)
     val referenceWindow = remember(reference) {
         reference?.let { it.samples.lapWindow(it.lap) } ?: emptyList()
     }
@@ -735,10 +735,10 @@ internal fun CompareCharts(
         if (referenceWindow.isEmpty() || referenceTable == null || table == null) null
         else IntArray(referenceWindow.size) { index ->
             val percent = alignment?.axisPercentOfSample(index) ?: referenceTable.percentOfSample(index)
-            table.timeAtPercent(percent, lap.lapTimeMs)
+            table.timeAtPercent(percent, lap.lapSpanMs)
         }
     }
-    val axis = chartWindow(cursorMs, lap.lapTimeMs, windowMs)
+    val axis = chartWindow(cursorMs, lap.lapSpanMs, windowMs)
     val primarySample = remember(window, cursorMs) { window.sampleAt(lap, cursorMs) }
     val referenceSample = remember(referenceWindow, reference, referenceCursorMs) {
         reference?.let { referenceWindow.sampleAt(it.lap, referenceCursorMs) }

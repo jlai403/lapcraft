@@ -68,7 +68,7 @@ import io.github.jlai403.lapcraft.app.replay.readFrameTimes
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
 import io.github.jlai403.lapcraft.core.clip.TrackProgress
 import io.github.jlai403.lapcraft.core.model.Sample
-import io.github.jlai403.lapcraft.core.clip.LapClock
+import io.github.jlai403.lapcraft.core.session.lapClock
 import io.github.jlai403.lapcraft.core.clip.FrameTimeline
 import io.github.jlai403.lapcraft.core.session.LapView
 import io.github.jlai403.lapcraft.core.session.LapId
@@ -218,11 +218,11 @@ fun LapCompareScreen(
         renderedUs = -1L
         scrubTargetMs = null
         val probe = withContext(Dispatchers.IO) { probeClip(file) }
-        durationMs = maxOf(probe.durationMs, loaded.lap.lapTimeMs + loaded.lap.leadInMs.toLong())
+        durationMs = maxOf(probe.durationMs, loaded.lap.lapSpanMs + loaded.lap.leadInMs.toLong())
         frameStepMs = probe.frameMs
         frameDurationUs = probe.frameDurationUs
         frameTimeline = withContext(Dispatchers.IO) { readFrameTimes(file) }
-        val start = LapClock.forTrimmedLap(loaded.lap.leadInMs, loaded.lap.lapTimeMs).clipMs(0)
+        val start = loaded.lap.lapClock().clipMs(0)
             .coerceIn(0L, durationMs)
         withContext(Dispatchers.Main) {
             player.setMediaItem(MediaItem.fromUri(Uri.fromFile(file)))
@@ -239,8 +239,8 @@ fun LapCompareScreen(
         val file = loaded.clip ?: return@LaunchedEffect
         val probe = withContext(Dispatchers.IO) { probeClip(file) }
         referenceDurationMs =
-            maxOf(probe.durationMs, loaded.lap.lapTimeMs + loaded.lap.leadInMs.toLong())
-        val start = LapClock.forTrimmedLap(loaded.lap.leadInMs, loaded.lap.lapTimeMs).clipMs(0)
+            maxOf(probe.durationMs, loaded.lap.lapSpanMs + loaded.lap.leadInMs.toLong())
+        val start = loaded.lap.lapClock().clipMs(0)
             .coerceIn(0L, referenceDurationMs)
         withContext(Dispatchers.Main) {
             player.setMediaItem(MediaItem.fromUri(Uri.fromFile(file)))
@@ -279,8 +279,9 @@ fun LapCompareScreen(
     val displayedUs = displayedFrameUs(framesLive, scrubTargetMs, renderedUs, positionMs)
     val displayedMs = displayedUs / 1_000
     val primaryCursorMs = primaryLap?.let {
-        LapClock.forTrimmedLap(it.leadInMs, it.lapTimeMs).telemetryMs(displayedMs)
+        it.lapClock().telemetryMs(displayedMs)
     } ?: 0
+    val primaryLapCursorMs = primaryLap?.let { it.lapClock().lapMs(displayedMs) } ?: 0
 
     val primaryWindow = remember(primary) {
         primary?.let { it.samples.lapWindow(it.lap) } ?: emptyList()
@@ -301,11 +302,11 @@ fun LapCompareScreen(
         primaryTable = primaryTable,
         primaryCursorMs = primaryCursorMs,
         referenceTable = referenceTable,
-        referenceLapTimeMs = reference?.lap?.lapTimeMs ?: 0,
+        referenceLapTimeMs = reference?.lap?.lapSpanMs ?: 0,
         alignment = alignment,
     )
     val referenceClipMs = reference?.let { loaded ->
-        LapClock.forTrimmedLap(loaded.lap.leadInMs, loaded.lap.lapTimeMs).clipMs(referenceCursorMs.toInt())
+        loaded.lap.lapClock().clipMs(referenceCursorMs.toInt())
             .coerceIn(0L, referenceDurationMs.coerceAtLeast(0L))
     } ?: 0L
 
@@ -329,8 +330,8 @@ fun LapCompareScreen(
 
     fun seekLap(targetMs: Long) {
         val lap = primaryLap ?: return
-        val clamped = targetMs.coerceIn(0L, lap.lapTimeMs.toLong())
-        seekPrimary(LapClock.forTrimmedLap(lap.leadInMs, lap.lapTimeMs).clipMs(clamped.toInt()))
+        val clamped = targetMs.coerceIn(0L, lap.lapSpanMs.toLong())
+        seekPrimary(lap.lapClock().clipMs(clamped.toInt()))
         primaryPlayer?.pause()
         scrubTargetMs = null
         primarySeeker.clearPending()
@@ -338,9 +339,9 @@ fun LapCompareScreen(
 
     fun scrubTarget(baseUs: Long, frames: Int): Long? {
         val lap = primaryLap ?: return null
-        val startMs = LapClock.forTrimmedLap(lap.leadInMs, lap.lapTimeMs).clipMs(0).coerceAtLeast(0)
-        val endMs = LapClock.forTrimmedLap(lap.leadInMs, lap.lapTimeMs).clipMs(lap.lapTimeMs)
-            .coerceAtMost(durationMs.coerceAtLeast(0))
+        val clock = lap.lapClock()
+        val startMs = clock.clipMs(0).coerceAtLeast(0)
+        val endMs = clock.endClipMs.coerceAtMost(durationMs.coerceAtLeast(0))
         return frameStepMs(baseUs, frames, frameDurationUs, frameTimeline)
             .coerceIn(startMs, endMs.coerceAtLeast(startMs))
     }
@@ -488,7 +489,7 @@ fun LapCompareScreen(
 
             if (primaryPlayer != null) {
                 PlaybackFooter(
-                    cursorMs = primaryCursorMs,
+                    cursorMs = primaryLapCursorMs,
                     endMs = primaryLap?.lapTimeMs ?: 0,
                     frameStepMs = frameStepMs,
                     enabled = durationMs > 0,
@@ -518,14 +519,14 @@ fun LapCompareScreen(
                         }
                     },
                     onSeekFraction = { fraction ->
-                        seekLap((fraction * (primaryLap?.lapTimeMs ?: 0)).roundToLong())
+                        seekLap((fraction * (primaryLap?.lapSpanMs ?: 0)).roundToLong())
                     },
                     onRewind = { seekBrake(-1) },
                     onPlayPause = {
                         if (primaryPlayer.isPlaying) {
                             primaryPlayer.pause()
                         } else {
-                            if (primaryCursorMs >= (primaryLap?.lapTimeMs ?: 0)) seekLap(0)
+                            if (primaryCursorMs >= (primaryLap?.lapSpanMs ?: 0)) seekLap(0)
                             primaryPlayer.play()
                         }
                     },

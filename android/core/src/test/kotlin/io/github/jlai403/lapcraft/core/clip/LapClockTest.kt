@@ -49,4 +49,29 @@ class LapClockTest {
         val clock = LapClock.forTrimmedLap(2_000, 90_000)
         assertEquals(3_100, clock.telemetryMs(clock.clipMs(3_100)))
     }
+
+    @Test
+    fun `span covers the real lap and drives the trim end`() {
+        // A 2:03.333 lap on a 59.94 Hz capture is 123.456 s of real time.
+        val clock = LapClock.forTrimmedLap(1_568, 123_333, 123_456)
+        assertEquals(1_568L, clock.trimInMs)
+        assertEquals(125_024L, clock.trimOutMs)
+        assertEquals(123_456, clock.telemetryMs(125_024))
+    }
+
+    @Test
+    fun `lap timer reads GT7's number at the end of the span`() {
+        val clock = LapClock.forTrimmedLap(1_568, 123_333, 123_456)
+        assertEquals(0, clock.lapMs(1_568))
+        assertEquals(123_333, clock.lapMs(125_024))
+        // Halfway through the clip is halfway through the timer.
+        assertEquals(61_666, clock.lapMs(1_568 + 61_728))
+    }
+
+    @Test
+    fun `lap timer never passes the reported time`() {
+        val clock = LapClock.forTrimmedLap(0, 90_000, 90_090)
+        assertEquals(90_000, clock.lapMs(200_000))
+        assertEquals(0, clock.lapMs(-1))
+    }
 }

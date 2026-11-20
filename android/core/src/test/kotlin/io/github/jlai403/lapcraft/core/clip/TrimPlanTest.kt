@@ -54,4 +54,14 @@ class TrimPlanTest {
         assertEquals((frames.frameAt(165_100 * 1_000) + 500) / 1_000, range.endMs)
         assertTrue(kotlin.math.abs(range.endMs - 165_100) <= 17)
     }
+
+    @Test
+    fun `plan trims the real span, not the reported lap time`() {
+        // GT7 reports 159.831 s; the boundary ticks say the lap really ran 159.991 s.
+        val sync = LapClock.forLapStart(5_269, 159_831, 159_991)
+        assertEquals(
+            TrimRange(5_269L, 165_260L),
+            TrimPlan.forSync(sync, sourceDurationMs = 170_000),
+        )
+    }
 }

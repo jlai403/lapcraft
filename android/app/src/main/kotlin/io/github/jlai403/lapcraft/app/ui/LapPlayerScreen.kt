@@ -75,13 +75,13 @@ import io.github.jlai403.lapcraft.app.track.TrackCatalog
 import io.github.jlai403.lapcraft.app.track.TrackNamer
 import io.github.jlai403.lapcraft.R
 import io.github.jlai403.lapcraft.core.model.Sample
-import io.github.jlai403.lapcraft.core.clip.LapClock
 import io.github.jlai403.lapcraft.core.clip.FrameTimeline
 import io.github.jlai403.lapcraft.core.session.LapSummary
 
 import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LapRecord
 import io.github.jlai403.lapcraft.core.session.toLapView
+import io.github.jlai403.lapcraft.core.session.lapClock
 import io.github.jlai403.lapcraft.core.session.LapStore
 import io.github.jlai403.lapcraft.app.catalog.CarCatalog
 import io.github.jlai403.lapcraft.app.catalog.lapStore
@@ -243,10 +243,10 @@ fun LapPlayerScreen(
     LaunchedEffect(playbackSpeed) {
         player.setPlaybackSpeed(playbackSpeed)
     }
-    LaunchedEffect(playing, hasClip, playbackSpeed, looping, lap?.lapTimeMs) {
+    LaunchedEffect(playing, hasClip, playbackSpeed, looping, lap?.lapSpanMs) {
         if (hasClip || !playing) return@LaunchedEffect
         val active = lap ?: return@LaunchedEffect
-        val end = active.lapTimeMs.toLong()
+        val end = active.lapSpanMs.toLong()
         var last = withFrameNanos { it } / 1_000_000L
         while (playing) {
             val now = withFrameNanos { it } / 1_000_000L
@@ -346,7 +346,7 @@ fun LapPlayerScreen(
         frameStepMs = probe.frameMs
         frameDurationUs = probe.frameDurationUs
         frameTimeline = withContext(Dispatchers.IO) { readFrameTimes(file) }
-        val start = LapClock.forTrimmedLap(active.leadInMs, active.lapTimeMs).clipMs(0)
+        val start = active.lapClock().clipMs(0)
         val ready = if (probe.durationMs > 0) {
             start.coerceIn(0L, probe.durationMs)
         } else {
@@ -371,9 +371,9 @@ fun LapPlayerScreen(
 
     fun seekLap(targetMs: Long) {
         val active = lap ?: return
-        val clamped = targetMs.coerceIn(0L, active.lapTimeMs.toLong())
+        val clamped = targetMs.coerceIn(0L, active.lapSpanMs.toLong())
         if (hasClip) {
-            seekClip(LapClock.forTrimmedLap(active.leadInMs, active.lapTimeMs).clipMs(clamped.toInt()))
+            seekClip(active.lapClock().clipMs(clamped.toInt()))
         } else {
             seekClip(clamped)
         }
@@ -384,9 +384,10 @@ fun LapPlayerScreen(
     val displayedMs = scrubTargetMs
         ?: if (hasClip && renderedUs >= 0) renderedUs / 1_000 else (if (hasClip) positionMs else clockMs)
     val cursorMs = lap?.let {
-        if (hasClip) LapClock.forTrimmedLap(it.leadInMs, it.lapTimeMs).telemetryMs(displayedMs)
-        else displayedMs.toInt()
+        if (hasClip) it.lapClock().telemetryMs(displayedMs) else displayedMs.toInt()
     } ?: 0
+    // GT7's own timer, for the readout: the clip covers the lap's real span, not its 60ths.
+    val cursorLapMs = lap?.let { it.lapClock().lapMs(displayedMs) } ?: 0
 
     fun stepFrames(frames: Int) {
         val target = frameStepMs(displayedUs, frames, frameDurationUs, frameTimeline)
@@ -414,12 +415,11 @@ fun LapPlayerScreen(
         val active = lap ?: return null
         if (!hasClip) {
             val target = frameStepMs(baseUs, frames, frameDurationUs, null)
-            return target.coerceIn(0L, active.lapTimeMs.toLong())
+            return target.coerceIn(0L, active.lapSpanMs.toLong())
         }
-        val startMs = LapClock.forTrimmedLap(active.leadInMs, active.lapTimeMs).clipMs(0)
-            .coerceAtLeast(0)
-        val endMs = LapClock.forTrimmedLap(active.leadInMs, active.lapTimeMs).clipMs(active.lapTimeMs)
-            .coerceAtMost(durationMs.coerceAtLeast(0))
+        val clock = active.lapClock()
+        val startMs = clock.clipMs(0).coerceAtLeast(0)
+        val endMs = clock.endClipMs.coerceAtMost(durationMs.coerceAtLeast(0))
         return frameStepMs(baseUs, frames, frameDurationUs, frameTimeline)
             .coerceIn(startMs, endMs.coerceAtLeast(startMs))
     }
@@ -679,7 +679,7 @@ fun LapPlayerScreen(
         }
 
         PlaybackFooter(
-            cursorMs = cursorMs,
+            cursorMs = cursorLapMs,
             endMs = currentLap.lapTimeMs,
             frameStepMs = frameStepMs,
             enabled = if (hasClip) durationMs > 0 else true,
@@ -707,7 +707,7 @@ fun LapPlayerScreen(
                 scrubTargetMs?.let { seekClip(it) }
             },
             onSeekFraction = { fraction ->
-                seekLap((fraction * currentLap.lapTimeMs).roundToLong())
+                seekLap((fraction * currentLap.lapSpanMs).roundToLong())
             },
             onRewind = { seekBrake(-1) },
             onPlayPause = {
@@ -715,14 +715,14 @@ fun LapPlayerScreen(
                     if (player.isPlaying) {
                         player.pause()
                     } else {
-                        if (cursorMs >= currentLap.lapTimeMs) seekLap(0)
+                        if (cursorMs >= currentLap.lapSpanMs) seekLap(0)
                         player.play()
                     }
                 } else {
                     if (playing) {
                         playing = false
                     } else {
-                        if (clockMs >= currentLap.lapTimeMs) clockMs = 0L
+                        if (clockMs >= currentLap.lapSpanMs) clockMs = 0L
                         playing = true
                     }
                 }

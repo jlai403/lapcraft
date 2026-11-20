@@ -233,8 +233,8 @@ fun ImportSyncScreen(
         lap?.let { l ->
             if (durationMs <= 0L) durationMs = maxOf(durationMs, l.lapTimeMs + l.leadInMs.toLong())
         }
-        val lapTime = (lap?.lapTimeMs ?: 0).toLong()
-        val suggested = (durationMs - lapTime).coerceIn(0L, durationMs.coerceAtLeast(0L))
+        val lapSpan = (lap?.lapSpanMs ?: 0).toLong()
+        val suggested = (durationMs - lapSpan).coerceIn(0L, durationMs.coerceAtLeast(0L))
         val step = frameStepMs.coerceAtLeast(1L)
         val snapped = (suggested / step) * step
         lapStartMs = snapped
@@ -306,7 +306,7 @@ fun ImportSyncScreen(
     val offsetMs = parsedOffset ?: 0L
     val resolvedStart = if (lapStart != null && offsetValid) lapStart - offsetMs else null
     val sync = if (currentLap != null && resolvedStart != null) {
-        LapClock.forLapStart(resolvedStart, currentLap.lapTimeMs)
+        LapClock.forLapStart(resolvedStart, currentLap.lapTimeMs, currentLap.lapSpanMs)
     } else {
         null
     }
@@ -491,7 +491,7 @@ fun ImportSyncScreen(
                     lapStartMs?.let { lapStart ->
                         val start = lapStart - (parseTimer(offsetText) ?: 0L)
                         Text(
-                            "Starts on the line at ${formatMillis(start)} · ends ${formatMillis(start + activeLap.lapTimeMs)}",
+                            "Starts on the line at ${formatMillis(start)} · ends ${formatMillis(start + activeLap.lapSpanMs)}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -762,7 +762,7 @@ private fun MetricLine(label: String, value: String) {
 
 private fun trimRange(lap: LapView?, lapStartMs: Long?, offsetMs: Long?, durationMs: Long, frames: FrameTimeline? = null) =
     if (lap != null && lapStartMs != null && offsetMs != null && offsetMs >= 0) {
-        TrimPlan.forSync(LapClock.forLapStart(lapStartMs - offsetMs, lap.lapTimeMs), durationMs, frames)
+        TrimPlan.forSync(LapClock.forLapStart(lapStartMs - offsetMs, lap.lapTimeMs, lap.lapSpanMs), durationMs, frames)
     } else {
         null
     }

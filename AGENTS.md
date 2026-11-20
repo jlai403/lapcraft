@@ -84,6 +84,14 @@ cd android && ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --t
 - `ClipTrimmer` sees samples in decode order, where PTS is not monotonic across B-frames. It writes
   every sample from the keyframe to the trim end and stops only a guard second past it
   (`core/clip/TrimTail`); stopping at the first late sample cut the last 1-3 frames of the lap.
+- The clip window is the lap's **real span**, not GT7's reported lap time. GT7 counts 60ths of a
+  second while a 59.94 Hz capture runs ~0.1 % slower, so `endTickNanos - startTickNanos` is 65-123 ms
+  longer on a real lap; trimming to `lapTimeMs` dropped the line-crossing frames. `LapView.lapSpanMs`
+  (guarded, falls back to `lapTimeMs` on missing ticks) feeds `LapClock.spanMs`, so `trimOutMs`,
+  `endClipMs`, the frame-step end and the sync screen's suggested start and finish frame all use it.
+  `lapTimeMs` stays the display value: `LapClock.lapMs(clipMs)` scales real ms back to GT7's timer for
+  the footer readout, while `telemetryMs` stays real ms for sample and track lookups. Clips imported
+  before this fix are still short; re-import them from the PS5 capture.
 - `LapSummary` carries `videoBytes`, `telemetryBytes`, and `pendingBytes`, computed in
   `LapStore.summaries()`. `EditLapSheet` shows them under a `Data` section.
 - The lap player, compare screen, and sync screen all use `SeekParameters.EXACT`. `ScrubSeeker`
