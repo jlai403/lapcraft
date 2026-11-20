@@ -2,6 +2,7 @@ package io.github.jlai403.lapcraft.core.session
 
 import io.github.jlai403.lapcraft.core.events.EventFilter
 import io.github.jlai403.lapcraft.core.events.EventKind
+import io.github.jlai403.lapcraft.core.events.matchKey
 
 import java.time.Instant
 
@@ -55,6 +56,13 @@ fun List<LapSummary>.fastestPerTrack(): Map<String, LapSummary> =
 
 val LapSummary.trackKey: String
     get() = trackId.ifBlank { trackLabel.trim().lowercase() }
+
+// A reference lap has to run the same track and, when the primary is tagged, the same event.
+fun LapSummary.canCompareWith(primary: LapSummary): Boolean =
+    trackKey == primary.trackKey && event?.matchKey == primary.event?.matchKey
+
+fun List<LapSummary>.compareCandidates(primary: LapSummary): List<LapSummary> =
+    filter { it.lapId != primary.lapId && it.canCompareWith(primary) }
 
 
 private fun parseInstant(value: String): Instant =

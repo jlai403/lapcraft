@@ -69,6 +69,7 @@ import io.github.jlai403.lapcraft.app.events.EventCache
 import io.github.jlai403.lapcraft.app.events.EventRefresh
 import io.github.jlai403.lapcraft.core.session.applyFilter
 import io.github.jlai403.lapcraft.core.session.applySort
+import io.github.jlai403.lapcraft.core.session.canCompareWith
 import io.github.jlai403.lapcraft.core.session.fastestPerTrack
 import io.github.jlai403.lapcraft.core.session.trackKey
 import io.github.jlai403.lapcraft.core.track.TrackCandidate
@@ -226,8 +227,9 @@ fun LibraryScreen(
             return
         }
         val primary = picks.firstOrNull()
-        if (primary != null && primary.trackKey != lap.trackKey) {
-            message = "Pick another lap on ${primary.trackLabel}."
+        if (primary != null && !lap.canCompareWith(primary)) {
+            message = primary.event?.let { "Pick another lap in ${it.label}." }
+                ?: "Pick another lap on ${primary.trackLabel}."
             return
         }
         picks = if (picks.size >= 2) listOf(picks[0], lap) else picks + lap
@@ -235,7 +237,11 @@ fun LibraryScreen(
     }
 
     val all = laps
-    val visible = all?.applyFilter(filter)?.applySort(sort)
+    val primaryPick = picks.firstOrNull()
+    val visible = all?.applyFilter(filter)?.applySort(sort)?.let { lapsInScope ->
+        if (primaryPick == null) lapsInScope else lapsInScope.filter { it.canCompareWith(primaryPick) }
+    }
+    val referenceCount = visible.orEmpty().count { it.lapId != primaryPick?.lapId }
     val groups = visible?.eventGroups(cachedEvents, System.currentTimeMillis()).orEmpty()
     val tracks = all?.distinctBy { it.trackKey }?.map { it.trackKey to it.trackLabel }?.sortedBy { it.second }.orEmpty()
     val cars = all.orEmpty().map { it.carName }.filter { it.isNotBlank() }.distinct().sorted()
@@ -417,7 +423,7 @@ fun LibraryScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
-                    compareHint(picks),
+                    compareHint(picks, referenceCount),
                     modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -784,11 +790,16 @@ private fun DriverChip(
     }
 }
 
-private fun compareHint(picks: List<LapSummary>): String = when {
-    picks.isEmpty() -> "Pick the primary lap"
-    picks.size == 1 -> "Pick a reference lap on ${picks[0].trackLabel}"
-    else -> "Primary ${lapTimeLabel(picks[0].lapTimeMs)} · " +
-        "reference ${lapTimeLabel(picks[1].lapTimeMs)}"
+private fun compareHint(picks: List<LapSummary>, referenceCount: Int): String {
+    val primary = picks.firstOrNull() ?: return "Pick the primary lap"
+    val event = primary.event
+    return when {
+        picks.size == 1 && event != null && referenceCount == 0 -> "No other lap in ${event.label}"
+        picks.size == 1 && event != null -> "Pick a reference lap from ${event.label}"
+        picks.size == 1 -> "Pick a reference lap on ${primary.trackLabel}"
+        else -> "Primary ${lapTimeLabel(picks[0].lapTimeMs)} · " +
+            "reference ${lapTimeLabel(picks[1].lapTimeMs)}"
+    }
 }
 
 private fun summaryLine(

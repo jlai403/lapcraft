@@ -83,6 +83,7 @@ import io.github.jlai403.lapcraft.core.session.LapRecord
 import io.github.jlai403.lapcraft.core.session.toLapView
 import io.github.jlai403.lapcraft.core.session.lapClock
 import io.github.jlai403.lapcraft.core.session.LapStore
+import io.github.jlai403.lapcraft.core.session.compareCandidates
 import io.github.jlai403.lapcraft.app.catalog.CarCatalog
 import io.github.jlai403.lapcraft.app.catalog.lapStore
 import io.github.jlai403.lapcraft.core.session.trackKey
@@ -168,9 +169,7 @@ fun LapPlayerScreen(
         value = withContext(Dispatchers.IO) {
             val laps = store.summaries()
             val current = laps.firstOrNull { it.lapId == lapId } ?: return@withContext emptyList()
-            laps.filter {
-                it.trackKey == current.trackKey && it.lapId != lapId
-            }.sortedBy { it.lapTimeMs }
+            laps.compareCandidates(current).sortedBy { it.lapTimeMs }
         }
     }
     val candidateDrivers = remember(compareCandidates, sessionReload) {

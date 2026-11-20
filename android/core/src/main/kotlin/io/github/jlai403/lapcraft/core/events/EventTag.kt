@@ -17,5 +17,9 @@ data class EventTag(
     val endMs: Long? = null,
 )
 
+// Manual tags are stamped with a unique id, so they group and compare by their text instead.
+val EventTag.matchKey: String
+    get() = if (id.startsWith("manual-")) "manual-" + EventMatcher.normalize(label) else id
+
 fun CachedEvent.toTag(auto: Boolean = false): EventTag =
     EventTag(id, kind, label, series, round, carClass, auto, startMs, endMs)

@@ -28,12 +28,7 @@ fun List<LapSummary>.eventGroups(
             untagged += lap
             continue
         }
-        val key = if (tag.id.startsWith("manual-")) {
-            "manual-" + EventMatcher.normalize(tag.label)
-        } else {
-            tag.id
-        }
-        byKey.getOrPut(key) { mutableListOf() } += lap
+        byKey.getOrPut(tag.matchKey) { mutableListOf() } += lap
     }
 
     fun eventStart(groupLaps: List<LapSummary>): Long {

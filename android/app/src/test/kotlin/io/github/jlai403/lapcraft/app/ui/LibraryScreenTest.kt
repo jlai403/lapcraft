@@ -477,6 +477,63 @@ class LibraryScreenTest {
     }
 
     @Test
+    @Config(qualifiers = "w411dp-h2000dp")
+    fun `compare hides laps from another event once a primary is picked`() {
+        val now = System.currentTimeMillis()
+        val eventA = EventTag(
+            id = "daily-A-2026-11-16",
+            kind = EventKind.Daily,
+            label = "Daily Race A · W47",
+            auto = true,
+            startMs = now - 86_400_000L,
+            endMs = now + 86_400_000L,
+        )
+        val eventB = EventTag(
+            id = "daily-B-2026-11-16",
+            kind = EventKind.Daily,
+            label = "Daily Race B · W47",
+            auto = true,
+            startMs = now - 86_400_000L,
+            endMs = now + 86_400_000L,
+        )
+        SessionFixtures.install(
+            context,
+            SessionFixtures.session(lapTimesMs = listOf(90_000), event = eventA),
+        )
+        SessionFixtures.install(
+            context,
+            SessionFixtures.session(id = "session-2", lapTimesMs = listOf(91_000), event = eventA),
+        )
+        SessionFixtures.install(
+            context,
+            SessionFixtures.session(id = "session-3", lapTimesMs = listOf(92_000), event = eventB),
+        )
+        var compared: List<Any>? = null
+
+        compose.setContent {
+            LapCraftTheme {
+                LibraryScreen(
+                    onOpenLap = { _ -> },
+                    onCompare = { a, b -> compared = listOf(a, b) },
+                )
+            }
+        }
+
+        compose.waitUntil(TIMEOUT) {
+            compose.onAllNodesWithText("1:32.000").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithTag("library-compare").performClick()
+        compose.onNodeWithText("1:30.000").performClick()
+
+        compose.onNodeWithText("Pick a reference lap from Daily Race A · W47").assertExists()
+        compose.onNodeWithText("1:32.000").assertDoesNotExist()
+        compose.onNodeWithText("1:31.000").performClick()
+        compose.onNodeWithTag("library-compare-go").performClick()
+
+        assertEquals(listOf(LapId("session-1"), LapId("session-2")), compared)
+    }
+
+    @Test
     fun `shows an event header with the window and best lap`() {
         SessionFixtures.install(context, SessionFixtures.session(lapTimesMs = listOf(90_000, 91_500)))
         val store = LapStore(context.filesDir)

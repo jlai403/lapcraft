@@ -15,6 +15,8 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.test.core.app.ApplicationProvider
+import io.github.jlai403.lapcraft.core.events.EventKind
+import io.github.jlai403.lapcraft.core.events.EventTag
 import io.github.jlai403.lapcraft.core.profile.DriverProfile
 import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
@@ -416,6 +418,54 @@ class LapPlayerScreenTest {
         compose.onNodeWithText("1:31.000").performClick()
 
         assertEquals(listOf(LapId("session-1"), LapId("session-2")), compared)
+    }
+
+    @Test
+    fun `compare offers only laps from the same event`() {
+        val eventA = EventTag(
+            id = "daily-A-2026-11-16",
+            kind = EventKind.Daily,
+            label = "Daily Race A · W47",
+            auto = true,
+        )
+        val eventB = EventTag(
+            id = "daily-B-2026-11-16",
+            kind = EventKind.Daily,
+            label = "Daily Race B · W47",
+            auto = true,
+        )
+        SessionFixtures.install(
+            context,
+            SessionFixtures.session(lapTimesMs = listOf(90_000), event = eventA),
+        )
+        SessionFixtures.install(
+            context,
+            SessionFixtures.session(id = "session-2", lapTimesMs = listOf(91_000), event = eventA),
+        )
+        SessionFixtures.install(
+            context,
+            SessionFixtures.session(id = "session-3", lapTimesMs = listOf(92_000), event = eventB),
+        )
+
+        compose.setContent {
+            LapCraftTheme {
+                LapPlayerScreen(
+                    lapId = LapId("session-1"),
+                    onBack = {},
+                    onImportSync = {},
+                )
+            }
+        }
+
+        compose.waitUntil(TIMEOUT) {
+            compose.onAllNodesWithTag("lap-compare").fetchSemanticsNodes()
+                .any { !it.config.contains(SemanticsProperties.Disabled) }
+        }
+        compose.onNodeWithTag("lap-compare").performClick()
+
+        compose.onNodeWithText("Compare with").assertExists()
+        compose.onNodeWithText("1:31.000").assertExists()
+        compose.onNodeWithText("1:32.000").assertDoesNotExist()
     }
 
     private companion object {

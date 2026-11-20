@@ -201,7 +201,9 @@ cd android && ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --t
   `rememberUpdatedState`, since the pointer-input gesture coroutine is only restarted when its keys
   or handler class change.
 - Library compare mode lives in `LibraryScreen`: header pill, row checkboxes, the first pick labelled
-  `Primary`, same-track picks only, and a third pick replaces the reference.
+  `Primary`, and a third pick replaces the reference. A reference must share the primary's track and,
+  when the primary is tagged, its event: `LapSummary.canCompareWith` scopes both this feed (it narrows
+  after the primary pick) and the player's `Compare with` dialog.
 - Entry points are `Screen.Compare(...)`; the player's `Compare` pill and the library's compare action
   both route there, and `Add clip` returns through `ImportSync(returnToCompare = ...)`.
 
@@ -212,7 +214,7 @@ cd android && ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --t
 - Clip-to-lap mapping is a single `LapClock` (`core/clip`); `PlaybackCursor` and `ClipSync` are gone.
 - Track identity: `LapRecord.trackId` (official circuit id, empty when unidentified) + `trackLabel` (editable). `trackKey` falls back to the normalised label only when `trackId` is empty. `renameTrack` changes only the label.
 - `Sample.steering: Float?` (null = not recorded); codec version 2 with a presence byte; `packetId` is not persisted. Readers use `hasSteering()` (window scan for non-null) instead of thresholds.
-- Event tags: `EventTag.kind: EventKind`, `LapFilter.event: EventFilter` (sealed All/None/Kind). No magic `"none"` string.
+- Event tags: `EventTag.kind: EventKind`, `LapFilter.event: EventFilter` (sealed All/None/Kind). No magic `"none"` string. `EventTag.matchKey` is the event identity for grouping and compare scope: `id`, except manual tags, which use their normalised label.
 - `LapDetector` exposes a sealed `CurrentLap` (None/FromLine/MidLap) replacing the two volatile fields. `LapBoundary` carries `lapTimeSource`; `LapTimeSource` lives in `core/lap`.
 - `LoadedLap` (renamed from `GhostLap`) is "a lap with its samples decoded"; ghost/reference are roles.
 - Storage helpers: `lapStore(context)`; legacy sessions are migrated once by `LayoutMigration` (sessions -> laps, convert-and-delete). `LapView` is the UI projection of `LapRecord`.
