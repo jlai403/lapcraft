@@ -74,7 +74,7 @@ The app checks once a day (or from Settings → Updates), compares `versionCode`
 
 Sideloading itself still shows Android's unknown-source prompt and a Play Protect scan of the APK. That is the browser and the system, not the app.
 
-Every release APK is signed with the project's release key, never the Android debug key. Verify a download with `apksigner verify --print-certs LapCraft.apk`; if the signer is `CN=Android Debug`, do not install it. The release certificate's SHA-256 fingerprint is recorded in `AGENTS.md` once the first release key is generated.
+Every release APK is signed with the project's release key, never the Android debug key. Verify a download with `apksigner verify --print-certs LapCraft.apk`; if the signer is `CN=Android Debug`, do not install it. The release certificate's SHA-256 fingerprint is `8e483b6f6d1f51c8cd6513db7bf20220e0b6159f299827c6aa49b2c7fca74c76` (DN `CN=LapCraft, O=jlai403, C=CA`), recorded in `AGENTS.md`.
 
 `versionCode` is `1000 + commit count`, so every commit sorts after the previous one.
 
