@@ -201,3 +201,9 @@ _Avoid_: round, week of year
 **Rating**:
 A driver's DR and SR values cached from GT GridStats, with the date they were fetched.
 _Avoid_: rank, grade
+
+## Tyre
+
+**Tyre compound**:
+The compound of the tyres on the car for a lap, recorded as a two-letter GT7 code (CH, RM, CS, ...) with a hardness tier (hard, medium, soft) that drives the badge colour. GT7's telemetry does not carry it, so it is always entered by the driver, either as the current tyres in Record or per lap in Edit lap.
+_Avoid_: tire type, rubber

@@ -41,6 +41,13 @@ All tokens live in `ui/Theme.kt`. Screens must use `MaterialTheme.colorScheme.*`
 | `GhostSlate` | `#94A3B8` | muted text (secondary text, icons, map line) |
 | `AccentAmber` | `#FBBF24` | reference lap in comparison charts and map, gear trace |
 | `CrispWhite` | `#F8FAFC` | car body, map marker dot, highlights |
+| `TyreHard` | `#F8FAFC` | hard compound badge fill |
+| `TyreMedium` | `#FBBF24` | medium compound badge fill |
+| `TyreSoft` | `#F43F5E` | soft compound badge fill |
+| `TyreIntermediate` | `#22C55E` | intermediate compound badge fill |
+| `TyreWet` | `#3B82F6` | wet compound badge fill |
+| `TyreDirt` | `#C08A5A` | dirt compound badge fill |
+| `TyreSnow` | `#BAE6FD` | snow compound badge fill |
 | `onBackground` | `#F4F7FA` | text over background |
 
 System bars are transparent with light icons (`enableEdgeToEdge` + `SystemBarStyle.dark`).
@@ -142,6 +149,7 @@ Defined in `ui/Components.kt` unless noted.
 | `PullToRefreshBox` | library list gesture; the spinner follows the refresh state |
 | `DriverPickerRow` | flag, nickname, PSN with `DR/SR · updated` when cached, Change menu; pass `onOpenLink` to add GT GridStats and GTSH-Rank, `onRemoveProfile` for a per-driver `×` |
 | `EditLapSheet` | modal bottom sheet for track, event, driver, replay and data, built from `EditRow`; edits commit immediately and the footer is `Done` |
+| `TyreBadge` | filled circle carrying a two-letter GT7 compound code, coloured by hardness tier (hard white, medium yellow, soft red, intermediate green, wet blue, dirt tan, snow ice) with a content description; hidden when the lap is untagged |
 | `ReplaySourcePill` | one pill that opens Files or the PlayStation App |
 | `Replay source menu` | pill with a trailing chevron; dropdown rows for Files and PlayStation App, each with a one-line subtitle |
 | `AppBottomBar` (App.kt) | Library / Record / Settings tabs, green indicator, no elevation |

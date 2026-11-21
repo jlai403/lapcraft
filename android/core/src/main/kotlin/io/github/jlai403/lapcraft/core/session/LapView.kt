@@ -2,6 +2,7 @@ package io.github.jlai403.lapcraft.core.session
 
 import io.github.jlai403.lapcraft.core.clip.LapClock
 import io.github.jlai403.lapcraft.core.events.EventTag
+import io.github.jlai403.lapcraft.core.tire.TyreCompound
 
 data class LapView(
     val index: Int = 1,
@@ -13,6 +14,7 @@ data class LapView(
     val carName: String = "",
     val driverPsnId: String? = null,
     val event: EventTag? = null,
+    val tyre: TyreCompound? = null,
 ) {
     /**
      * Real elapsed milliseconds of the lap, from its boundary ticks. GT7 reports [lapTimeMs] in
@@ -46,4 +48,5 @@ fun LapRecord.toLapView(): LapView = LapView(
     carName = carName,
     driverPsnId = driverPsnId,
     event = event,
+    tyre = tyre,
 )

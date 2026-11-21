@@ -80,6 +80,10 @@ internal fun CompareReadoutRow(
             modifier = Modifier.width(BarWidth),
         )
         Spacer(Modifier.weight(1f))
+        lap.tyre?.let {
+            TyreBadge(compound = it, size = 18.dp)
+            Spacer(Modifier.width(4.dp))
+        }
         TireHeatmap(
             fl = sample.tyreTempFL,
             fr = sample.tyreTempFR,

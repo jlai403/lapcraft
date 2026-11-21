@@ -2,6 +2,7 @@ package io.github.jlai403.lapcraft.app.settings
 
 import android.content.Context
 import io.github.jlai403.lapcraft.core.network.Ipv4
+import io.github.jlai403.lapcraft.core.tire.TyreCompound
 
 class SettingsStore(context: Context) {
     private val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -83,6 +84,10 @@ class SettingsStore(context: Context) {
         get() = prefs.getBoolean(KEY_EVENT_TAGS, false)
         set(value) = prefs.edit().putBoolean(KEY_EVENT_TAGS, value).apply()
 
+    var currentTyre: TyreCompound?
+        get() = runCatching { enumValueOf<TyreCompound>(prefs.getString(KEY_CURRENT_TYRE, null).orEmpty()) }.getOrNull()
+        set(value) = prefs.edit().putString(KEY_CURRENT_TYRE, value?.name).apply()
+
     private companion object {
         // The pre-existing preferences file; changing it would drop the saved PS5 address.
         const val PREFS = "settings"
@@ -101,5 +106,6 @@ class SettingsStore(context: Context) {
         const val KEY_DEVELOPER_TOOLS = "developer_tools"
         const val KEY_TRACK_ID_VERSION = "track_id_version"
     const val KEY_EVENT_TAGS = "event_tags"
+    const val KEY_CURRENT_TYRE = "current_tyre"
     }
 }

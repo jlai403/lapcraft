@@ -3,6 +3,7 @@ package io.github.jlai403.lapcraft.core.session
 import io.github.jlai403.lapcraft.core.lap.LapTimeSource
 
 import io.github.jlai403.lapcraft.core.events.EventTag
+import io.github.jlai403.lapcraft.core.tire.TyreCompound
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -24,6 +25,7 @@ data class LapRecord(
     val leadInMs: Int = 0,
     val driverPsnId: String? = null,
     val event: EventTag? = null,
+    val tyre: TyreCompound? = null,
 )
 
 // toLapView() lives in LapView.kt

@@ -56,6 +56,7 @@ fun ScreenHeader(
     modifier: Modifier = Modifier,
     onTitleClick: (() -> Unit)? = null,
     titleExpanded: Boolean = false,
+    titleBadge: @Composable (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     Row(
@@ -100,6 +101,7 @@ fun ScreenHeader(
                         Modifier.weight(1f, fill = false)
                     },
                 )
+                titleBadge?.invoke()
                 if (onTitleClick != null) {
                     Icon(
                         imageVector = if (titleExpanded) {

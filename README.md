@@ -131,7 +131,7 @@ cd android
 
 Preview builds publish to the `preview-latest` GitHub release on every push to `main`; stable builds publish on `v*` tags. `UpdateManager` checks the matching `latest.json` on launch and opens the release page in the browser. There is no in-app installer.
 
-- **Preview**: GitHub source `https://github.com/jlai403/lapcraft`, include prereleases, APK filter `LapCraft-preview\.apk`.
+- **Preview**: GitHub source `https://github.com/jlai403/lapcraft`, include prereleases, APK filter `LapCraft-preview\.apk`. If Obtainium ever resolves the wrong asset, use a Direct APK Link to `https://github.com/jlai403/lapcraft/releases/download/preview-latest/LapCraft-preview.apk` instead.
 - **Stable**: Direct APK Link `https://github.com/jlai403/lapcraft/releases/latest/download/LapCraft.apk` (or the HTML source on `/releases/latest` with filter `LapCraft\.apk`).
 
 `obtainium://add/https://github.com/jlai403/lapcraft` adds the preview entry.

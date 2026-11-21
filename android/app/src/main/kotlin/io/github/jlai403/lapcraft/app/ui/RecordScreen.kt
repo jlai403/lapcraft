@@ -46,10 +46,13 @@ fun RecordScreen(
     onOpenLap: (LapId) -> Unit,
     imperial: Boolean = false,
     onOpenSettings: () -> Unit = {},
+    tyre: io.github.jlai403.lapcraft.core.tire.TyreCompound? = null,
+    onTyreChange: (io.github.jlai403.lapcraft.core.tire.TyreCompound?) -> Unit = {},
 ) {
     var starting by remember { mutableStateOf(false) }
     val hasAddress = Ipv4.normalize(state.ps5Ip) != null
     val capturing = state.capture is CaptureState.Capturing
+    var tyrePickerOpen by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.telemetryRunning, state.telemetryError) {
         if (state.telemetryRunning || state.telemetryError != null) starting = false
@@ -81,6 +84,8 @@ fun RecordScreen(
             hasAddress = hasAddress,
             capturing = capturing,
             imperial = imperial,
+            tyre = tyre,
+            onChangeTyre = { tyrePickerOpen = true },
             onConnect = {
                 starting = true
                 onConnect()
@@ -88,6 +93,21 @@ fun RecordScreen(
             onDisconnect = onDisconnect,
             onOpenSettings = onOpenSettings,
         )
+
+        if (tyrePickerOpen) {
+            TyrePickerDialog(
+                selected = tyre,
+                onPick = {
+                    onTyreChange(it)
+                    tyrePickerOpen = false
+                },
+                onClear = {
+                    onTyreChange(null)
+                    tyrePickerOpen = false
+                },
+                onDismiss = { tyrePickerOpen = false },
+            )
+        }
 
         CaptureCard(
             state = state,
@@ -106,6 +126,8 @@ private fun StreamCard(
     hasAddress: Boolean,
     capturing: Boolean,
     imperial: Boolean,
+    tyre: io.github.jlai403.lapcraft.core.tire.TyreCompound?,
+    onChangeTyre: () -> Unit,
     onConnect: () -> Unit,
     onDisconnect: () -> Unit,
     onOpenSettings: () -> Unit,
@@ -178,6 +200,33 @@ private fun StreamCard(
                 modifier = Modifier.weight(1f),
                 accent = MaterialTheme.colorScheme.tertiary,
             )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                "Tyres",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (tyre != null) {
+                TyreBadge(compound = tyre, size = 20.dp)
+                Text(
+                    tyre.label,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            } else {
+                Text(
+                    "Not set",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Spacer(Modifier.weight(1f))
+            GhostPill(text = "Change", onClick = onChangeTyre)
         }
 
         val hint = when {

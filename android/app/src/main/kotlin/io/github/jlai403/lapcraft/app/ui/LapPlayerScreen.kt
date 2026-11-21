@@ -452,6 +452,9 @@ fun LapPlayerScreen(
             onBack = onBack,
             onTitleClick = { headerExpanded = !headerExpanded },
             titleExpanded = headerExpanded,
+            titleBadge = {
+                lap?.tyre?.let { TyreBadge(compound = it, size = 22.dp) }
+            },
             actions = {
                 GhostPill(
                     text = "Compare",
@@ -507,7 +510,7 @@ fun LapPlayerScreen(
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 Text(
-                    listOfNotNull(subtitle, CarCatalog(context).name(session?.carCode ?: 0) ?: session?.carName, session?.event?.label).joinToString(" · "),
+                    listOfNotNull(subtitle, CarCatalog(context).name(session?.carCode ?: 0) ?: session?.carName, session?.event?.label, lap?.tyre?.label).joinToString(" · "),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -804,6 +807,15 @@ fun LapPlayerScreen(
                     scope.launch {
                         withContext(Dispatchers.IO) {
                             runCatching { store.setEvent(lapId, tag) }
+                        }
+                        sessionReload++
+                    }
+                },
+                tyre = sheetLap.tyre,
+                onAssignTyre = { compound ->
+                    scope.launch {
+                        withContext(Dispatchers.IO) {
+                            runCatching { store.setTyre(lapId, compound) }
                         }
                         sessionReload++
                     }

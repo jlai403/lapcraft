@@ -3,6 +3,7 @@ package io.github.jlai403.lapcraft.core.session
 import io.github.jlai403.lapcraft.core.events.EventFilter
 import io.github.jlai403.lapcraft.core.events.EventKind
 import io.github.jlai403.lapcraft.core.events.matchKey
+import io.github.jlai403.lapcraft.core.tire.TyreCompound
 
 import java.time.Instant
 
@@ -17,6 +18,7 @@ data class LapSummary(
     val replayPending: Boolean,
     val driverPsnId: String? = null,
     val event: io.github.jlai403.lapcraft.core.events.EventTag? = null,
+    val tyre: TyreCompound? = null,
     val videoBytes: Long = 0,
     val telemetryBytes: Long = 0,
     val pendingBytes: Long = 0,
