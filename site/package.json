@@ -7,6 +7,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "tsc --noEmit -p tsconfig.check.json",
+    "audit": "bun audit",
     "verify": "bun run check && bun run build",
     "test": "bun run build && playwright test"
   },
@@ -19,6 +20,6 @@
   "devDependencies": {
     "@playwright/test": "^1.65.1",
     "typescript": "7.0.2",
-    "wrangler": "4.45.0"
+    "wrangler": "4.166.0"
   }
 }

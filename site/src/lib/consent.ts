@@ -22,11 +22,14 @@ export function writeConsent(state: 'granted' | 'denied'): void {
 }
 
 export function gtmId(): string {
-  return import.meta.env.PUBLIC_GTM_ID ?? ''
+  const id = import.meta.env.PUBLIC_GTM_ID ?? ''
+  // Only a well-formed container id may reach the inline script and selector.
+  return /^GTM-[A-Z0-9]{4,12}$/.test(id) ? id : ''
 }
 
 export function cfBeacon(): string {
-  return import.meta.env.PUBLIC_CF_BEACON_TOKEN ?? ''
+  const token = import.meta.env.PUBLIC_CF_BEACON_TOKEN ?? ''
+  return /^[0-9a-f]{16,64}$/.test(token) ? token : ''
 }
 
 export function isProdHost(): boolean {

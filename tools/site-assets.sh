@@ -47,7 +47,7 @@ if [ "$CHECK" -eq 0 ]; then
   fi
 
   # stills
-  for spec in "lap-player:02:3.5" "charts:02:8.0" "compare:04:8.0"; do
+  for spec in "lap-player:02:3.5" "charts:02:8.0"; do
     IFS=: read -r name beat ts <<< "$spec"
     out="$ASSETS/$name.png"
     if [ "$FORCE" -eq 1 ] || [ ! -f "$out" ]; then
