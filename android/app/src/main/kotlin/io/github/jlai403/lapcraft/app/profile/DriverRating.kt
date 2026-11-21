@@ -11,11 +11,18 @@ private val stampFormat = DateTimeFormatter.ofPattern("MMM d").withZone(ZoneId.s
 fun DriverProfile.ratingLabel(): String? =
     listOfNotNull(dr?.let { "DR ($it)" }, sr?.let { "SR ($it)" }).joinToString(" · ").ifEmpty { null }
 
-/** "DR (B) · SR (S) · updated Nov 3", so a stale rating is visible. */
-fun DriverProfile.ratingWithAgeLabel(): String? {
+/** "DR (B) · SR (S) · updated 2 h ago", so a stale rating is visible. */
+fun DriverProfile.ratingWithAgeLabel(nowMs: Long = System.currentTimeMillis()): String? {
     val rating = ratingLabel() ?: return null
     val stamp = fetchedAtMs ?: return rating
-    return "$rating · updated ${stampFormat.format(Instant.ofEpochMilli(stamp))}"
+    val ageMs = (nowMs - stamp).coerceAtLeast(0L)
+    val ageText = when {
+        ageMs < 60_000 -> "just now"
+        ageMs < 60 * 60_000 -> "${ageMs / 60_000} min ago"
+        ageMs < 24 * 60 * 60_000 -> "${ageMs / (60 * 60_000)} h ago"
+        else -> stampFormat.format(Instant.ofEpochMilli(stamp))
+    }
+    return "$rating · updated $ageText"
 }
 
 /** True when the cached rating is missing or stale; [expectRating] is set when an API key can supply one. */
@@ -25,8 +32,9 @@ fun DriverProfile.needsRefresh(
     maxAgeMs: Long = RATING_MAX_AGE_MS,
 ): Boolean {
     val stamp = fetchedAtMs ?: return true
+    if (notFound) return nowMs - stamp > 24L * 60 * 60 * 1000
     if (expectRating && dr == null && sr == null) return true
     return nowMs - stamp > maxAgeMs
 }
 
-const val RATING_MAX_AGE_MS: Long = 7L * 24 * 60 * 60 * 1000
+const val RATING_MAX_AGE_MS: Long = 1L * 60 * 60 * 1000

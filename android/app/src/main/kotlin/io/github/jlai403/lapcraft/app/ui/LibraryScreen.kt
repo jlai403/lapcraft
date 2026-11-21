@@ -45,8 +45,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import io.github.jlai403.lapcraft.core.profile.DriverProfile
+import io.github.jlai403.lapcraft.app.profile.GridStatsProfileClient
 import io.github.jlai403.lapcraft.app.profile.DriverProfileLinks
 import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
+import io.github.jlai403.lapcraft.app.profile.needsRefresh
 import io.github.jlai403.lapcraft.app.profile.countryFlagEmoji
 import io.github.jlai403.lapcraft.app.replay.LapReencoder
 import io.github.jlai403.lapcraft.app.replay.PlayStationApp
@@ -154,6 +156,37 @@ fun LibraryScreen(
         if (cache.isPolyphonyStale() || cache.isGridstatsStale()) {
             runCatching { EventRefresh.refresh(context) }
             cachedEvents = EventCache(context).events()
+        }
+        // TTL-gated DR/SR refresh for stale drivers, only when a key is available.
+        val apiKey = profileStore.apiKey
+        if (!apiKey.isNullOrBlank()) {
+            runCatching {
+                withContext(Dispatchers.IO) {
+                    val now = System.currentTimeMillis()
+                    val psns = store.summaries().mapNotNull { it.driverPsnId }.distinct()
+                        .filter { psn ->
+                            val cached = profileStore.profile(psn)
+                            cached == null || cached.needsRefresh(now, true)
+                        }
+                        .take(16)
+                    if (psns.isNotEmpty()) {
+                        val fetched = GridStatsProfileClient { apiKey }.fetchBatch(psns)
+                        val fetchedIds = fetched.map { it.psnId.lowercase() }.toSet()
+                        for (p in fetched) profileStore.save(p)
+                        for (psn in psns) {
+                            if (psn.lowercase() !in fetchedIds) {
+                                profileStore.save(
+                                    DriverProfile(psnId = psn, nickname = psn, countryCode = null,
+                                        fetchedAtMs = now, notFound = true),
+                                )
+                            }
+                        }
+                    }
+                }
+                profiles = withContext(Dispatchers.IO) {
+                    profileStore.profiles().associateBy { it.psnId.lowercase() }
+                }
+            }
         }
         refreshing = false
     }
