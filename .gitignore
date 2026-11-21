@@ -1,8 +1,10 @@
 .gradle/
+.kotlin/
 build/
 */build/
 local.properties
 .idea/
+android/ci/release.keystore
 *.iml
 .superpowers/
 __pycache__/

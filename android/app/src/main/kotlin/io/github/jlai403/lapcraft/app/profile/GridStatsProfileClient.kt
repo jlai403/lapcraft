@@ -19,11 +19,62 @@ class GridStatsProfileClient(
     private val apiKey: () -> String? = { null },
 ) {
     suspend fun fetch(psnId: String): DriverProfile = withContext(Dispatchers.IO) {
-        val trimmed = psnId.trim()
-        require(trimmed.isNotEmpty()) { "Enter a PSN ID." }
+        fetchBatch(listOf(psnId)).firstOrNull()
+            ?: throw ProfileNotFoundException()
+    }
+
+    /** Fetches up to 16 drivers in a single metered request. */
+    suspend fun fetchBatch(psnIds: List<String>): List<DriverProfile> = withContext(Dispatchers.IO) {
+        val trimmed = psnIds.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+        if (trimmed.isEmpty()) return@withContext emptyList()
+        require(trimmed.size <= 16) { "Batch lookup is limited to 16 drivers." }
         val key = apiKey()
-        val profile = if (key.isNullOrBlank()) fetchHtml(trimmed) else fetchApi(trimmed, key)
-        profile.copy(fetchedAtMs = System.currentTimeMillis())
+        val now = System.currentTimeMillis()
+        if (key.isNullOrBlank()) {
+            return@withContext trimmed.map { fetchHtml(it).copy(fetchedAtMs = now) }
+        }
+        fetchApiBatch(trimmed, key).map { it.copy(fetchedAtMs = now) }
+    }
+
+    private fun fetchApiBatch(psnIds: List<String>, key: String): List<DriverProfile> {
+        val encoded = psnIds.joinToString(",") { URLEncoder.encode(it, StandardCharsets.UTF_8.toString()).replace("+", "%20") }
+        val connection = (URL("https://gt-gridstats.com/api/racers/$encoded").openConnection() as HttpURLConnection)
+            .apply {
+                connectTimeout = TIMEOUT_MS
+                readTimeout = TIMEOUT_MS
+                requestMethod = "GET"
+                setRequestProperty("Accept", "application/json")
+                setRequestProperty("Authorization", "Bearer $key")
+                setRequestProperty("User-Agent", USER_AGENT)
+            }
+        return try {
+            when (val status = connection.responseCode) {
+                HttpURLConnection.HTTP_OK -> {
+                    val body = connection.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+                    parseApiProfiles(body, psnIds)
+                }
+                HttpURLConnection.HTTP_NOT_FOUND -> emptyList()
+                401 -> throw IOException("GT GridStats API key was rejected.")
+                429 -> throw IOException("GT GridStats rate limit hit; try again in a minute.")
+                422 -> throw IOException("GT GridStats rejected the request.")
+                else -> throw IOException("GT GridStats returned HTTP $status.")
+            }
+        } finally {
+            connection.disconnect()
+        }
+    }
+
+    private fun parseApiProfiles(jsonText: String, requested: List<String>): List<DriverProfile> {
+        val response = Json { ignoreUnknownKeys = true }.decodeFromString<RacersResponse>(jsonText)
+        return response.drivers.map { dto ->
+            DriverProfile(
+                psnId = dto.psnId.trim().ifEmpty { requested.firstOrNull() ?: "" },
+                nickname = dto.nickname.trim().ifEmpty { dto.psnId.trim() },
+                countryCode = dto.countryCode?.trim()?.uppercase(),
+                dr = dto.dr?.trim()?.uppercase(),
+                sr = dto.sr?.trim()?.uppercase(),
+            )
+        }
     }
 
     private fun fetchApi(psnId: String, key: String): DriverProfile {

@@ -57,6 +57,9 @@ internal fun DriverProfileSection(
     var refreshError by remember { mutableStateOf<String?>(null) }
     var apiKey by remember { mutableStateOf(store.apiKey.orEmpty()) }
     var keyStatus by remember { mutableStateOf<String?>(null) }
+    var ratingTarget by remember { mutableStateOf<DriverProfile?>(null) }
+    var ratingDr by remember { mutableStateOf("") }
+    var ratingSr by remember { mutableStateOf("") }
 
     fun refreshPending() {
         pendingProfiles = staleDriverCount(store, sessionStore)
@@ -230,6 +233,15 @@ internal fun DriverProfileSection(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
+                    GhostPill(
+                        text = "Rating",
+                        onClick = {
+                            ratingTarget = saved
+                            ratingDr = saved.dr.orEmpty()
+                            ratingSr = saved.sr.orEmpty()
+                        },
+                        modifier = Modifier.testTag("settings-driver-rating-${saved.psnId.lowercase()}"),
+                    )
                     if (saved.needsRefresh(System.currentTimeMillis(), !store.apiKey.isNullOrBlank())) {
                         GhostPill(
                             text = "Refresh",
@@ -349,6 +361,53 @@ internal fun DriverProfileSection(
             },
             dismissButton = {
                 TextButton(onClick = { removingProfile = null }) { Text("Keep") }
+            },
+        )
+    }
+
+    ratingTarget?.let { target ->
+        AlertDialog(
+            onDismissRequest = { ratingTarget = null },
+            title = { Text("Set rating for ${target.nickname}") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "Manual entry for drivers without a GT GridStats API key.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    OutlinedTextField(
+                        value = ratingDr,
+                        onValueChange = { ratingDr = it },
+                        label = { Text("DR (A+, A, B, ...)") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    OutlinedTextField(
+                        value = ratingSr,
+                        onValueChange = { ratingSr = it },
+                        label = { Text("SR (S, A, B, ...)") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    store.save(
+                        target.copy(
+                            dr = ratingDr.trim().uppercase().takeIf { it.isNotEmpty() },
+                            sr = ratingSr.trim().uppercase().takeIf { it.isNotEmpty() },
+                            fetchedAtMs = null,
+                            notFound = false,
+                        ),
+                    )
+                    savedProfiles = store.profiles()
+                    ratingTarget = null
+                }) { Text("Save") }
+            },
+            dismissButton = {
+                TextButton(onClick = { ratingTarget = null }) { Text("Cancel") }
             },
         )
     }
