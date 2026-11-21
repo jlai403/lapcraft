@@ -407,3 +407,11 @@ jobs:
             --notes "Stable build ${{ steps.resolve.outputs.tag }}" \
             --prerelease=false \
             --latest
+
+      - name: Remove leftover preview asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          tag="${{ steps.resolve.outputs.tag }}"
+          gh release delete-asset "$tag" LapCraft-preview.apk --yes || true
