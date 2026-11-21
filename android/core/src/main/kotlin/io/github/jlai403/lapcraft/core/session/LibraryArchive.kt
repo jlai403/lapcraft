@@ -38,6 +38,11 @@ object LibraryArchive {
     private const val MANIFEST = "library.json"
     private const val ITEM_ROOT = "library"
     private const val BUFFER = 64 * 1024
+    private const val MAX_ENTRIES = 100_000
+    private const val MAX_MANIFEST_BYTES = 64 * 1024
+    private const val MAX_PROFILES_BYTES = 1024 * 1024
+    private const val MAX_TOTAL_BYTES = 20L * 1024 * 1024 * 1024
+    private const val MAX_ENTRY_BYTES = 4L * 1024 * 1024 * 1024
     private val ID_PATTERN = Regex("[A-Za-z0-9][A-Za-z0-9._-]{0,63}")
     private val json = Json { encodeDefaults = true; ignoreUnknownKeys = true }
 
@@ -98,31 +103,48 @@ object LibraryArchive {
         try {
             ZipInputStream(BufferedInputStream(input, BUFFER)).use { zip ->
                 var entry = zip.nextEntry
+                var entryCount = 0
                 while (entry != null) {
-                    if (!entry.isDirectory) {
-                        when (entry.name) {
-                            MANIFEST -> {
-                                manifest = json.decodeFromString<LibraryManifest>(zip.readBytes().toString(Charsets.UTF_8))
-                                readBytes += entry.size.coerceAtLeast(0)
-                            }
-                            "profiles.json" -> {
-                                profiles = runCatching {
-                                    json.decodeFromString<List<DriverProfile>>(zip.readBytes().toString(Charsets.UTF_8))
-                                }.getOrDefault(emptyList())
-                                readBytes += entry.size.coerceAtLeast(0)
-                            }
-                            else -> {
-                                val target = File(staging, safeEntryPath(entry.name))
-                                target.parentFile?.mkdirs()
-                                target.outputStream().use { out ->
-                                    val buffer = ByteArray(BUFFER)
-                                    while (true) {
-                                        val count = zip.read(buffer)
-                                        if (count <= 0) break
-                                        out.write(buffer, 0, count)
-                                        readBytes += count
-                                        onProgress(readBytes, manifest?.bytes ?: 0)
-                                    }
+                    entryCount++
+                    require(entryCount <= MAX_ENTRIES) { "too many archive entries" }
+                    if (entry.isDirectory) {
+                        zip.closeEntry()
+                        entry = zip.nextEntry
+                        continue
+                    }
+                    val entrySize = entry.size
+                    if (entrySize >= 0) {
+                        require(entrySize <= MAX_ENTRY_BYTES) { "archive entry too large: ${entry.name}" }
+                    }
+                    when (entry.name) {
+                        MANIFEST -> {
+                            val bytes = zip.readBytes()
+                            require(bytes.size <= MAX_MANIFEST_BYTES) { "manifest too large" }
+                            manifest = json.decodeFromString<LibraryManifest>(bytes.toString(Charsets.UTF_8))
+                            readBytes += bytes.size.toLong()
+                            require(readBytes <= MAX_TOTAL_BYTES) { "archive too large" }
+                        }
+                        "profiles.json" -> {
+                            val bytes = zip.readBytes()
+                            require(bytes.size <= MAX_PROFILES_BYTES) { "profiles too large" }
+                            profiles = runCatching {
+                                json.decodeFromString<List<DriverProfile>>(bytes.toString(Charsets.UTF_8))
+                            }.getOrDefault(emptyList()).filter { validProfile(it) }
+                            readBytes += bytes.size.toLong()
+                            require(readBytes <= MAX_TOTAL_BYTES) { "archive too large" }
+                        }
+                        else -> {
+                            val target = File(staging, safeEntryPath(entry.name))
+                            target.parentFile?.mkdirs()
+                            target.outputStream().use { out ->
+                                val buffer = ByteArray(BUFFER)
+                                while (true) {
+                                    val count = zip.read(buffer)
+                                    if (count <= 0) break
+                                    out.write(buffer, 0, count)
+                                    readBytes += count
+                                    require(readBytes <= MAX_TOTAL_BYTES) { "archive too large" }
+                                    onProgress(readBytes, manifest?.bytes ?: 0)
                                 }
                             }
                         }
@@ -164,15 +186,32 @@ object LibraryArchive {
 
     private fun importStaged(dir: File, id: String, lapsDir: File, format: Int): Boolean {
         val lapJsonFile = File(dir, "lap.json")
-        return if (lapJsonFile.isFile && File(dir, "lap.gt7lap").isFile) {
-            val record = runCatching { json.decodeFromString<LapRecord>(lapJsonFile.readText()) }.getOrNull() ?: return false
-            val target = File(lapsDir, id)
-            if (target.exists()) return false
-            dir.renameTo(target)
-            true
-        } else {
-            false
-        }
+        val telemetryFile = File(dir, "lap.gt7lap")
+        if (!lapJsonFile.isFile || !telemetryFile.isFile) return false
+        val record = runCatching { json.decodeFromString<LapRecord>(lapJsonFile.readText()) }.getOrNull() ?: return false
+        if (!validRecord(record)) return false
+        if (runCatching { LapTelemetryCodec.validateHeader(telemetryFile.readBytes()) }.isFailure) return false
+        val target = File(lapsDir, id)
+        if (target.exists()) return false
+        return dir.renameTo(target)
+    }
+
+    private fun validProfile(profile: DriverProfile): Boolean {
+        if (profile.psnId.isBlank() || profile.psnId.length > 64) return false
+        if (profile.nickname.length > 64) return false
+        if (profile.countryCode != null && (profile.countryCode.length != 2 || !profile.countryCode.all { it in 'A'..'Z' })) return false
+        if (profile.dr != null && (profile.dr.isEmpty() || profile.dr.length > 3)) return false
+        if (profile.sr != null && (profile.sr.isEmpty() || profile.sr.length > 3)) return false
+        return true
+    }
+
+    private fun validRecord(record: LapRecord): Boolean {
+        if (record.lapTimeMs !in 0..24 * 60 * 60 * 1000) return false
+        if (record.sampleRateHz !in 1..200) return false
+        if (record.trackLabel.length > 120 || record.carName.length > 120) return false
+        if (record.driverPsnId != null && record.driverPsnId.length > 64) return false
+        if (runCatching { java.time.Instant.parse(record.capturedAt) }.isFailure) return false
+        return true
     }
 
     private fun sweepStaging(lapsDir: File) {

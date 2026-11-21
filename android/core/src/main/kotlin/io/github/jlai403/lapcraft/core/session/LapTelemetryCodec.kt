@@ -11,6 +11,7 @@ object LapTelemetryCodec {
     private const val VERSION_V1 = 1
     private const val VERSION_V2 = 2
     private const val SAMPLE_RATE_HZ = 60
+    private const val MAX_SAMPLES = 15 * 60 * 60
 
     fun encode(samples: List<Sample>): ByteArray {
         val buffer = ByteBuffer.allocate(HEADER_SIZE + samples.size * SAMPLE_SIZE_V2)
@@ -57,7 +58,8 @@ object LapTelemetryCodec {
         return buffer.array()
     }
 
-    fun decode(bytes: ByteArray): List<Sample> {
+    /** Validates the header and length without allocating the sample list. */
+    fun validateHeader(bytes: ByteArray) {
         require(bytes.size >= HEADER_SIZE) { "telemetry header truncated" }
         val buffer = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN)
         require(bytes[0] == 'G'.code.toByte() &&
@@ -67,10 +69,21 @@ object LapTelemetryCodec {
         val version = buffer.getShort(4).toInt()
         require(version == VERSION_V1 || version == VERSION_V2) { "unsupported telemetry version" }
         require(buffer.getShort(6).toInt() == HEADER_SIZE) { "bad telemetry header size" }
+        val sampleCount = buffer.getInt(8)
+        require(sampleCount >= 0) { "negative sample count" }
+        val sampleSize = if (version == VERSION_V2) SAMPLE_SIZE_V2 else SAMPLE_SIZE_V1
+        require(bytes.size.toLong() == HEADER_SIZE.toLong() + sampleCount.toLong() * sampleSize) {
+            "bad telemetry length"
+        }
+        require(sampleCount <= MAX_SAMPLES) { "too many samples" }
+    }
 
+    fun decode(bytes: ByteArray): List<Sample> {
+        validateHeader(bytes)
+        val buffer = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN)
+        val version = buffer.getShort(4).toInt()
         val sampleCount = buffer.getInt(8)
         val sampleSize = if (version == VERSION_V2) SAMPLE_SIZE_V2 else SAMPLE_SIZE_V1
-        require(bytes.size == HEADER_SIZE + sampleCount * sampleSize) { "bad telemetry length" }
 
         val samples = ArrayList<Sample>(sampleCount)
         var offset = HEADER_SIZE
