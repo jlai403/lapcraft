@@ -263,11 +263,11 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           if gh release view "preview-latest" >/dev/null 2>&1; then
-            gh release upload "preview-latest" dist/latest.json --clobber
+            gh release upload "preview-latest" dist/LapCraft-preview.apk dist/latest.json --clobber
           else
-            gh release create "preview-latest" dist/latest.json \
+            gh release create "preview-latest" dist/LapCraft-preview.apk dist/latest.json \
               --prerelease --title "Preview builds" \
-              --notes "Rolling manifest for the in-app update check."
+              --notes "Rolling preview build. Contains LapCraft-preview.apk and latest.json for the in-app update check."
           fi
 
       - name: Prune old previews
