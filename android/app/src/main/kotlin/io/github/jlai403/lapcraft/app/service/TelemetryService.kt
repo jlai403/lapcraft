@@ -22,6 +22,7 @@ import io.github.jlai403.lapcraft.app.recording.StreamNotificationText
 import io.github.jlai403.lapcraft.app.catalog.CarCatalog
 import io.github.jlai403.lapcraft.app.events.EventRefresh
 import io.github.jlai403.lapcraft.app.events.EventTagger
+import io.github.jlai403.lapcraft.app.settings.SettingsStore
 import io.github.jlai403.lapcraft.app.track.TrackCatalog
 import io.github.jlai403.lapcraft.app.Diagnostics
 import io.github.jlai403.lapcraft.core.capture.CaptureState
@@ -145,6 +146,7 @@ class TelemetryService : Service() {
                 state.value = TelemetryUiState()
                 if (!::coordinator.isInitialized) {
                     val driverProfiles = DriverProfileStore(this)
+                    val settings = SettingsStore(this)
                     coordinator = LapCaptureCoordinator(
                         sink = LapSaver(
                             sessionsDir = filesDir,
@@ -153,6 +155,7 @@ class TelemetryService : Service() {
                             driverPsnId = { driverProfiles.owner()?.psnId },
                             carName = CarCatalog(this)::name,
                             eventTag = EventTagger(this)::tag,
+                            tyre = { settings.currentTyre },
                         ),
                     )
                     serviceScope.launch {

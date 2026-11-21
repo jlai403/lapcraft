@@ -22,6 +22,14 @@ val AccentRed = Color(0xFFF43F5E)
 
 val GhostSlate = Color(0xFF94A3B8)
 val CrispWhite = Color(0xFFF8FAFC)
+
+val TyreHard = CrispWhite
+val TyreMedium = AccentAmber
+val TyreSoft = AccentRed
+val TyreIntermediate = Color(0xFF22C55E)
+val TyreWet = Color(0xFF3B82F6)
+val TyreDirt = Color(0xFFC08A5A)
+val TyreSnow = Color(0xFFBAE6FD)
 val Ink = Color(0xFF0D1114)
 val Panel = Color(0xFF12181C)
 val PanelRaised = Color(0xFF1A2226)

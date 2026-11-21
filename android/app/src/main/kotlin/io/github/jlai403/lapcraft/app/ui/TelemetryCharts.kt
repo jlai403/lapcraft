@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import io.github.jlai403.lapcraft.core.clip.TrackProgress
 import io.github.jlai403.lapcraft.core.model.Sample
 import io.github.jlai403.lapcraft.core.session.LapView
+import io.github.jlai403.lapcraft.core.tire.TyreCompound
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
@@ -582,6 +583,8 @@ internal fun SpeedGearRow(
     primary: Sample?,
     reference: Sample? = null,
     imperial: Boolean = false,
+    primaryTyre: TyreCompound? = null,
+    referenceTyre: TyreCompound? = null,
     modifier: Modifier = Modifier,
 ) {
     if (primary == null) return
@@ -595,6 +598,7 @@ internal fun SpeedGearRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
+            primaryTyre?.let { TyreBadge(compound = it, size = 14.dp) }
             Text(
                 "Speed",
                 style = MaterialTheme.typography.labelSmall,
@@ -611,6 +615,7 @@ internal fun SpeedGearRow(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                referenceTyre?.let { TyreBadge(compound = it, size = 14.dp) }
                 NumericText(
                     text = speedText(reference.speedMps, imperial),
                     style = MaterialTheme.typography.labelSmall,
@@ -759,7 +764,13 @@ internal fun CompareCharts(
     )
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
         CompareLegend()
-        SpeedGearRow(primary = primarySample, reference = referenceSample, imperial = imperial)
+        SpeedGearRow(
+            primary = primarySample,
+            reference = referenceSample,
+            imperial = imperial,
+            primaryTyre = lap.tyre,
+            referenceTyre = reference?.lap?.tyre,
+        )
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(3.dp),

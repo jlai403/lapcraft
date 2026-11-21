@@ -140,6 +140,8 @@ fun App(
                         Screen.Record -> RecordScreen(
                             state = capture,
                             imperial = settings.imperialUnits,
+                            tyre = settings.currentTyre,
+                            onTyreChange = { settings.currentTyre = it },
                             onConnect = onConnect,
                             onDisconnect = onDisconnect,
                             onCapture = onCapture,

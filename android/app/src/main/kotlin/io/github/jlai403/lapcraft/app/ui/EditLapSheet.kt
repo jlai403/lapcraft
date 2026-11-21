@@ -82,6 +82,8 @@ internal fun EditLapSheet(
     onReencode: () -> Unit = {},
     events: List<CachedEvent> = emptyList(),
     onAssignEvent: (EventTag?) -> Unit = {},
+    tyre: io.github.jlai403.lapcraft.core.tire.TyreCompound? = null,
+    onAssignTyre: (io.github.jlai403.lapcraft.core.tire.TyreCompound?) -> Unit = {},
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -105,6 +107,7 @@ internal fun EditLapSheet(
     var eventQuery by remember(lap.event?.id) { mutableStateOf(lap.event?.label.orEmpty()) }
     var suggestionsOpen by remember { mutableStateOf(false) }
     var refreshingEvents by remember { mutableStateOf(false) }
+    var tyrePickerOpen by remember { mutableStateOf(false) }
 
     val selectedDriver = localProfiles.firstOrNull { it.psnId.equals(driverPsnId, true) }
         ?: driver?.takeIf { it.psnId.equals(driverPsnId, true) }
@@ -412,6 +415,39 @@ internal fun EditLapSheet(
                     )
                 },
             )
+
+            EditRow(
+                label = "Tyres",
+                value = {
+                    Text(
+                        if (tyre == null) "Not set" else tyre.label,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (tyre == null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                    )
+                },
+                actions = {
+                    GhostPill(
+                        text = if (tyre == null) "Set" else "Change",
+                        onClick = { tyrePickerOpen = true },
+                        modifier = Modifier.testTag("edit-tyre-change"),
+                    )
+                },
+            )
+
+            if (tyrePickerOpen) {
+                TyrePickerDialog(
+                    selected = tyre,
+                    onPick = {
+                        onAssignTyre(it)
+                        tyrePickerOpen = false
+                    },
+                    onClear = {
+                        onAssignTyre(null)
+                        tyrePickerOpen = false
+                    },
+                    onDismiss = { tyrePickerOpen = false },
+                )
+            }
 
             if (developerTools && lap.hasReplay) {
                 EditRow(

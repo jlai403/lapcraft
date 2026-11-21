@@ -21,6 +21,7 @@ class LapSaver(
     private val driverPsnId: () -> String? = { null },
     private val carName: (Int) -> String? = { null },
     private val eventTag: (Int, String, Long, Int) -> io.github.jlai403.lapcraft.core.events.EventTag? = { _, _, _, _ -> null },
+    private val tyre: () -> io.github.jlai403.lapcraft.core.tire.TyreCompound? = { null },
 ) : LapSink {
     override fun save(boundary: LapBoundary, samples: List<Sample>): String {
         val store = LapStore(sessionsDir, carName = carName)
@@ -45,6 +46,7 @@ class LapSaver(
             event = runCatching {
                 eventTag(carCode, resolvedTrack, now.toEpochMilli(), boundary.lapTimeMs)
             }.getOrNull(),
+            tyre = tyre(),
         )
         store.save(LapId(id), record)
         val stored = samples.filter {

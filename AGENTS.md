@@ -46,6 +46,7 @@ cd android && ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --t
 - Local-first: no accounts, analytics, or background cloud calls.
 - UI copy and docs use sentence case and plain words. No em dashes, curly quotes, or benefit framing; see `DESIGN.md` under Copy and tone.
 - `PacketAParser` reads the steering wheel angle from packet B/C at `0x128` and stores it in `Sample.steering` as `-1..1` (+ = left); packet A has none.
+- Tyre compound is manual metadata: GT7's telemetry carries none (not even packet C). It lives on `LapRecord.tyre` (`core/tire/TyreCompound`, 13 codes), is projected into `LapView`/`LapSummary`, and is stamped onto new laps from `SettingsStore.currentTyre` (Record screen) or set per lap in `EditLapSheet`. The `TyreBadge` is hidden when untagged. No sample codec change.
 - The lap HUD traces the last 2 s before the cursor. The F1 wheel under the tire tiles is hidden for laps with no steering samples.
 - Replay clips live under `laps/<id>/replay.mp4` (new layout) or `sessions/<id>/laps/lap-NNN.mp4` (legacy, migrated on first launch); telemetry is `lap.gt7lap` (new) or `lap-NNN.gt7lap` (legacy).
 - The frame ruler only scrubs: a tap does nothing (no seek, no pause), and a horizontal drag past

@@ -82,6 +82,13 @@ open class LapStore(
         return updated
     }
 
+    fun setTyre(id: LapId, tyre: io.github.jlai403.lapcraft.core.tire.TyreCompound?): LapRecord? {
+        val record = load(id) ?: return null
+        val updated = record.copy(tyre = tyre)
+        save(id, updated)
+        return updated
+    }
+
     fun attachClip(id: LapId, leadInMs: Int): LapRecord? {
         val record = load(id) ?: return null
         val updated = record.copy(leadInMs = leadInMs)
@@ -128,6 +135,7 @@ open class LapStore(
                 replayPending = pendingFile != null,
                 driverPsnId = record.driverPsnId,
                 event = record.event,
+                tyre = record.tyre,
                 videoBytes = replayFile?.length() ?: 0,
                 telemetryBytes = telemetryFile?.length() ?: 0,
                 pendingBytes = pendingFile?.length() ?: 0,
