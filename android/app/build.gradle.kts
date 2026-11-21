@@ -30,6 +30,20 @@ val gitSha = runCatching {
         .get()
 }.getOrDefault("dev")
 
+// Release variants never fall back to the public debug key: fail the build when a
+// signed variant is requested without one. Checked from the requested task names so
+// debug builds, tests and lint keep working with no secrets configured.
+val hasReleaseSigning = providers.environmentVariable("LAPCRAFT_KEYSTORE").isPresent
+val releaseRequested = gradle.startParameter.taskNames.any {
+    it.contains("Stable", ignoreCase = true) || it.contains("Preview", ignoreCase = true)
+}
+if (releaseRequested && !hasReleaseSigning) {
+    throw GradleException(
+        "Release signing key not configured. Set LAPCRAFT_KEYSTORE, KEYSTORE_PASSWORD, " +
+            "KEY_ALIAS and KEY_PASSWORD (see ci/verify-release.sh).",
+    )
+}
+
 android {
     namespace = "io.github.jlai403.lapcraft"
     compileSdk = 36
@@ -55,6 +69,18 @@ android {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
         }
+        val ksPath = providers.environmentVariable("LAPCRAFT_KEYSTORE").orNull
+        if (ksPath != null) {
+            create("release") {
+                storeFile = file(ksPath)
+                storePassword = providers.environmentVariable("KEYSTORE_PASSWORD").orNull
+                    ?: error("KEYSTORE_PASSWORD is required when LAPCRAFT_KEYSTORE is set")
+                keyAlias = providers.environmentVariable("KEY_ALIAS").orNull
+                    ?: error("KEY_ALIAS is required when LAPCRAFT_KEYSTORE is set")
+                keyPassword = providers.environmentVariable("KEY_PASSWORD").orNull
+                    ?: error("KEY_PASSWORD is required when LAPCRAFT_KEYSTORE is set")
+            }
+        }
     }
 
     buildTypes {
@@ -62,12 +88,14 @@ android {
             // Dev build: production package id, preview channel (Developer card visible).
         }
         create("stable") {
-            initWith(getByName("debug"))
+            isDebuggable = false
+            signingConfig = signingConfigs.findByName("release")
             buildConfigField("String", "UPDATE_CHANNEL", "\"stable\"")
         }
         create("preview") {
-            initWith(getByName("debug"))
+            isDebuggable = false
             applicationIdSuffix = ".preview"
+            signingConfig = signingConfigs.findByName("release")
         }
     }
 
