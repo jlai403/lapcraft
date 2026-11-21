@@ -1,8 +1,38 @@
-# LapCraft
+<p align="center">
+  <img src="docs/branding/ic_launcher_playstore.png" width="120" alt="LapCraft">
+</p>
 
-Android telemetry and synchronized replay for Gran Turismo 7. Capture one lap of GT7 telemetry, attach a single-lap replay from the PS5, and review the lap with charts, a track map, and a telemetry cursor that follows the replay.
+<h1 align="center">LapCraft</h1>
 
-**Status:** v0.2 development. Telemetry-only capture, replay import, frame-step sync, and lap review are implemented. On-device verification is pending.
+<p align="center">
+  GT7 telemetry at 60 Hz, synced to the replay from your PS5, on one cursor.
+</p>
+
+<p align="center">
+  <a href="https://github.com/jlai403/lapcraft/releases">Download preview</a> &middot;
+  <a href="https://lapcraft.jlai.ca">Website</a> &middot;
+  <a href="https://github.com/jlai403/lapcraft">Source on GitHub</a> &middot;
+  <a href="LICENSE">GPL-3.0</a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/github/v/release/jlai403/lapcraft?include_prereleases&label=preview" alt="Latest release">
+  <img src="https://img.shields.io/github/license/jlai403/lapcraft" alt="License">
+</p>
+
+## What it is
+
+LapCraft records one lap of Gran Turismo 7 telemetry and syncs it to the single-lap replay exported from the PS5. The video, the charts, and the track map move on the same clock, so you can see what the car and the driver did at the exact frame you are looking at. It is free, open source, and runs entirely on the phone.
+
+It does not capture video or audio. GT7's own replay is the video source.
+
+## Screenshots
+
+<p align="center">
+  <img src="site/src/assets/lap-player.png" width="220" alt="Lap player with telemetry HUD and charts">
+  <img src="site/src/assets/charts.png" width="220" alt="Telemetry charts on a track progress axis">
+  <img src="site/src/assets/compare-telemetry.png" width="440" alt="Compare screen, Telemetry tab">
+</p>
 
 ## Demo
 
@@ -10,82 +40,56 @@ https://github.com/user-attachments/assets/8b36ff58-3bde-449b-8a53-9378593979ac
 
 A 26 second cut of the lap workflow, without voice. The portrait version for the Play Store is [master-vertical.mp4](tools/demo/master-vertical.mp4). Both cuts are built by the kit in [tools/demo](tools/demo/README.md).
 
-## Documents
+## Install
 
-- [Product and technical spec](docs/specs/2026-11-10-lapcraft.md)
-- [Design system](DESIGN.md)
-- [Glossary](GLOSSARY.md)
+Requires Android 10 or later.
 
-## Architecture
+- **Preview build.** Every push to `main` replaces the `preview-latest` release with `LapCraft-preview.apk`. Install from [Releases](https://github.com/jlai403/lapcraft/releases), or with [Obtainium](https://github.com/ImranR98/Obtainium): `obtainium://add/https://github.com/jlai403/lapcraft`. Preview builds check the `preview-latest` channel. If Obtainium ever resolves the wrong asset, use a Direct APK Link to `https://github.com/jlai403/lapcraft/releases/download/preview-latest/LapCraft-preview.apk`.
+- **Stable build.** Tagged releases carry `LapCraft-<tag>.apk`. Install from [Releases](https://github.com/jlai403/lapcraft/releases/latest), or point Obtainium at the direct APK link `https://github.com/jlai403/lapcraft/releases/latest/download/LapCraft.apk`.
+- **Sideloading.** Android shows its unknown-source prompt and Play Protect scans the APK. That is the browser and the system, not LapCraft. The app never downloads or installs an update itself; it opens the release page in the browser. Preview and stable are separate packages, so both can be installed side by side.
 
-```text
-lapcraft/
-└── android/
-    ├── core/   # Kotlin JVM: protocol, lap detection, track ID, clip sync math, session codecs
-    └── app/    # Android: Compose UI, foreground telemetry service, replay trim, Media3
-```
+Every release APK is signed with the project's release key, never the Android debug key. The certificate fingerprint is recorded in [AGENTS.md](AGENTS.md). Checks are skipped when the app was installed by F-Droid or Play.
 
-`core` has no Android imports. A desktop app can reuse it, and a Rust core can replace it with the same data model.
+## How it works
 
-## Workflow
-
-0. Optionally add your GT profile in **Settings → Driver profile**; it becomes the default driver for new laps and the name and flag appear above the lap list.
-1. **LapCraft → Record**: connect to GT7 and drive.
+0. Optionally add your GT profile in **Settings, Driver profile**. It becomes the default driver for new laps and the name and flag appear above the lap list.
+1. **LapCraft, Record**: connect to GT7 and drive.
 2. Tap **Capture this lap** after crossing the start line. The app saves exactly one lap at the next crossing.
-3. In GT7, record the single-lap replay with HUD on and the race camera. Use the PS5 Create menu and keep a few seconds of lead-in.
-4. Media Gallery → **Upload to PlayStation App**; in the PS App, **Download** or **Share** to LapCraft. The lap screen's replay source button opens Files or the PlayStation App (or its store listing).
-5. Open the lap → **Add replay** → **Files**. The playhead starts at the clip's end with a suggested lap start. Drag the timeline or the frame ruler, or frame-step back to the line, then **Use this frame**.
+3. In GT7, record the single-lap replay with the HUD on and the race camera. Use the PS5 Create menu and keep a few seconds of lead-in.
+4. Media Gallery, **Upload to PlayStation App**; in the PS App, **Download** or **Share** to LapCraft. The lap screen's replay source button opens Files or the PlayStation App (or its store listing).
+5. Open the lap, **Add replay**, **Files**. The playhead starts at the clip's end with a suggested lap start. Drag the timeline or the frame ruler, or frame-step back to the line, then **Use this frame**.
 6. Check the finish frame, preview, save, and review. The trimmed clip is one lap; the imported original is deleted.
 
 The phone records no video and no audio. Telemetry uses UDP 33739/33740; the only other network calls are update checks and the optional profile lookup.
 
-## Backup and restore
+## What you get
 
-Settings → Library exports the laps you select to one `.zip` (`lapcraft-library-<date>.zip`). Each lap is a directory inside the archive holding `lap.json`, its `.gt7lap` telemetry, and any clip or pending source the lap references, so the file is inspectable with any zip tool. Clips are passed through uncompressed; telemetry and JSON are deflated.
+- **Lap feed.** Flat list, no card boxes, lap time as the hero number, per-track fastest lap marker or delta, the lap's driver with flag, swipe to edit or delete, hairline dividers, pull to refresh. Filters for event kind, event, and track.
+- **Edit sheet.** Track name (with candidates for unknown laps), driver, and replay actions (Add, Replace, Resume sync).
+- **Driver book.** New captures default to the owner; the lap screen's Driver card selects a cached driver, adds one by PSN (with manual name and country fallback), or clears it.
+- **Replay sync.** End-of-clip start with a suggested anchor, timeline scrubber, frame ruler (6 dp per frame, optional haptics), play and plus or minus 10 s, plus or minus 1 frame, track percent, preview, hard block for short clips. Lossless MP4 trim with keyframe alignment and stored lead-in.
+- **Lap player.** Media3 video with the same playback controls, a lap-only slider and frame ruler, brake, throttle, speed, RPM, and gear charts on a track progress axis, plus a track map.
+- **Compare, landscape.** Two same-track laps under one playback control, split into a Video tab (both replays, HUDs, and a pedal, tyre, and steering strip) and a Telemetry tab (shared track map plus brake, throttle, speed, RPM, and gear charts). The reference lap follows the primary by track progress, frame exact and muted. The library offers a compare mode and the lap player's Compare pill picks the reference.
+- **Compact playback footer.** One row in compare, and the taller time, ruler, and transport layout in the single-lap player.
+- **CSV export and MP4 sharing.**
+- **Library backup.** Multi-select lap export to a zip and merge-only import, from Settings or the empty library. The empty library also offers Import a backup.
 
-Import merges: ids that already exist are skipped, so importing the same file twice is safe. A lap whose clip is missing still imports, without a replay. The archive includes cached profiles for the exported laps' drivers. Settings and the owner stay on this device. The empty library also offers **Import a backup**.
+## Your data
 
-## What works
+Local-first. No accounts, analytics, or background cloud calls. The optional profile lookup sends only the PSN ID to gt-gridstats.com (plus a Bearer API key you paste in Settings when you want DR, SR, and car names); manual driver entry stays offline. Car names come from a bundled catalogue generated from GT GridStats. Optional event tags use the same key plus the public GT championship schedule.
 
-- GT7 packet formats A, B, `~`, and C: Salsa20 decrypt, correct XOR constant per size, ~60 Hz parse.
-- Decode-failure diagnostics with packet size and reason.
-- Single-lap capture: line-to-line, one session per lap, no video required.
-- Track identification from lap coordinates and bundled racing lines, including reverse layouts; ambiguous laps offer a candidate picker, and old `Unknown` laps are backfilled.
-- Flat lap feed: no card boxes or rounded corners, lap time as the hero number, per-track `Fastest lap` marker or delta, the lap's driver with flag, swipe to edit or delete, hairline dividers, pull to refresh, and filters for event kind, event, and track.
-- Edit sheet per lap: track name (with candidates for `Unknown` laps), driver, and replay (`Add`, `Replace`, or `Resume sync`).
-- Developer preview toggle renders the empty library without deleting laps; it only appears on preview builds.
-- Driver book: new captures default to the owner; the lap screen's Driver card selects a cached driver, adds one by PSN (with manual name/country fallback), or clears it.
-- Replay import through the Android share sheet and SAF file picker; one source button opens Files or the PlayStation App, and a clip can be replaced on an existing lap.
-- Sync screen: end-of-clip start with a suggested anchor, timeline scrubber, frame ruler (6 dp per frame, optional haptics), play/±10 s, ±1 frame, track %, preview, hard block for short clips.
-- Lossless MP4 trim with keyframe alignment and stored lead-in.
-- Lap player: Media3 video with the same playback controls as sync, a lap-only slider and frame ruler, speed/throttle/brake/RPM/gear charts on a track-progress axis, and a track map.
-- Compare (landscape): two same-track laps under one playback control, split into a `Video` tab (both replays filling 16:9, HUDs, and a 30 dp pedal/tyre/steering strip) and a `Telemetry` tab (shared track map plus brake/throttle/speed/RPM/gear charts, primary blue and reference yellow). The reference lap follows the primary by track progress, frame-exactly and muted; a running delta sits in the chrome. The library offers a compare mode (the first pick is the primary) and the lap player's `Compare` pill picks the reference.
-- Compact playback footer: one row in compare (`⏮ −1 ▶ +1 ⏭` + ruler + `1×` cycle + loop), and the taller time/ruler/transport layout in the single-lap player.
-- CSV export and MP4 sharing.
-- Library backup: multi-select lap export to a zip and merge-only import, from Settings or the empty library.
-- Version check for preview/stable builds; `Open releases` hands the download and install to the browser.
+Settings, Library exports the laps you select to one `.zip` (`lapcraft-library-<date>.zip`). Each lap is a directory inside the archive holding `lap.json`, its `.gt7lap` telemetry, and any clip or pending source the lap references, so the file is inspectable with any zip tool. Clips are passed through uncompressed; telemetry and JSON are deflated.
 
-## Update channels
+Import merges: ids that already exist are skipped, so importing the same file twice is safe. A lap whose clip is missing still imports, without a replay. The archive includes cached profiles for the exported laps' drivers. Settings and the owner stay on this device.
 
-- **Preview.** Every push to `main` replaces the `preview-latest` prerelease with `LapCraft-preview.apk` and `latest.json`. Preview builds check this channel.
-- **Stable.** A `v*` tag creates the latest release with `LapCraft-<tag>.apk` and `latest.json`. Tag builds check `releases/latest`.
+## Limitations
 
-The app checks once a day (or from Settings → Updates), compares `versionCode` with `latest.json`, and offers `Open releases`, which opens the release page in the browser. LapCraft never downloads or installs an APK, so it declares no install-packages permission and Play Protect has nothing to flag. Updating is the normal Android sideload: download the APK from the release page, tap it, and confirm. Checks are skipped when the app was installed by F-Droid or Play.
+- Wrong-lap detection is visual: a single anchor cannot prove which lap a clip contains. A clip shorter than the lap is blocked.
+- PS App clips are limited to under 3 minutes and 1080p or lower; long laps need USB or a broadcast MP4.
+- The replay must be recorded with enough lead-in that the trimmed start is inside the clip.
+- Car names resolve through the bundled catalogue, falling back to `Car #<code>`.
 
-Sideloading itself still shows Android's unknown-source prompt and a Play Protect scan of the APK. That is the browser and the system, not the app.
-
-Every release APK is signed with the project's release key, never the Android debug key. Verify a download with `apksigner verify --print-certs LapCraft.apk`; if the signer is `CN=Android Debug`, do not install it. The release certificate's SHA-256 fingerprint is `8e483b6f6d1f51c8cd6513db7bf20220e0b6159f299827c6aa49b2c7fca74c76` (DN `CN=LapCraft, O=jlai403, C=CA`), recorded in `AGENTS.md`.
-
-`versionCode` is `1000 + commit count`, so every commit sorts after the previous one.
-
-```bash
-# preview APK
-gh release download preview-latest -p LapCraft-preview.apk -D dist --clobber
-# stable APK
-gh release download latest -p 'LapCraft-*.apk' -D dist --clobber
-```
-
-## Build
+## Development
 
 Requires JDK 17+ and the Android SDK (compileSdk 36).
 
@@ -96,7 +100,7 @@ cd android
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-## Tests
+Tests:
 
 ```bash
 cd android
@@ -107,31 +111,14 @@ cd android
 - `:app` (JVM) holds the lap saver, replay copy, decode-failure text, telemetry notification text, settings, frame-ruler stepping, and Compose UI for Record, Library, lap player, and import sync.
 - Not covered by JVM tests: real `MediaExtractor`/`MediaMuxer` trim output, real GT7 packets, actual video decode. Those stay device checks.
 
-## Known gaps
+Further reading: [AGENTS.md](AGENTS.md) for conventions and the release process, [docs/specs/2026-11-10-lapcraft.md](docs/specs/2026-11-10-lapcraft.md) for the product and technical spec, [DESIGN.md](DESIGN.md) for the design system, [GLOSSARY.md](GLOSSARY.md) for terminology, and [tools/demo/README.md](tools/demo/README.md) for the demo video kit.
 
-- Wrong-lap detection is visual: a single anchor cannot prove which lap a clip contains. A clip shorter than the lap is blocked.
-- PS App clips are limited to under 3 minutes and ≤1080p; long laps need USB or a broadcast MP4.
-- The replay must be recorded with enough lead-in that the trimmed start is inside the clip.
-- Car names resolve through the bundled catalogue, falling back to `Car #<code>`.
-- Packet C extras: steering is parsed into `Sample.steering` (nullable); the live lap timer is not used.
-- The desktop/Rust core and cloud backup remain future work.
+## Contributing
 
-## Key decisions
+LapCraft is licensed under GPLv3. Contributions are accepted under the project's contributor CLA. See [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
-- Android only for now: Kotlin + Jetpack Compose.
-- Two modules: `:core` (plain Kotlin JVM) and `:app` (Android).
-- Telemetry-only capture; no MediaProjection, audio capture, Remote Play, or Chiaki.
-- One lap per record; video is optional and attached later.
-- One frame anchor at the lap end; GT7 lap time is the ruler.
-- Track name inferred from coordinates; manual rename overrides.
-- Local-first: no accounts, cloud, ads, or tracking. The optional profile lookup sends only the PSN ID to gt-gridstats.com (plus a Bearer API key you paste in Settings when you want DR/SR and car names); manual driver entry stays offline. Car names come from a bundled catalogue generated from GT GridStats. Optional event tags use the same key plus the public GT championship schedule.
-- License: GPLv3 + contributor CLA.
+## Acknowledgements
 
-## Updates
+## Acknowledgements
 
-Preview builds publish to the `preview-latest` GitHub release on every push to `main`; stable builds publish on `v*` tags. `UpdateManager` checks the matching `latest.json` on launch and opens the release page in the browser. There is no in-app installer.
-
-- **Preview**: GitHub source `https://github.com/jlai403/lapcraft`, include prereleases, APK filter `LapCraft-preview\.apk`. If Obtainium ever resolves the wrong asset, use a Direct APK Link to `https://github.com/jlai403/lapcraft/releases/download/preview-latest/LapCraft-preview.apk` instead.
-- **Stable**: Direct APK Link `https://github.com/jlai403/lapcraft/releases/latest/download/LapCraft.apk` (or the HTML source on `/releases/latest` with filter `LapCraft\.apk`).
-
-`obtainium://add/https://github.com/jlai403/lapcraft` adds the preview entry.
+GT GridStats provides the optional driver profile and car catalogue data. See `DriverProfileLinks` in the app for the project link.
