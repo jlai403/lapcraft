@@ -22,3 +22,6 @@ site/.wrangler/
 site/test-results/
 site/playwright-report/
 site/blob-report/
+
+# Seed lap export (private; contains driver PSN)
+tools/seed/

@@ -104,6 +104,12 @@ android {
         buildConfig = true
     }
 
+    androidResources {
+        // The seed-laps.zip asset stores already-compressed HEVC clips; do not
+        // deflate it a second time, and keep it streamable for fast extraction.
+        noCompress += "zip"
+    }
+
     testOptions {
         unitTests {
             isIncludeAndroidResources = true

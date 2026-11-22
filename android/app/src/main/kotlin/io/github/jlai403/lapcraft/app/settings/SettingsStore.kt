@@ -80,6 +80,10 @@ class SettingsStore(context: Context) {
         get() = prefs.getInt(KEY_TRACK_ID_VERSION, 0)
         set(value) = prefs.edit().putInt(KEY_TRACK_ID_VERSION, value).apply()
 
+    var seedVersion: Int
+        get() = prefs.getInt(KEY_SEED_VERSION, 0)
+        set(value) = prefs.edit().putInt(KEY_SEED_VERSION, value).apply()
+
     var eventTags: Boolean
         get() = prefs.getBoolean(KEY_EVENT_TAGS, false)
         set(value) = prefs.edit().putBoolean(KEY_EVENT_TAGS, value).apply()
@@ -105,6 +109,7 @@ class SettingsStore(context: Context) {
         const val KEY_PREVIEW_EMPTY = "preview_empty_library"
         const val KEY_DEVELOPER_TOOLS = "developer_tools"
         const val KEY_TRACK_ID_VERSION = "track_id_version"
+        const val KEY_SEED_VERSION = "seed_version"
     const val KEY_EVENT_TAGS = "event_tags"
     const val KEY_CURRENT_TYRE = "current_tyre"
     }
