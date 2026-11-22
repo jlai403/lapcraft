@@ -53,6 +53,7 @@ import io.github.jlai403.lapcraft.app.profile.countryFlagEmoji
 import io.github.jlai403.lapcraft.app.replay.LapReencoder
 import io.github.jlai403.lapcraft.app.replay.PlayStationApp
 import io.github.jlai403.lapcraft.app.replay.VideoTranscoder
+import io.github.jlai403.lapcraft.app.seed.SeedLaps
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
 import io.github.jlai403.lapcraft.app.share.LibraryTransfer
 import io.github.jlai403.lapcraft.app.track.TrackCatalog
@@ -146,6 +147,9 @@ fun LibraryScreen(
     }
 
     LaunchedEffect(reload) {
+        runCatching {
+            SeedLaps.importIfNeeded(context, store, settings, previewEmpty)
+        }
         laps = withContext(Dispatchers.IO) { store.summaries() }
         if (settings.trackIdentificationVersion < TrackNamer.VERSION) {
             runCatching { withContext(Dispatchers.IO) { namer.identifyUnknownLaps() } }

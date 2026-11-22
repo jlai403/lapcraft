@@ -314,6 +314,8 @@ class LibraryScreenTest {
 
     @Test
     fun `empty library explains where to capture`() {
+        // Suppress the bundled sample laps so the true empty state is reachable.
+        SettingsStore(context).seedVersion = Int.MAX_VALUE
         var record = 0
 
         compose.setContent {
