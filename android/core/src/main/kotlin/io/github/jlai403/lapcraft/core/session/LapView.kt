@@ -15,6 +15,8 @@ data class LapView(
     val driverPsnId: String? = null,
     val event: EventTag? = null,
     val tyre: TyreCompound? = null,
+    val tcs: Int? = null,
+    val brakeBalance: Int? = null,
 ) {
     /**
      * Real elapsed milliseconds of the lap, from its boundary ticks. GT7 reports [lapTimeMs] in
@@ -49,4 +51,6 @@ fun LapRecord.toLapView(): LapView = LapView(
     driverPsnId = driverPsnId,
     event = event,
     tyre = tyre,
+    tcs = tcs,
+    brakeBalance = brakeBalance,
 )

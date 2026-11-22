@@ -50,6 +50,9 @@ fun App(
     var screen by remember { mutableStateOf<Screen>(Screen.Library) }
     val context = LocalContext.current
     val settings = remember(context) { SettingsStore(context) }
+    var currentTyre by remember { mutableStateOf(settings.currentTyre) }
+    var currentTcs by remember { mutableStateOf(settings.currentTcs) }
+    var currentBrakeBalance by remember { mutableStateOf(settings.currentBrakeBalance) }
     val activeTab = when (screen) {
         Screen.Library -> 0
         Screen.Record -> 1
@@ -140,8 +143,21 @@ fun App(
                         Screen.Record -> RecordScreen(
                             state = capture,
                             imperial = settings.imperialUnits,
-                            tyre = settings.currentTyre,
-                            onTyreChange = { settings.currentTyre = it },
+                            tyre = currentTyre,
+                            onTyreChange = {
+                                currentTyre = it
+                                settings.currentTyre = it
+                            },
+                            tcs = currentTcs,
+                            onTcsChange = {
+                                currentTcs = it
+                                settings.currentTcs = it
+                            },
+                            brakeBalance = currentBrakeBalance,
+                            onBrakeBalanceChange = {
+                                currentBrakeBalance = it
+                                settings.currentBrakeBalance = it
+                            },
                             onConnect = onConnect,
                             onDisconnect = onDisconnect,
                             onCapture = onCapture,

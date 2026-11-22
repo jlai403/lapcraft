@@ -4,8 +4,10 @@ import io.github.jlai403.lapcraft.core.capture.LapSink
 import io.github.jlai403.lapcraft.core.lap.LapBoundary
 import io.github.jlai403.lapcraft.core.model.Sample
 import io.github.jlai403.lapcraft.core.session.LapId
+import io.github.jlai403.lapcraft.core.session.BRAKE_BALANCE_LEVELS
 import io.github.jlai403.lapcraft.core.session.LapRecord
 import io.github.jlai403.lapcraft.core.session.LapStore
+import io.github.jlai403.lapcraft.core.session.TCS_LEVELS
 import io.github.jlai403.lapcraft.core.lap.LapTimeSource
 import io.github.jlai403.lapcraft.core.track.TrackMatch
 import java.io.File
@@ -22,6 +24,8 @@ class LapSaver(
     private val carName: (Int) -> String? = { null },
     private val eventTag: (Int, String, Long, Int) -> io.github.jlai403.lapcraft.core.events.EventTag? = { _, _, _, _ -> null },
     private val tyre: () -> io.github.jlai403.lapcraft.core.tire.TyreCompound? = { null },
+    private val tcs: () -> Int? = { null },
+    private val brakeBalance: () -> Int? = { null },
 ) : LapSink {
     override fun save(boundary: LapBoundary, samples: List<Sample>): String {
         val store = LapStore(sessionsDir, carName = carName)
@@ -47,6 +51,8 @@ class LapSaver(
                 eventTag(carCode, resolvedTrack, now.toEpochMilli(), boundary.lapTimeMs)
             }.getOrNull(),
             tyre = tyre(),
+            tcs = tcs()?.coerceIn(TCS_LEVELS),
+            brakeBalance = brakeBalance()?.coerceIn(BRAKE_BALANCE_LEVELS),
         )
         store.save(LapId(id), record)
         val stored = samples.filter {

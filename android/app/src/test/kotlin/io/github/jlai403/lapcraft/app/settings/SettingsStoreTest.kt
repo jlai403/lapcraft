@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -65,5 +66,27 @@ class SettingsStoreTest {
         store.chartWindowSeconds = 10
 
         assertEquals(10, SettingsStore(context).chartWindowSeconds)
+    }
+
+    @Test
+    fun `lap setup defaults to unset and keeps zero as a value`() {
+        val store = SettingsStore(context)
+        store.currentTcs = null
+        store.currentBrakeBalance = null
+        assertNull(store.currentTcs)
+        assertNull(store.currentBrakeBalance)
+
+        store.currentTcs = 0
+        store.currentBrakeBalance = 0
+        assertEquals(0, store.currentTcs)
+        assertEquals(0, store.currentBrakeBalance)
+
+        store.currentTcs = 4
+        store.currentBrakeBalance = -2
+        assertEquals(4, store.currentTcs)
+        assertEquals(-2, store.currentBrakeBalance)
+
+        store.currentTcs = null
+        assertNull(store.currentTcs)
     }
 }

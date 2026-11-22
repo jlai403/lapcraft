@@ -156,6 +156,8 @@ class TelemetryService : Service() {
                             carName = CarCatalog(this)::name,
                             eventTag = EventTagger(this)::tag,
                             tyre = { settings.currentTyre },
+                            tcs = { settings.currentTcs },
+                            brakeBalance = { settings.currentBrakeBalance },
                         ),
                     )
                     serviceScope.launch {

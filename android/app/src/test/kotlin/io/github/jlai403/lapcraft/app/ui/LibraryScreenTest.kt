@@ -12,6 +12,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
@@ -24,6 +25,7 @@ import io.github.jlai403.lapcraft.core.session.LapStore
 import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
+import io.github.jlai403.lapcraft.core.tire.TyreCompound
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -376,6 +378,41 @@ class LibraryScreenTest {
             compose.onAllNodesWithTag("edit-lap-title").fetchSemanticsNodes().isNotEmpty()
         }
         assertEquals(0, opened)
+    }
+
+    @Test
+    fun `the library edit sheet saves the lap setup`() {
+        SessionFixtures.install(context, SessionFixtures.session(lapTimesMs = listOf(90_000)))
+
+        compose.setContent {
+            LapCraftTheme { LibraryScreen(onOpenLap = { _ -> }) }
+        }
+
+        compose.waitUntil(TIMEOUT) {
+            compose.onAllNodesWithText("1:30.000").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithTag("lap-card").performTouchInput { swipeRight() }
+        compose.waitUntil(TIMEOUT) {
+            compose.onAllNodesWithTag("edit-lap-title").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        compose.onNodeWithTag("edit-tyre-change").performScrollTo().performClick()
+        compose.onNodeWithText("Racing soft").performClick()
+
+        compose.onNodeWithTag("edit-tcs-change").performScrollTo().performClick()
+        compose.onNodeWithTag("setup-pick-3").performClick()
+
+        compose.onNodeWithTag("edit-brake-balance-change").performScrollTo().performClick()
+        compose.onNodeWithTag("setup-pick--2").performClick()
+
+        compose.waitUntil(TIMEOUT) {
+            val loaded = LapStore(context.filesDir).load(LapId("session-1"))
+            loaded?.tyre != null && loaded.tcs == 3 && loaded.brakeBalance == -2
+        }
+        val record = LapStore(context.filesDir).load(LapId("session-1"))!!
+        assertEquals(TyreCompound.RACING_SOFT, record.tyre)
+        assertEquals(3, record.tcs)
+        assertEquals(-2, record.brakeBalance)
     }
 
     @Test

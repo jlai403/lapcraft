@@ -14,6 +14,7 @@ import androidx.test.core.app.ApplicationProvider
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
 import io.github.jlai403.lapcraft.core.clip.TrackProgress
 import io.github.jlai403.lapcraft.core.session.LapId
+import io.github.jlai403.lapcraft.core.tire.TyreCompound
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
@@ -220,6 +221,40 @@ class LapCompareScreenTest {
         assertEquals(9_000_000L, displayedFrameUs(true, null, 9_000_000L, 5_000L))
         assertEquals(3_000_000L, displayedFrameUs(true, 3_000L, 9_000_000L, 5_000L))
         assertEquals(5_000_000L, displayedFrameUs(false, null, -1L, 5_000L))
+    }
+
+    @Test
+    fun `each lap's setup sits beside its tyre in the speed row`() {
+        SessionFixtures.install(
+            context,
+            SessionFixtures.session(
+                id = "primary",
+                lapTimesMs = listOf(90_000),
+                tyre = TyreCompound.RACING_SOFT,
+                tcs = 2,
+                brakeBalance = 1,
+            ),
+        )
+        SessionFixtures.install(
+            context,
+            SessionFixtures.session(
+                id = "reference",
+                lapTimesMs = listOf(92_000),
+                tyre = TyreCompound.RACING_MEDIUM,
+                tcs = 1,
+                brakeBalance = 0,
+            ),
+        )
+        setCompareScreen()
+
+        waitForPanes()
+        compose.onNodeWithTag("compare-tab-telemetry").performClick()
+        compose.waitUntil(TIMEOUT) {
+            compose.onAllNodesWithText("\u00b15 s").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        assertEquals(1, compose.onAllNodesWithText("TCS 2 · BB +1").fetchSemanticsNodes().size)
+        assertEquals(1, compose.onAllNodesWithText("TCS 1 · BB 0").fetchSemanticsNodes().size)
     }
 
     private companion object {

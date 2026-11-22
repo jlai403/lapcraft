@@ -8,6 +8,7 @@ import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LapRecord
 import io.github.jlai403.lapcraft.core.session.LapStore
 import io.github.jlai403.lapcraft.core.session.LapTelemetryCodec
+import io.github.jlai403.lapcraft.core.tire.TyreCompound
 import java.io.File
 import java.time.Instant
 
@@ -25,6 +26,9 @@ object SessionFixtures {
         val pendingSource: Boolean = false,
         val driverPsnId: String? = null,
         val event: EventTag? = null,
+        val tyre: TyreCompound? = null,
+        val tcs: Int? = null,
+        val brakeBalance: Int? = null,
     )
 
     // Backwards-compatible alias for tests that call SessionFixtures.session(...)
@@ -40,6 +44,9 @@ object SessionFixtures {
         pendingSource: Boolean = false,
         driverPsnId: String? = null,
         event: EventTag? = null,
+        tyre: TyreCompound? = null,
+        tcs: Int? = null,
+        brakeBalance: Int? = null,
     ): SessionSpec = SessionSpec(
         id = id,
         trackLabel = trackLabel,
@@ -52,6 +59,9 @@ object SessionFixtures {
         pendingSource = pendingSource,
         driverPsnId = driverPsnId,
         event = event,
+        tyre = tyre,
+        tcs = tcs,
+        brakeBalance = brakeBalance,
     )
 
     fun install(context: Context, metadata: SessionSpec) {
@@ -73,6 +83,9 @@ object SessionFixtures {
                 endTickNanos = endNanos,
                 leadInMs = 2_000,
                 driverPsnId = metadata.driverPsnId,
+                tyre = metadata.tyre,
+                tcs = metadata.tcs,
+                brakeBalance = metadata.brakeBalance,
             )
             store.save(lapId, record)
             store.writeSamples(lapId, samplesFor(startNanos, endNanos, lapTime))

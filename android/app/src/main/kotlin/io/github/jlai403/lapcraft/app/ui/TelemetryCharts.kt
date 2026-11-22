@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import io.github.jlai403.lapcraft.core.clip.TrackProgress
 import io.github.jlai403.lapcraft.core.model.Sample
 import io.github.jlai403.lapcraft.core.session.LapView
+import io.github.jlai403.lapcraft.core.session.setupLabel
 import io.github.jlai403.lapcraft.core.tire.TyreCompound
 import kotlin.math.PI
 import kotlin.math.abs
@@ -117,7 +118,13 @@ internal fun ChartColumn(
         (window + referenceWindow).maxOf { it.gear }.coerceAtLeast(1)
     }
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        SpeedGearRow(primary = current, imperial = imperial)
+        SpeedGearRow(
+            primary = current,
+            imperial = imperial,
+            primaryTyre = lap.tyre,
+            primaryTcs = lap.tcs,
+            primaryBrakeBalance = lap.brakeBalance,
+        )
         current?.let { sample ->
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -585,6 +592,10 @@ internal fun SpeedGearRow(
     imperial: Boolean = false,
     primaryTyre: TyreCompound? = null,
     referenceTyre: TyreCompound? = null,
+    primaryTcs: Int? = null,
+    primaryBrakeBalance: Int? = null,
+    referenceTcs: Int? = null,
+    referenceBrakeBalance: Int? = null,
     modifier: Modifier = Modifier,
 ) {
     if (primary == null) return
@@ -599,6 +610,13 @@ internal fun SpeedGearRow(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             primaryTyre?.let { TyreBadge(compound = it, size = 14.dp) }
+            setupLabel(primaryTcs, primaryBrakeBalance)?.let {
+                Text(
+                    it,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             Text(
                 "Speed",
                 style = MaterialTheme.typography.labelSmall,
@@ -616,6 +634,13 @@ internal fun SpeedGearRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 referenceTyre?.let { TyreBadge(compound = it, size = 14.dp) }
+                setupLabel(referenceTcs, referenceBrakeBalance)?.let {
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
                 NumericText(
                     text = speedText(reference.speedMps, imperial),
                     style = MaterialTheme.typography.labelSmall,
@@ -770,6 +795,10 @@ internal fun CompareCharts(
             imperial = imperial,
             primaryTyre = lap.tyre,
             referenceTyre = reference?.lap?.tyre,
+            primaryTcs = lap.tcs,
+            primaryBrakeBalance = lap.brakeBalance,
+            referenceTcs = reference?.lap?.tcs,
+            referenceBrakeBalance = reference?.lap?.brakeBalance,
         )
         Column(
             modifier = Modifier.weight(1f),

@@ -35,10 +35,10 @@ fun TyreBadge(
             .size(size)
             .clip(CircleShape)
             .background(background)
+            .testTag("tyre-badge")
             .clearAndSetSemantics {
-                contentDescription = "${compound.name} tyres"
-            }
-            .testTag("tyre-badge"),
+                contentDescription = "${compound.label} tyres"
+            },
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -99,7 +99,7 @@ fun TyrePickerDialog(
                         ) {
                             TyreBadge(compound = compound, size = 18.dp)
                             androidx.compose.material3.Text(
-                                compound.name,
+                                compound.label,
                                 style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier.weight(1f),
                             )

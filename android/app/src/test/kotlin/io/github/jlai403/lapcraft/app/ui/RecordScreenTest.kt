@@ -1,10 +1,14 @@
 package io.github.jlai403.lapcraft.app.ui
 
 import android.app.Application
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -211,6 +215,49 @@ class RecordScreenTest {
         compose.onNodeWithText("On track").assertExists()
         compose.onNodeWithText("Gear 4 · throttle 78% · brake 0% · 7,000 rpm").assertExists()
         compose.onNodeWithText("Lap 2 complete · 1:30.456").assertExists()
+    }
+
+    @Test
+    fun `the stream card shows and changes the lap setup`() {
+        var tcs by mutableStateOf<Int?>(2)
+        var balance by mutableStateOf<Int?>(-1)
+        compose.setContent {
+            LapCraftTheme {
+                RecordScreen(
+                    state = CaptureUiState(
+                        ps5Ip = "192.168.1.50",
+                        telemetryRunning = true,
+                        connected = true,
+                        packetsPerSecond = 59.8,
+                    ),
+                    onConnect = {},
+                    onDisconnect = {},
+                    onCapture = {},
+                    onCancelCapture = {},
+                    onOpenLap = {},
+                    tcs = tcs,
+                    onTcsChange = { tcs = it },
+                    brakeBalance = balance,
+                    onBrakeBalanceChange = { balance = it },
+                )
+            }
+        }
+        compose.waitUntil(TIMEOUT) {
+            compose.onAllNodesWithText("STREAM").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        compose.onNodeWithText("Traction control").performScrollTo().assertExists()
+        compose.onNodeWithText("Brake balance").performScrollTo().assertExists()
+
+        compose.onNodeWithTag("record-tcs-change").performScrollTo().performClick()
+        compose.onNodeWithTag("setup-pick-4").performClick()
+        assertEquals(4, tcs)
+        compose.onNodeWithText("4").performScrollTo().assertExists()
+
+        compose.onNodeWithTag("record-brake-balance-change").performScrollTo().performClick()
+        compose.onNodeWithTag("setup-pick--3").performClick()
+        assertEquals(-3, balance)
+        compose.onNodeWithText("-3").performScrollTo().assertExists()
     }
 
     private companion object {

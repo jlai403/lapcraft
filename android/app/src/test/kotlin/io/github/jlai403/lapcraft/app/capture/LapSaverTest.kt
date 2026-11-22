@@ -63,6 +63,22 @@ class LapSaverTest {
     }
 
     @Test
+    fun `stamps the current lap setup`() {
+        val root = Files.createTempDirectory("laps").toFile()
+        val saver = LapSaver(
+            root,
+            idFactory = { "lap-test" },
+            tcs = { 2 },
+            brakeBalance = { -1 },
+        )
+        val id = saver.save(boundary(startMs = 0, endMs = 120_000), listOf(sample(0)))
+
+        val record = LapStore(root).load(LapId(id))!!
+        assertEquals(2, record.tcs)
+        assertEquals(-1, record.brakeBalance)
+    }
+
+    @Test
     fun `records the default driver on the lap`() {
         val root = Files.createTempDirectory("laps").toFile()
         val saver = LapSaver(

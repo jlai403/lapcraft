@@ -83,7 +83,9 @@ import io.github.jlai403.lapcraft.core.session.LapRecord
 import io.github.jlai403.lapcraft.core.session.toLapView
 import io.github.jlai403.lapcraft.core.session.lapClock
 import io.github.jlai403.lapcraft.core.session.LapStore
+import io.github.jlai403.lapcraft.core.session.brakeBalanceLabel
 import io.github.jlai403.lapcraft.core.session.compareCandidates
+import io.github.jlai403.lapcraft.core.session.tcsLabel
 import io.github.jlai403.lapcraft.app.catalog.CarCatalog
 import io.github.jlai403.lapcraft.app.catalog.lapStore
 import io.github.jlai403.lapcraft.core.session.trackKey
@@ -510,7 +512,14 @@ fun LapPlayerScreen(
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 Text(
-                    listOfNotNull(subtitle, CarCatalog(context).name(session?.carCode ?: 0) ?: session?.carName, session?.event?.label, lap?.tyre?.label).joinToString(" · "),
+                    listOfNotNull(
+                        subtitle,
+                        CarCatalog(context).name(session?.carCode ?: 0) ?: session?.carName,
+                        session?.event?.label,
+                        lap?.tyre?.label,
+                        tcsLabel(lap?.tcs),
+                        brakeBalanceLabel(lap?.brakeBalance),
+                    ).joinToString(" · "),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -816,6 +825,24 @@ fun LapPlayerScreen(
                     scope.launch {
                         withContext(Dispatchers.IO) {
                             runCatching { store.setTyre(lapId, compound) }
+                        }
+                        sessionReload++
+                    }
+                },
+                tcs = sheetLap.tcs,
+                onAssignTcs = { level ->
+                    scope.launch {
+                        withContext(Dispatchers.IO) {
+                            runCatching { store.setTcs(lapId, level) }
+                        }
+                        sessionReload++
+                    }
+                },
+                brakeBalance = sheetLap.brakeBalance,
+                onAssignBrakeBalance = { level ->
+                    scope.launch {
+                        withContext(Dispatchers.IO) {
+                            runCatching { store.setBrakeBalance(lapId, level) }
                         }
                         sessionReload++
                     }
