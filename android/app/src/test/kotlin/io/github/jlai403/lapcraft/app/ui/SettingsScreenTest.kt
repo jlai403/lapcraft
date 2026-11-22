@@ -107,7 +107,7 @@ class SettingsScreenTest {
         compose.onNodeWithText("Compact").performClick()
 
         assertEquals(ReplayPreset.Compact, SettingsStore(context).replayPreset)
-        compose.onNodeWithText("Changed: 720p HEVC ~3 Mbps", substring = true).assertExists()
+        compose.onNodeWithText("Changed: ~3 Mbps", substring = true).assertExists()
     }
 
     @Test

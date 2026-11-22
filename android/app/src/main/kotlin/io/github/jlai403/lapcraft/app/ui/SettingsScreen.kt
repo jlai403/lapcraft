@@ -172,7 +172,7 @@ fun SettingsScreen(
             SettingRow(
                 label = "PS5 address",
                 supporting = ipStatus,
-                value = ps5Ip.ifBlank { "Not set" },
+                value = (Ipv4.normalize(ps5Ip) ?: ps5Ip).ifBlank { "Not set" },
                 modifier = Modifier.testTag("settings-ps5-edit"),
                 onClick = { ipDialog = true },
                 trailing = { ChevronDown() },
@@ -368,7 +368,17 @@ fun SettingsScreen(
                 }) { Text("Save IP") }
             },
             dismissButton = {
-                TextButton(onClick = { ipDialog = false }) { Text("Cancel") }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (ps5Ip.isNotBlank()) {
+                        TextButton(onClick = {
+                            ps5Ip = ""
+                            settings.clearPs5Ip()
+                            ipStatus = "Console address cleared"
+                            ipDialog = false
+                        }) { Text("Clear") }
+                    }
+                    TextButton(onClick = { ipDialog = false }) { Text("Cancel") }
+                }
             },
         )
     }

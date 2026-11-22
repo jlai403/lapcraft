@@ -17,6 +17,10 @@ class SettingsStore(context: Context) {
         return true
     }
 
+    fun clearPs5Ip() {
+        ps5Ip = ""
+    }
+
     var imperialUnits: Boolean
         get() = prefs.getBoolean(KEY_IMPERIAL, false)
         set(value) = prefs.edit().putBoolean(KEY_IMPERIAL, value).apply()
