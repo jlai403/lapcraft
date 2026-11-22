@@ -18,7 +18,7 @@ import org.robolectric.annotation.Config
 import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34])
+@Config(sdk = [35])
 class TrackNamerTest {
     @Test
     fun `backfills an unknown legacy lap`() {
