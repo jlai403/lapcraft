@@ -207,3 +207,13 @@ _Avoid_: rank, grade
 **Tyre compound**:
 The compound of the tyres on the car for a lap, recorded as a two-letter GT7 code (CH, RM, CS, ...) with a hardness tier (hard, medium, soft) that drives the badge colour. GT7's telemetry does not carry it, so it is always entered by the driver, either as the current tyres in Record or per lap in Edit lap.
 _Avoid_: tire type, rubber
+
+## Lap setup
+
+**Traction control (TCS)**:
+The GT7 traction control level for a lap, 0 (off) to 5. GT7's telemetry carries only whether TCS is intervening, never the setting, so the driver enters it in Record or per lap in Edit lap.
+_Avoid_: assist level, TCS active
+
+**Brake balance**:
+The car's brake balance setting for a lap, -5 to +5 as shown in GT7. It is not in the telemetry, so the driver enters it like the tyre compound.
+_Avoid_: brake bias

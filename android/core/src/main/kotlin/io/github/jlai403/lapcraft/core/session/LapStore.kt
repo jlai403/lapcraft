@@ -89,6 +89,20 @@ open class LapStore(
         return updated
     }
 
+    fun setTcs(id: LapId, tcs: Int?): LapRecord? {
+        val record = load(id) ?: return null
+        val updated = record.copy(tcs = tcs?.coerceIn(TCS_LEVELS))
+        save(id, updated)
+        return updated
+    }
+
+    fun setBrakeBalance(id: LapId, brakeBalance: Int?): LapRecord? {
+        val record = load(id) ?: return null
+        val updated = record.copy(brakeBalance = brakeBalance?.coerceIn(BRAKE_BALANCE_LEVELS))
+        save(id, updated)
+        return updated
+    }
+
     fun attachClip(id: LapId, leadInMs: Int): LapRecord? {
         val record = load(id) ?: return null
         val updated = record.copy(leadInMs = leadInMs)
@@ -136,6 +150,8 @@ open class LapStore(
                 driverPsnId = record.driverPsnId,
                 event = record.event,
                 tyre = record.tyre,
+                tcs = record.tcs,
+                brakeBalance = record.brakeBalance,
                 videoBytes = replayFile?.length() ?: 0,
                 telemetryBytes = telemetryFile?.length() ?: 0,
                 pendingBytes = pendingFile?.length() ?: 0,

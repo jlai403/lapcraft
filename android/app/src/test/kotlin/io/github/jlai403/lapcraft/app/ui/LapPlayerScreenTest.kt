@@ -21,6 +21,7 @@ import io.github.jlai403.lapcraft.core.profile.DriverProfile
 import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
+import io.github.jlai403.lapcraft.core.tire.TyreCompound
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -466,6 +467,57 @@ class LapPlayerScreenTest {
         compose.onNodeWithText("Compare with").assertExists()
         compose.onNodeWithText("1:31.000").assertExists()
         compose.onNodeWithText("1:32.000").assertDoesNotExist()
+    }
+
+    @Test
+    fun `a tagged lap shows its tyre and setup beside the speed row`() {
+        SessionFixtures.install(
+            context,
+            SessionFixtures.session(
+                lapTimesMs = listOf(90_000),
+                withReplay = false,
+                tyre = TyreCompound.RACING_SOFT,
+                tcs = 2,
+                brakeBalance = 1,
+            ),
+        )
+
+        compose.setContent {
+            LapCraftTheme {
+                LapPlayerScreen(
+                    lapId = LapId("session-1"),
+                    onBack = {},
+                    onImportSync = {},
+                )
+            }
+        }
+
+        compose.waitUntil(TIMEOUT) {
+            compose.onAllNodesWithText("Speed").fetchSemanticsNodes().isNotEmpty()
+        }
+        assertEquals(2, compose.onAllNodesWithTag("tyre-badge", useUnmergedTree = true).fetchSemanticsNodes().size)
+        assertEquals(1, compose.onAllNodesWithText("TCS 2 · BB +1").fetchSemanticsNodes().size)
+    }
+
+    @Test
+    fun `an untagged lap shows no tyre badge`() {
+        SessionFixtures.install(context, SessionFixtures.session(lapTimesMs = listOf(90_000), withReplay = false))
+
+        compose.setContent {
+            LapCraftTheme {
+                LapPlayerScreen(
+                    lapId = LapId("session-1"),
+                    onBack = {},
+                    onImportSync = {},
+                )
+            }
+        }
+
+        compose.waitUntil(TIMEOUT) {
+            compose.onAllNodesWithText("Speed").fetchSemanticsNodes().isNotEmpty()
+        }
+        assertEquals(0, compose.onAllNodesWithTag("tyre-badge", useUnmergedTree = true).fetchSemanticsNodes().size)
+        assertEquals(0, compose.onAllNodesWithText("TCS off").fetchSemanticsNodes().size)
     }
 
     private companion object {

@@ -33,7 +33,9 @@ import io.github.jlai403.lapcraft.app.Diagnostics
 import io.github.jlai403.lapcraft.app.catalog.CarCatalog
 import io.github.jlai403.lapcraft.core.capture.CaptureState
 import io.github.jlai403.lapcraft.core.network.Ipv4
+import io.github.jlai403.lapcraft.core.session.BRAKE_BALANCE_LEVELS
 import io.github.jlai403.lapcraft.core.session.LapId
+import io.github.jlai403.lapcraft.core.session.TCS_LEVELS
 import io.github.jlai403.lapcraft.core.telemetry.TelemetryHealth
 
 @Composable
@@ -48,11 +50,17 @@ fun RecordScreen(
     onOpenSettings: () -> Unit = {},
     tyre: io.github.jlai403.lapcraft.core.tire.TyreCompound? = null,
     onTyreChange: (io.github.jlai403.lapcraft.core.tire.TyreCompound?) -> Unit = {},
+    tcs: Int? = null,
+    onTcsChange: (Int?) -> Unit = {},
+    brakeBalance: Int? = null,
+    onBrakeBalanceChange: (Int?) -> Unit = {},
 ) {
     var starting by remember { mutableStateOf(false) }
     val hasAddress = Ipv4.normalize(state.ps5Ip) != null
     val capturing = state.capture is CaptureState.Capturing
     var tyrePickerOpen by remember { mutableStateOf(false) }
+    var tcsPickerOpen by remember { mutableStateOf(false) }
+    var brakeBalancePickerOpen by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.telemetryRunning, state.telemetryError) {
         if (state.telemetryRunning || state.telemetryError != null) starting = false
@@ -86,6 +94,10 @@ fun RecordScreen(
             imperial = imperial,
             tyre = tyre,
             onChangeTyre = { tyrePickerOpen = true },
+            tcs = tcs,
+            onChangeTcs = { tcsPickerOpen = true },
+            brakeBalance = brakeBalance,
+            onChangeBrakeBalance = { brakeBalancePickerOpen = true },
             onConnect = {
                 starting = true
                 onConnect()
@@ -109,6 +121,42 @@ fun RecordScreen(
             )
         }
 
+        if (tcsPickerOpen) {
+            SetupPickerDialog(
+                title = "Traction control",
+                levels = TCS_LEVELS,
+                selected = tcs,
+                label = { if (it == 0) "Off" else it.toString() },
+                onPick = {
+                    onTcsChange(it)
+                    tcsPickerOpen = false
+                },
+                onClear = {
+                    onTcsChange(null)
+                    tcsPickerOpen = false
+                },
+                onDismiss = { tcsPickerOpen = false },
+            )
+        }
+
+        if (brakeBalancePickerOpen) {
+            SetupPickerDialog(
+                title = "Brake balance",
+                levels = BRAKE_BALANCE_LEVELS,
+                selected = brakeBalance,
+                label = { if (it > 0) "+$it" else it.toString() },
+                onPick = {
+                    onBrakeBalanceChange(it)
+                    brakeBalancePickerOpen = false
+                },
+                onClear = {
+                    onBrakeBalanceChange(null)
+                    brakeBalancePickerOpen = false
+                },
+                onDismiss = { brakeBalancePickerOpen = false },
+            )
+        }
+
         CaptureCard(
             state = state,
             onCapture = onCapture,
@@ -128,6 +176,10 @@ private fun StreamCard(
     imperial: Boolean,
     tyre: io.github.jlai403.lapcraft.core.tire.TyreCompound?,
     onChangeTyre: () -> Unit,
+    tcs: Int?,
+    onChangeTcs: () -> Unit,
+    brakeBalance: Int?,
+    onChangeBrakeBalance: () -> Unit,
     onConnect: () -> Unit,
     onDisconnect: () -> Unit,
     onOpenSettings: () -> Unit,
@@ -228,6 +280,22 @@ private fun StreamCard(
             Spacer(Modifier.weight(1f))
             GhostPill(text = "Change", onClick = onChangeTyre)
         }
+
+        SetupRow(
+            label = "Traction control",
+            value = tcsRowValue(tcs),
+            unset = tcs == null,
+            onChange = onChangeTcs,
+            changeTag = "record-tcs-change",
+        )
+
+        SetupRow(
+            label = "Brake balance",
+            value = brakeBalanceRowValue(brakeBalance),
+            unset = brakeBalance == null,
+            onChange = onChangeBrakeBalance,
+            changeTag = "record-brake-balance-change",
+        )
 
         val hint = when {
             !state.telemetryRunning && !hasAddress ->

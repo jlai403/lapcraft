@@ -1,5 +1,6 @@
 package io.github.jlai403.lapcraft.core.session
 
+import io.github.jlai403.lapcraft.core.tire.TyreCompound
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -29,5 +30,21 @@ class LapViewTest {
     fun `implausible ticks fall back to the reported lap time`() {
         assertEquals(90_000, lap(lapTimeMs = 90_000, spanMs = 5_000).lapSpanMs)
         assertEquals(90_000, lap(lapTimeMs = 90_000, spanMs = 600_000).lapSpanMs)
+    }
+
+    @Test
+    fun `setup metadata projects into the lap view`() {
+        val record = LapRecord(
+            capturedAt = "2026-11-22T10:00:00Z",
+            lapTimeMs = 90_000,
+            tyre = TyreCompound.RACING_SOFT,
+            tcs = 2,
+            brakeBalance = -1,
+        )
+
+        val view = record.toLapView()
+        assertEquals(TyreCompound.RACING_SOFT, view.tyre)
+        assertEquals(2, view.tcs)
+        assertEquals(-1, view.brakeBalance)
     }
 }

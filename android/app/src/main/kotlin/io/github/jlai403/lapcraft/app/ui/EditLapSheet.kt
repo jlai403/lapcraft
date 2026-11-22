@@ -56,7 +56,10 @@ import io.github.jlai403.lapcraft.core.events.eventRangeLabel
 import io.github.jlai403.lapcraft.core.events.toTag
 import io.github.jlai403.lapcraft.core.events.weekStartLabel
 import io.github.jlai403.lapcraft.core.profile.DriverProfile
+import io.github.jlai403.lapcraft.core.session.BRAKE_BALANCE_LEVELS
 import io.github.jlai403.lapcraft.core.session.LapSummary
+import io.github.jlai403.lapcraft.core.session.TCS_LEVELS
+import io.github.jlai403.lapcraft.core.tire.TyreCompound
 import io.github.jlai403.lapcraft.core.track.TrackCandidate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -84,6 +87,10 @@ internal fun EditLapSheet(
     onAssignEvent: (EventTag?) -> Unit = {},
     tyre: io.github.jlai403.lapcraft.core.tire.TyreCompound? = null,
     onAssignTyre: (io.github.jlai403.lapcraft.core.tire.TyreCompound?) -> Unit = {},
+    tcs: Int? = null,
+    onAssignTcs: (Int?) -> Unit = {},
+    brakeBalance: Int? = null,
+    onAssignBrakeBalance: (Int?) -> Unit = {},
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -108,6 +115,26 @@ internal fun EditLapSheet(
     var suggestionsOpen by remember { mutableStateOf(false) }
     var refreshingEvents by remember { mutableStateOf(false) }
     var tyrePickerOpen by remember { mutableStateOf(false) }
+    var localTyre by remember(tyre) { mutableStateOf(tyre) }
+    var tcsPickerOpen by remember { mutableStateOf(false) }
+    var localTcs by remember(tcs) { mutableStateOf(tcs) }
+    var brakeBalancePickerOpen by remember { mutableStateOf(false) }
+    var localBrakeBalance by remember(brakeBalance) { mutableStateOf(brakeBalance) }
+
+    fun assignTyre(compound: TyreCompound?) {
+        localTyre = compound
+        onAssignTyre(compound)
+    }
+
+    fun assignTcs(level: Int?) {
+        localTcs = level
+        onAssignTcs(level)
+    }
+
+    fun assignBrakeBalance(level: Int?) {
+        localBrakeBalance = level
+        onAssignBrakeBalance(level)
+    }
 
     val selectedDriver = localProfiles.firstOrNull { it.psnId.equals(driverPsnId, true) }
         ?: driver?.takeIf { it.psnId.equals(driverPsnId, true) }
@@ -419,15 +446,16 @@ internal fun EditLapSheet(
             EditRow(
                 label = "Tyres",
                 value = {
+                    val compound = localTyre
                     Text(
-                        if (tyre == null) "Not set" else tyre.label,
+                        if (compound == null) "Not set" else compound.label,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = if (tyre == null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                        color = if (compound == null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
                     )
                 },
                 actions = {
                     GhostPill(
-                        text = if (tyre == null) "Set" else "Change",
+                        text = if (localTyre == null) "Set" else "Change",
                         onClick = { tyrePickerOpen = true },
                         modifier = Modifier.testTag("edit-tyre-change"),
                     )
@@ -436,16 +464,88 @@ internal fun EditLapSheet(
 
             if (tyrePickerOpen) {
                 TyrePickerDialog(
-                    selected = tyre,
+                    selected = localTyre,
                     onPick = {
-                        onAssignTyre(it)
+                        assignTyre(it)
                         tyrePickerOpen = false
                     },
                     onClear = {
-                        onAssignTyre(null)
+                        assignTyre(null)
                         tyrePickerOpen = false
                     },
                     onDismiss = { tyrePickerOpen = false },
+                )
+            }
+
+            EditRow(
+                label = "Traction control",
+                value = {
+                    Text(
+                        tcsRowValue(localTcs),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (localTcs == null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                    )
+                },
+                actions = {
+                    GhostPill(
+                        text = if (localTcs == null) "Set" else "Change",
+                        onClick = { tcsPickerOpen = true },
+                        modifier = Modifier.testTag("edit-tcs-change"),
+                    )
+                },
+            )
+
+            if (tcsPickerOpen) {
+                SetupPickerDialog(
+                    title = "Traction control",
+                    levels = TCS_LEVELS,
+                    selected = localTcs,
+                    label = { if (it == 0) "Off" else it.toString() },
+                    onPick = {
+                        assignTcs(it)
+                        tcsPickerOpen = false
+                    },
+                    onClear = {
+                        assignTcs(null)
+                        tcsPickerOpen = false
+                    },
+                    onDismiss = { tcsPickerOpen = false },
+                )
+            }
+
+            EditRow(
+                label = "Brake balance",
+                value = {
+                    Text(
+                        brakeBalanceRowValue(localBrakeBalance),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (localBrakeBalance == null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                    )
+                },
+                actions = {
+                    GhostPill(
+                        text = if (localBrakeBalance == null) "Set" else "Change",
+                        onClick = { brakeBalancePickerOpen = true },
+                        modifier = Modifier.testTag("edit-brake-balance-change"),
+                    )
+                },
+            )
+
+            if (brakeBalancePickerOpen) {
+                SetupPickerDialog(
+                    title = "Brake balance",
+                    levels = BRAKE_BALANCE_LEVELS,
+                    selected = localBrakeBalance,
+                    label = { if (it > 0) "+$it" else it.toString() },
+                    onPick = {
+                        assignBrakeBalance(it)
+                        brakeBalancePickerOpen = false
+                    },
+                    onClear = {
+                        assignBrakeBalance(null)
+                        brakeBalancePickerOpen = false
+                    },
+                    onDismiss = { brakeBalancePickerOpen = false },
                 )
             }
 

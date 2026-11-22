@@ -722,6 +722,33 @@ fun LibraryScreen(
             reencoding = reencoding,
             reencodeResult = reencodeResult,
             onReencode = { reencode(lap) },
+            tyre = lap.tyre,
+            onAssignTyre = { compound ->
+                scope.launch {
+                    withContext(Dispatchers.IO) {
+                        store.setTyre(lap.lapId, compound)
+                    }
+                    reload++
+                }
+            },
+            tcs = lap.tcs,
+            onAssignTcs = { level ->
+                scope.launch {
+                    withContext(Dispatchers.IO) {
+                        store.setTcs(lap.lapId, level)
+                    }
+                    reload++
+                }
+            },
+            brakeBalance = lap.brakeBalance,
+            onAssignBrakeBalance = { level ->
+                scope.launch {
+                    withContext(Dispatchers.IO) {
+                        store.setBrakeBalance(lap.lapId, level)
+                    }
+                    reload++
+                }
+            },
         )
     }
 

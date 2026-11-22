@@ -19,6 +19,8 @@ data class LapSummary(
     val driverPsnId: String? = null,
     val event: io.github.jlai403.lapcraft.core.events.EventTag? = null,
     val tyre: TyreCompound? = null,
+    val tcs: Int? = null,
+    val brakeBalance: Int? = null,
     val videoBytes: Long = 0,
     val telemetryBytes: Long = 0,
     val pendingBytes: Long = 0,

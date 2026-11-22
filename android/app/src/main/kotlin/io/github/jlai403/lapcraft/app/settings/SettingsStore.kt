@@ -92,6 +92,23 @@ class SettingsStore(context: Context) {
         get() = runCatching { enumValueOf<TyreCompound>(prefs.getString(KEY_CURRENT_TYRE, null).orEmpty()) }.getOrNull()
         set(value) = prefs.edit().putString(KEY_CURRENT_TYRE, value?.name).apply()
 
+    var currentTcs: Int?
+        get() = nullableInt(KEY_CURRENT_TCS)
+        set(value) = putNullableInt(KEY_CURRENT_TCS, value)
+
+    var currentBrakeBalance: Int?
+        get() = nullableInt(KEY_CURRENT_BRAKE_BALANCE)
+        set(value) = putNullableInt(KEY_CURRENT_BRAKE_BALANCE, value)
+
+    private fun nullableInt(key: String): Int? =
+        if (prefs.contains(key)) prefs.getInt(key, 0) else null
+
+    private fun putNullableInt(key: String, value: Int?) {
+        val editor = prefs.edit()
+        if (value == null) editor.remove(key) else editor.putInt(key, value)
+        editor.apply()
+    }
+
     private companion object {
         // The pre-existing preferences file; changing it would drop the saved PS5 address.
         const val PREFS = "settings"
@@ -110,7 +127,9 @@ class SettingsStore(context: Context) {
         const val KEY_DEVELOPER_TOOLS = "developer_tools"
         const val KEY_TRACK_ID_VERSION = "track_id_version"
         const val KEY_SEED_VERSION = "seed_version"
-    const val KEY_EVENT_TAGS = "event_tags"
-    const val KEY_CURRENT_TYRE = "current_tyre"
+        const val KEY_EVENT_TAGS = "event_tags"
+        const val KEY_CURRENT_TYRE = "current_tyre"
+        const val KEY_CURRENT_TCS = "current_tcs"
+        const val KEY_CURRENT_BRAKE_BALANCE = "current_brake_balance"
     }
 }
