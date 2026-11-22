@@ -37,6 +37,7 @@ class RecordScreenTest {
         onCapture: () -> Unit = {},
         onCancelCapture: () -> Unit = {},
         onOpenLap: (LapId) -> Unit = { _ -> },
+        ps5Ip: String = "",
     ) {
         compose.setContent {
             LapCraftTheme {
@@ -48,6 +49,7 @@ class RecordScreenTest {
                     onCancelCapture = onCancelCapture,
                     onOpenLap = onOpenLap,
                     onOpenSettings = onOpenSettings,
+                    ps5Ip = ps5Ip,
                 )
             }
         }
@@ -61,7 +63,6 @@ class RecordScreenTest {
         var captures = 0
         content(
             state = CaptureUiState(
-                ps5Ip = "192.168.1.50",
                 telemetryRunning = true,
                 connected = true,
                 packetsPerSecond = 59.8,
@@ -80,7 +81,6 @@ class RecordScreenTest {
     fun `capture waits for the start line`() {
         content(
             state = CaptureUiState(
-                ps5Ip = "192.168.1.50",
                 telemetryRunning = true,
                 connected = true,
                 packetsPerSecond = 59.8,
@@ -98,7 +98,6 @@ class RecordScreenTest {
         var cancelled = 0
         content(
             state = CaptureUiState(
-                ps5Ip = "192.168.1.50",
                 telemetryRunning = true,
                 connected = true,
                 packetsPerSecond = 59.8,
@@ -118,7 +117,6 @@ class RecordScreenTest {
     fun `disconnect stays disabled while capturing`() {
         content(
             state = CaptureUiState(
-                ps5Ip = "192.168.1.50",
                 telemetryRunning = true,
                 connected = true,
                 packetsPerSecond = 59.8,
@@ -136,7 +134,6 @@ class RecordScreenTest {
         var opened: Pair<String, Int>? = null
         content(
             state = CaptureUiState(
-                ps5Ip = "192.168.1.50",
                 telemetryRunning = true,
                 connected = true,
                 packetsPerSecond = 59.8,
@@ -157,7 +154,8 @@ class RecordScreenTest {
     fun `missing address points at settings`() {
         var openedSettings = 0
         content(
-            state = CaptureUiState(ps5Ip = ""),
+            state = CaptureUiState(),
+            ps5Ip = "",
             onOpenSettings = { openedSettings++ },
         )
 
@@ -171,7 +169,6 @@ class RecordScreenTest {
     fun `foreign packets warn without expanding details`() {
         content(
             state = CaptureUiState(
-                ps5Ip = "192.168.1.50",
                 telemetryRunning = true,
                 connected = true,
                 packetsPerSecond = 59.8,
@@ -225,8 +222,7 @@ class RecordScreenTest {
             LapCraftTheme {
                 RecordScreen(
                     state = CaptureUiState(
-                        ps5Ip = "192.168.1.50",
-                        telemetryRunning = true,
+                                telemetryRunning = true,
                         connected = true,
                         packetsPerSecond = 59.8,
                     ),

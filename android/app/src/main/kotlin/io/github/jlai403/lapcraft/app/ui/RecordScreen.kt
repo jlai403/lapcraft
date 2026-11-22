@@ -47,6 +47,7 @@ fun RecordScreen(
     onCancelCapture: () -> Unit,
     onOpenLap: (LapId) -> Unit,
     imperial: Boolean = false,
+    ps5Ip: String = "",
     onOpenSettings: () -> Unit = {},
     tyre: io.github.jlai403.lapcraft.core.tire.TyreCompound? = null,
     onTyreChange: (io.github.jlai403.lapcraft.core.tire.TyreCompound?) -> Unit = {},
@@ -56,7 +57,7 @@ fun RecordScreen(
     onBrakeBalanceChange: (Int?) -> Unit = {},
 ) {
     var starting by remember { mutableStateOf(false) }
-    val hasAddress = Ipv4.normalize(state.ps5Ip) != null
+    val hasAddress = Ipv4.normalize(ps5Ip) != null
     val capturing = state.capture is CaptureState.Capturing
     var tyrePickerOpen by remember { mutableStateOf(false) }
     var tcsPickerOpen by remember { mutableStateOf(false) }
@@ -81,7 +82,7 @@ fun RecordScreen(
         state.telemetryError?.takeIf { it.isNotBlank() }?.let { WarningBanner(it) }
         if (state.foreignPackets > 0 && state.lastForeignSource.isNotBlank()) {
             WarningBanner(
-                "Packets come from ${state.lastForeignSource}, not ${state.ps5Ip}. " +
+                "Packets come from ${state.lastForeignSource}, not $ps5Ip. " +
                     "Check the console's current address in Settings.",
             )
         }
@@ -90,6 +91,7 @@ fun RecordScreen(
             state = state,
             starting = starting,
             hasAddress = hasAddress,
+            ps5Ip = ps5Ip,
             capturing = capturing,
             imperial = imperial,
             tyre = tyre,
@@ -172,6 +174,7 @@ private fun StreamCard(
     state: CaptureUiState,
     starting: Boolean,
     hasAddress: Boolean,
+    ps5Ip: String,
     capturing: Boolean,
     imperial: Boolean,
     tyre: io.github.jlai403.lapcraft.core.tire.TyreCompound?,
@@ -318,7 +321,7 @@ private fun StreamCard(
                 onClick = { expanded = !expanded },
             )
             if (expanded) {
-                GhostPill("Copy diagnostics", onClick = { copyDiagnostics(context, state) })
+                GhostPill("Copy diagnostics", onClick = { copyDiagnostics(context, ps5Ip, state) })
             }
         }
 
@@ -506,13 +509,13 @@ private fun pedalLabel(state: CaptureUiState): String {
 
 private fun count(value: Long): String = "%,d".format(value)
 
-private fun copyDiagnostics(context: Context, state: CaptureUiState) {
+private fun copyDiagnostics(context: Context, address: String, state: CaptureUiState) {
     val text = buildString {
         appendLine(
             "LapCraft ${BuildConfig.VERSION_NAME} " +
                 "(build ${BuildConfig.BUILD_NUMBER}, ${BuildConfig.GIT_SHA})",
         )
-        appendLine("Console address: ${state.ps5Ip}")
+        appendLine("Console address: $address")
         appendLine("Connected: ${state.connected}")
         appendLine("Packets/s: %.1f".format(state.packetsPerSecond))
         appendLine("Accepted: ${state.acceptedPackets}, decode errors: ${state.decodeErrors}")

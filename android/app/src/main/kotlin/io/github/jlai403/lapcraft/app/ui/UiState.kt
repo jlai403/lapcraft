@@ -11,7 +11,6 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 data class CaptureUiState(
-    val ps5Ip: String = "",
     val telemetryRunning: Boolean = false,
     val telemetryError: String? = null,
     val connected: Boolean = false,

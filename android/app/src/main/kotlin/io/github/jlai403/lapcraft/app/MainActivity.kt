@@ -64,7 +64,6 @@ class MainActivity : ComponentActivity() {
             LapCraftTheme {
                 App(
                     capture = CaptureUiState(
-                        ps5Ip = settings.ps5Ip,
                         telemetryRunning = telemetryRunning,
                         telemetryError = telemetryError,
                         connected = serviceState.connected,

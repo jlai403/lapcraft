@@ -73,9 +73,9 @@ fun presetCaption(preset: ReplayPreset): String = when (preset) {
     ReplayPreset.Original ->
         "Stores the trimmed clip as-is. Largest files, no quality loss, slowest scrubbing."
     ReplayPreset.Balanced ->
-        "1080p HEVC, about 5 Mbps at 60 fps. Clips are about 50% smaller and seek faster."
+        "HEVC, about 5 Mbps at 60 fps. Clips are about 50% smaller and seek faster. Resolution is chosen below."
     ReplayPreset.Compact ->
-        "720p HEVC ~3 Mbps at 60 fps. Replays ~75% smaller, slightly softer, fastest scrubbing."
+        "~3 Mbps at 60 fps. Replays ~75% smaller, slightly softer, fastest scrubbing. Pick 720p in Advanced for the smallest files."
 }
 
 private const val SHORT_GOP_SECONDS = 0.2f

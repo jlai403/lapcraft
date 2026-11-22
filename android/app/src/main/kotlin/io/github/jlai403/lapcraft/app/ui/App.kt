@@ -31,6 +31,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
 import io.github.jlai403.lapcraft.app.updater.UpdateManager
@@ -143,6 +144,7 @@ fun App(
                         Screen.Record -> RecordScreen(
                             state = capture,
                             imperial = settings.imperialUnits,
+                            ps5Ip = settings.ps5Ip,
                             tyre = currentTyre,
                             onTyreChange = {
                                 currentTyre = it
@@ -241,6 +243,7 @@ private fun AppBottomBar(selected: Int, onSelect: (Int) -> Unit) {
             icon = { Icon(Icons.Filled.Home, contentDescription = null) },
             label = { Text("Library") },
             colors = colors,
+            modifier = Modifier.testTag("tab-library"),
         )
         NavigationBarItem(
             selected = selected == 1,
@@ -248,6 +251,7 @@ private fun AppBottomBar(selected: Int, onSelect: (Int) -> Unit) {
             icon = { Icon(Icons.Filled.PlayArrow, contentDescription = null) },
             label = { Text("Record") },
             colors = colors,
+            modifier = Modifier.testTag("tab-record"),
         )
         NavigationBarItem(
             selected = selected == 2,
@@ -255,6 +259,7 @@ private fun AppBottomBar(selected: Int, onSelect: (Int) -> Unit) {
             icon = { Icon(Icons.Filled.Settings, contentDescription = null) },
             label = { Text("Settings") },
             colors = colors,
+            modifier = Modifier.testTag("tab-settings"),
         )
     }
 }
