@@ -15,8 +15,7 @@ object PolyphonyCdnParser {
         val root = runCatching { json.parseToJsonElement(raw).jsonObject }.getOrNull() ?: return emptyList()
         val result = root["result"]?.jsonArray ?: return emptyList()
         val now = System.currentTimeMillis()
-        val out = mutableListOf<CachedEvent>()
-        val seen = mutableSetOf<String>()
+        val merged = LinkedHashMap<String, CachedEvent>()
         result.forEach { el ->
             val o = el.jsonObject
             val titleMap = o["championship_title_map"]?.jsonObject
@@ -39,8 +38,10 @@ object PolyphonyCdnParser {
                 val startMs = runCatching { Instant.parse(start).toEpochMilli() }.getOrNull() ?: return@forEach
                 val endMs = runCatching { Instant.parse(end).toEpochMilli() }.getOrNull() ?: startMs
                 val id = "champ-$seriesId-$seasonId-r$roundId"
-                if (!seen.add(id)) return@forEach
-                out.add(
+                // The same round is listed once per league group with different slots.
+                // Keep the widest window so GT1 and GT2/3 laps both fall inside it.
+                val existing = merged[id]
+                merged[id] = if (existing == null) {
                     CachedEvent(
                         id = id,
                         kind = EventKind.Championship,
@@ -54,10 +55,15 @@ object PolyphonyCdnParser {
                         source = "polyphony-cdn",
                         fetchedAtMs = now,
                     )
-                )
+                } else {
+                    existing.copy(
+                        startMs = minOf(existing.startMs, startMs),
+                        endMs = maxOf(existing.endMs, endMs),
+                    )
+                }
             }
         }
-        return out
+        return merged.values.toList()
     }
 
     private fun mapCarClass(raw: String?): String? = when (raw) {

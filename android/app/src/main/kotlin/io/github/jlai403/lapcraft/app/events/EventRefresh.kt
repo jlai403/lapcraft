@@ -1,12 +1,17 @@
 package io.github.jlai403.lapcraft.app.events
 
+import io.github.jlai403.lapcraft.app.catalog.lapStore
 import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
+import io.github.jlai403.lapcraft.core.events.CachedEvent
+import io.github.jlai403.lapcraft.core.events.EventKind
+import io.github.jlai403.lapcraft.core.events.repairedFrom
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import java.time.Instant
 import java.util.zip.GZIPInputStream
 
 data class RefreshResult(
@@ -23,6 +28,7 @@ object EventRefresh {
         force: Boolean = false,
         fetchCdn: suspend (String) -> String? = { url -> httpGet(url) },
         fetchApi: suspend (String, String) -> String? = { path, key -> httpGetWithKey(path, key) },
+        regionFolder: Int = PolyphonyRegion.folder(),
     ): RefreshResult = withContext(Dispatchers.IO) {
         val cache = EventCache(context)
         val settings = SettingsStore(context)
@@ -35,15 +41,16 @@ object EventRefresh {
 
         // A forced refresh fills the cache before the toggle is turned on; the
         // toggle only gates the background refresh.
-        if ((force || settings.eventTags) && (force || cache.isPolyphonyStale(now))) {
+        if ((force || settings.eventTags) && (force || cache.isPolyphonyStale(now, regionFolder))) {
             try {
-                val url = "https://static.gt7.game.gran-turismo.com/championship/seasons/2/active.json"
+                val url = "https://static.gt7.game.gran-turismo.com/championship/seasons/$regionFolder/active.json"
                 val body = fetchCdn(url)
                 if (body == null) {
                     errors += "CDN: unavailable"
                 } else {
                     val events = PolyphonyCdnParser.parseActive(body)
-                    cache.replacePolyphony(events, now)
+                    cache.replacePolyphony(events, now, regionFolder)
+                    repairChampionshipTags(context, events)
                     polyphonyWritten = true
                     polyphonyCount = events.size
                 }
@@ -82,6 +89,22 @@ object EventRefresh {
             gridStatsWritten = gridStatsWritten,
             errors = errors,
         )
+    }
+
+    /**
+     * A region change moves the championship to another season id, so auto tags written
+     * against the old folder would otherwise stay lapsed. Rematch them by series, round
+     * and capture time.
+     */
+    private fun repairChampionshipTags(context: android.content.Context, events: List<CachedEvent>) {
+        if (events.none { it.kind == EventKind.Championship }) return
+        val store = lapStore(context)
+        store.summaries().forEach { lap ->
+            val tag = lap.event ?: return@forEach
+            val createdAtMs = runCatching { Instant.parse(lap.createdAt).toEpochMilli() }.getOrNull() ?: return@forEach
+            val repaired = tag.repairedFrom(events, createdAtMs) ?: return@forEach
+            store.setEvent(lap.lapId, repaired)
+        }
     }
 
     private suspend fun httpGet(url: String): String? {

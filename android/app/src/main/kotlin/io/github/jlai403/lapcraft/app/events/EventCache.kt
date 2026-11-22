@@ -9,6 +9,8 @@ import java.io.File
 data class EventCacheFile(
     val gridstatsFetchedAtMs: Long = 0,
     val polyphonyFetchedAtMs: Long = 0,
+    // Region folder of the last Polyphony fetch; 0 means an old cache.
+    val polyphonyFolder: Int = 0,
     val events: List<CachedEvent> = emptyList(),
 ) {
     /** Newest of the two feeds: whichever refreshed last owns the "updated" line. */
@@ -35,8 +37,13 @@ class EventCache(private val rootDir: File) {
     fun isGridstatsStale(nowMs: Long = System.currentTimeMillis()): Boolean =
         nowMs - load().gridstatsFetchedAtMs > GRIDSTATS_TTL_MS
 
-    fun isPolyphonyStale(nowMs: Long = System.currentTimeMillis()): Boolean =
-        nowMs - load().polyphonyFetchedAtMs > POLYPHONY_TTL_MS
+    fun isPolyphonyStale(
+        nowMs: Long = System.currentTimeMillis(),
+        folder: Int = PolyphonyRegion.folder(),
+    ): Boolean {
+        val cache = load()
+        return cache.polyphonyFolder != folder || nowMs - cache.polyphonyFetchedAtMs > POLYPHONY_TTL_MS
+    }
 
     fun replaceGridstats(events: List<CachedEvent>, nowMs: Long = System.currentTimeMillis()) {
         val current = load()
@@ -44,10 +51,14 @@ class EventCache(private val rootDir: File) {
         save(current.copy(gridstatsFetchedAtMs = nowMs, events = kept + events))
     }
 
-    fun replacePolyphony(events: List<CachedEvent>, nowMs: Long = System.currentTimeMillis()) {
+    fun replacePolyphony(
+        events: List<CachedEvent>,
+        nowMs: Long = System.currentTimeMillis(),
+        folder: Int = PolyphonyRegion.folder(),
+    ) {
         val current = load()
         val kept = current.events.filterNot { it.source == "polyphony-cdn" }
-        save(current.copy(polyphonyFetchedAtMs = nowMs, events = kept + events))
+        save(current.copy(polyphonyFetchedAtMs = nowMs, polyphonyFolder = folder, events = kept + events))
     }
 
     companion object {
