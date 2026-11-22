@@ -461,6 +461,84 @@ class EditLapSheetTest {
     }
 
     @Test
+    fun `hides the remove action when there is no replay`() {
+        compose.setContent {
+            LapCraftTheme {
+                EditLapSheet(lap, null, null, emptyList(), null, {}, {}, {}, {}, {}, {})
+            }
+        }
+        compose.onAllNodesWithTag("edit-replay-remove").fetchSemanticsNodes().let {
+            org.junit.Assert.assertTrue(it.isEmpty())
+        }
+    }
+
+    @Test
+    fun `shows the remove action when a replay exists`() {
+        compose.setContent {
+            LapCraftTheme {
+                EditLapSheet(lap.copy(hasReplay = true), null, null, emptyList(), null, {}, {}, {}, {}, {}, {})
+            }
+        }
+        compose.onNodeWithTag("edit-replay-remove").assertExists()
+    }
+
+    @Test
+    fun `confirming remove fires the callback`() {
+        var removed = 0
+        compose.setContent {
+            LapCraftTheme {
+                EditLapSheet(
+                    lap = lap.copy(hasReplay = true),
+                    driver = null,
+                    owner = null,
+                    profiles = emptyList(),
+                    candidates = null,
+                    onDismiss = {},
+                    onSaveTrack = {},
+                    onAssignDriver = {},
+                    onAddReplay = {},
+                    onOpenPlayStation = {},
+                    onResumeSync = {},
+                    onRemoveReplay = { removed++ },
+                )
+            }
+        }
+
+        compose.onNodeWithTag("edit-replay-remove").performScrollTo().performClick()
+        compose.onNodeWithTag("edit-replay-remove-confirm").performClick()
+
+        assertEquals(1, removed)
+    }
+
+    @Test
+    fun `cancelling remove does not fire the callback`() {
+        var removed = 0
+        compose.setContent {
+            LapCraftTheme {
+                EditLapSheet(
+                    lap = lap.copy(hasReplay = true),
+                    driver = null,
+                    owner = null,
+                    profiles = emptyList(),
+                    candidates = null,
+                    onDismiss = {},
+                    onSaveTrack = {},
+                    onAssignDriver = {},
+                    onAddReplay = {},
+                    onOpenPlayStation = {},
+                    onResumeSync = {},
+                    onRemoveReplay = { removed++ },
+                )
+            }
+        }
+
+        compose.onNodeWithTag("edit-replay-remove").performScrollTo().performClick()
+        compose.onNodeWithTag("edit-replay-remove-cancel").performClick()
+
+        assertEquals(0, removed)
+    }
+
+    @Test
     fun `an auto tag is marked as auto`() {
         compose.setContent {
             LapCraftTheme {

@@ -722,6 +722,15 @@ fun LibraryScreen(
             reencoding = reencoding,
             reencodeResult = reencodeResult,
             onReencode = { reencode(lap) },
+            onRemoveReplay = {
+                scope.launch {
+                    val removed = withContext(Dispatchers.IO) {
+                        store.removeReplay(lap.lapId)
+                    }
+                    message = if (removed) "Replay removed." else "Replay could not be removed."
+                    reload++
+                }
+            },
             tyre = lap.tyre,
             onAssignTyre = { compound ->
                 scope.launch {

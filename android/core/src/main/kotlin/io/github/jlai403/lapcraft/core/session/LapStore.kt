@@ -130,6 +130,17 @@ open class LapStore(
         return dir.deleteRecursively()
     }
 
+    fun removeReplay(id: LapId): Boolean {
+        val dir = lapDir(id)
+        if (!dir.isDirectory) return false
+        val hadClip =
+            File(dir, "replay.mp4").isFile || File(dir, "source.mp4").isFile ||
+                File(dir, "raw.mp4").isFile
+        deleteReplayArtifacts(dir)
+        load(id)?.let { save(id, it.copy(leadInMs = 0)) }
+        return hadClip
+    }
+
     fun summaries(): List<LapSummary> {
         LayoutMigration.migrate(rootDir, carName)
         return list().mapNotNull { id ->
