@@ -2,6 +2,7 @@ package io.github.jlai403.lapcraft.core.events
 
 import java.time.DayOfWeek
 import java.time.Instant
+import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.temporal.WeekFields
@@ -29,9 +30,11 @@ fun startOfIsoWeek(epochMs: Long): Long {
     return monday.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
 }
 
-/** "Nov 16 – Nov 23", or a single date when the range is missing. */
-fun eventRangeLabel(startMs: Long, endMs: Long): String {
-    val start = dayFormat.format(Instant.ofEpochMilli(startMs))
-    if (endMs <= startMs) return start
-    return "$start – ${dayFormat.format(Instant.ofEpochMilli(endMs))}"
+/** "Nov 16 – Nov 23", or a single date when the range is missing or falls on one day. */
+fun eventRangeLabel(startMs: Long, endMs: Long, zone: ZoneId = ZoneId.systemDefault()): String {
+    val format = dayFormat.withZone(zone)
+    val start = format.format(Instant.ofEpochMilli(startMs))
+    val end = format.format(Instant.ofEpochMilli(endMs))
+    if (endMs <= startMs || end == start) return start
+    return "$start – $end"
 }
