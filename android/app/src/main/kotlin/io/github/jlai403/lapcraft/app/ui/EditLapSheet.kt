@@ -83,6 +83,7 @@ internal fun EditLapSheet(
     reencoding: Boolean = false,
     reencodeResult: Boolean? = null,
     onReencode: () -> Unit = {},
+    onRemoveReplay: () -> Unit = {},
     events: List<CachedEvent> = emptyList(),
     onAssignEvent: (EventTag?) -> Unit = {},
     tyre: io.github.jlai403.lapcraft.core.tire.TyreCompound? = null,
@@ -120,6 +121,7 @@ internal fun EditLapSheet(
     var localTcs by remember(tcs) { mutableStateOf(tcs) }
     var brakeBalancePickerOpen by remember { mutableStateOf(false) }
     var localBrakeBalance by remember(brakeBalance) { mutableStateOf(brakeBalance) }
+    var confirmRemoveReplay by remember { mutableStateOf(false) }
 
     fun assignTyre(compound: TyreCompound?) {
         localTyre = compound
@@ -443,6 +445,19 @@ internal fun EditLapSheet(
                 },
             )
 
+            if (lap.hasReplay || lap.replayPending) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start,
+                ) {
+                    GhostPill(
+                        text = "Remove",
+                        onClick = { confirmRemoveReplay = true },
+                        modifier = Modifier.testTag("edit-replay-remove"),
+                    )
+                }
+            }
+
             EditRow(
                 label = "Tyres",
                 value = {
@@ -584,6 +599,41 @@ internal fun EditLapSheet(
                         } else {
                             GhostPill(text = "Re-encode clip", onClick = onReencode)
                         }
+                    },
+                )
+            }
+
+            if (confirmRemoveReplay) {
+                AlertDialog(
+                    onDismissRequest = { confirmRemoveReplay = false },
+                    title = {
+                        Text(if (lap.replayPending && !lap.hasReplay) "Discard pending clip?" else "Remove replay?")
+                    },
+                    text = {
+                        Text(
+                            if (lap.replayPending && !lap.hasReplay) {
+                                "The unsynced source clip is deleted. Telemetry and lap metadata stay."
+                            } else {
+                                "${lap.trackLabel} · ${lapTimeLabel(lap.lapTimeMs)} keeps its telemetry; the clip is deleted."
+                            },
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                confirmRemoveReplay = false
+                                onRemoveReplay()
+                            },
+                            modifier = Modifier.testTag("edit-replay-remove-confirm"),
+                        ) {
+                            Text("Remove", color = MaterialTheme.colorScheme.error)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = { confirmRemoveReplay = false },
+                            modifier = Modifier.testTag("edit-replay-remove-cancel"),
+                        ) { Text("Cancel") }
                     },
                 )
             }

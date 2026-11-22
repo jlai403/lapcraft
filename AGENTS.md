@@ -107,6 +107,9 @@ cd android && ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --t
 - There is no scrub thumbnail cache; the ruler seeks the clip directly. `SettingsStore.developerTools`
   exposes `Re-encode clip` in `EditLapSheet`, which rewrites a lap at 0.1 s keyframes
   (`LapReencoder`, `ReplayKeyframes.Frame`) and deletes the old clip plus any `lap-NNN.preview/` leftovers.
+- `EditLapSheet` offers `Remove` for any lap with a replay (saved or pending sync); it calls
+  `LapStore.removeReplay`, which deletes `replay.mp4`/`source.mp4`/`raw.mp4` and scrub artifacts and
+  resets `leadInMs`, while keeping telemetry and metadata. The lap becomes clip-less.
 - `LapStore.deleteScrubArtifacts` removes a lap's `.tmp`/`.bak`/`.compact.mp4`/`.reencode.mp4`
   temporaries and preview directories; `deleteReplayArtifacts` also removes the clip.
 - Typography: `labelSmall` is defined in `Theme.kt` (Geist Sans 11 sp); `NumericText` is mono with
