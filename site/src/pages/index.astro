@@ -24,7 +24,7 @@ const description = 'Gran Turismo 7 telemetry at 60 Hz, synced to the replay fro
     applicationCategory: 'UtilitiesApplication',
     offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
     url: 'https://lapcraft.jlai.ca'
-  })} />
+  }).replace(/</g, '\\u003c')} />
 
   <!-- Hero -->
   <section class="hero">

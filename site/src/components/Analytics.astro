@@ -1,6 +1,7 @@
 ---
 import ConsentBanner from '../islands/ConsentBanner.svelte'
-const beacon = import.meta.env.PUBLIC_CF_BEACON_TOKEN
+import { cfBeacon } from '../lib/consent'
+const beacon = cfBeacon()
 ---
 <!-- Consent Mode v2 defaults: deny until the user opts in. -->
 <script is:inline>
