@@ -405,7 +405,7 @@ class EditLapSheetTest {
             }
         }
 
-        compose.onNodeWithText("Replace replay").performClick()
+        compose.onNodeWithText("Replace").performClick()
         compose.onNodeWithText("PlayStation App").performClick()
 
         assertEquals(0, addReplay)
@@ -457,7 +457,7 @@ class EditLapSheetTest {
         }
 
         compose.onNodeWithText("Resume sync").assertExists()
-        compose.onNodeWithText("Replace replay").assertExists()
+        compose.onNodeWithText("Replace").assertExists()
     }
 
     @Test
