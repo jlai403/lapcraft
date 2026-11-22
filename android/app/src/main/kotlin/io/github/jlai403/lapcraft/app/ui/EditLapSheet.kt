@@ -431,7 +431,7 @@ internal fun EditLapSheet(
                         )
                     }
                     ReplaySourcePill(
-                        text = if (lap.hasReplay || lap.replayPending) "Replace replay" else "Add a replay",
+                        text = if (lap.hasReplay || lap.replayPending) "Replace" else "Add a replay",
                         primary = false,
                         onFiles = {
                             onDismiss()
@@ -442,21 +442,16 @@ internal fun EditLapSheet(
                             onOpenPlayStation()
                         },
                     )
+                    if (lap.hasReplay || lap.replayPending) {
+                        GhostPill(
+                            text = "Remove",
+                            onClick = { confirmRemoveReplay = true },
+                            contentColor = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.testTag("edit-replay-remove"),
+                        )
+                    }
                 },
             )
-
-            if (lap.hasReplay || lap.replayPending) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start,
-                ) {
-                    GhostPill(
-                        text = "Remove",
-                        onClick = { confirmRemoveReplay = true },
-                        modifier = Modifier.testTag("edit-replay-remove"),
-                    )
-                }
-            }
 
             EditRow(
                 label = "Tyres",

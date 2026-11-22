@@ -219,8 +219,42 @@ class LapPlayerScreenTest {
         compose.onNodeWithText("Edit lap").performClick()
 
         compose.waitUntil(TIMEOUT) {
-            compose.onAllNodesWithText("Replace replay").fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithText("Replace").fetchSemanticsNodes().isNotEmpty()
         }
+    }
+
+    @Test
+    fun `removing a replay from the edit sheet deletes the clip`() {
+        SessionFixtures.install(context, SessionFixtures.session(lapTimesMs = listOf(90_000)))
+
+        compose.setContent {
+            LapCraftTheme {
+                LapPlayerScreen(
+                    lapId = LapId("session-1"),
+                    onBack = {},
+                    onImportSync = {},
+                )
+            }
+        }
+
+        compose.waitUntil(TIMEOUT) {
+            compose.onAllNodesWithText("1:30.000").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithContentDescription("More").performClick()
+        compose.onNodeWithText("Edit lap").performClick()
+
+        compose.waitUntil(TIMEOUT) {
+            compose.onAllNodesWithTag("edit-replay-remove").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithTag("edit-replay-remove").performScrollTo().performClick()
+        compose.onNodeWithTag("edit-replay-remove-confirm").performClick()
+
+        compose.waitUntil(TIMEOUT) {
+            compose.onAllNodesWithText("No replay").fetchSemanticsNodes().isNotEmpty()
+        }
+        org.junit.Assert.assertFalse(
+            java.io.File(context.filesDir, "laps/session-1/replay.mp4").exists(),
+        )
     }
 
     @Test
@@ -281,7 +315,7 @@ class LapPlayerScreenTest {
         compose.waitUntil(TIMEOUT) {
             compose.onAllNodesWithText("Resume sync").fetchSemanticsNodes().isNotEmpty()
         }
-        compose.onNodeWithText("Replace replay").assertExists()
+        compose.onNodeWithText("Replace").assertExists()
     }
 
     @Test

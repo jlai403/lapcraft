@@ -811,6 +811,16 @@ fun LapPlayerScreen(
                         }
                     }
                 },
+                onRemoveReplay = {
+                    playing = false
+                    scope.launch {
+                        val removed = withContext(Dispatchers.IO) {
+                            store.removeReplay(lapId)
+                        }
+                        if (removed) message = "Replay removed." else message = "Replay could not be removed."
+                        sessionReload++
+                    }
+                },
                 events = cachedEvents,
                 onAssignEvent = { tag ->
                     scope.launch {
