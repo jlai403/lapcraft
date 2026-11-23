@@ -1,0 +1,238 @@
+---
+import Base from '../layouts/Base.astro'
+import Connector from '../components/Connector.astro'
+import { Image } from 'astro:assets'
+import capture from '../assets/capture.png'
+import charts from '../assets/charts.png'
+import captureReady from '../assets/how-to/capture-ready.png'
+import psAppCaptures from '../assets/how-to/ps-app-captures.png'
+import chooseLap from '../assets/how-to/choose-lap.png'
+import syncStart from '../assets/how-to/sync-start.png'
+import syncFinish from '../assets/how-to/sync-finish.png'
+
+const title = 'How to capture a lap · LapCraft'
+const description = 'Connect LapCraft to GT7, capture a lap of telemetry, attach the PS5 replay, and sync the first frame.'
+---
+
+<Base title={title} description={description} path="/guide">
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <p class="eyebrow reveal" style="--i:0">Guide</p>
+        <h1 class="display reveal" style="--i:1">How to <span class="accent">capture</span> a lap.</h1>
+        <p class="lead reveal" style="--i:2">Connect LapCraft to GT7, save a lap's telemetry, attach the PS5 replay, and sync the first frame. LapCraft records telemetry only; the PS5 records the video.</p>
+        <div class="cta reveal" style="--i:3">
+          <a class="btn" href="https://github.com/jlai403/lapcraft/releases/latest">Download APK</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Connector color="var(--mint)" />
+
+<section class="alt" id="before">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">Before you start</p>
+        <h2 class="display">What you need</h2>
+      </div>
+      <ul class="hosted-list">
+        <li>A PS5 and an Android phone on the same network</li>
+        <li>Gran Turismo 7 open, with a replay you can play</li>
+        <li>The PlayStation App on the phone, signed in to the same account</li>
+        <li>LapCraft installed on the phone</li>
+      </ul>
+      <p class="guide-note">LapCraft records telemetry only. It does not capture the screen, audio, or the console's video.</p>
+    </div>
+  </section>
+
+  <section id="steps">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">The flow</p>
+        <h2 class="display">From the PS5 to the library.</h2>
+        <p>Connect, record, attach, sync. Each step has one job.</p>
+      </div>
+      <ol class="guide-steps" role="list">
+        <li class="guide-step reveal">
+          <div class="guide-copy">
+            <h3>Find the PS5 address</h3>
+            <p>On the PS5, open Settings > Network > Connection Status > View Connection Status and copy the IPv4 address.</p>
+            <p>In LapCraft, open Settings > Console > PS5 address and paste it. LapCraft uses it to accept packets from that console.</p>
+          </div>
+        </li>
+        <li class="guide-step reveal">
+          <div class="guide-copy">
+            <h3>Connect to GT7</h3>
+            <p>Open Record and tap Connect. Wait for Streaming, 60.0 packets/s, and a live speed.</p>
+            <p>If it stays on Waiting for telemetry, check the address and that the console is on the same network.</p>
+          </div>
+          <figure class="guide-media">
+            <Image src={capture} alt="Record screen showing Streaming at 60 packets per second and a disabled Capture this lap button" width={540} loading="lazy" decoding="async" />
+            <figcaption>Streaming at 60 packets/s.</figcaption>
+          </figure>
+        </li>
+        <li class="guide-step reveal">
+          <div class="guide-copy">
+            <h3>Record the replay</h3>
+            <p>Open a replay in GT7 and pause it. In replay options, turn on all display elements, including the HUD and lap timer.</p>
+            <p>Press the Create button (the share button) on the controller, then choose Start New Recording.</p>
+          </div>
+        </li>
+        <li class="guide-step reveal">
+          <div class="guide-copy">
+            <h3>Capture the lap</h3>
+            <p>Unpause the replay. When the car crosses the line, the lap counter ticks and Capture this lap becomes active. Tap it.</p>
+            <p>LapCraft captures until the car crosses the line again, then saves the lap. Let the replay run a few seconds past the finish, then stop the recording.</p>
+          </div>
+          <figure class="guide-media">
+            <Image src={captureReady} alt="Record screen showing a running lap at 270 km/h with Capture this lap enabled" width={720} loading="lazy" decoding="async" />
+            <figcaption>The button is live once the lap is running.</figcaption>
+          </figure>
+        </li>
+        <li class="guide-step reveal">
+          <div class="guide-copy">
+            <h3>Get the clip into the PS App</h3>
+            <p>Stop the recording with Create. The clip appears in the PS App automatically (if auto-upload is enabled and the clip is 3 minutes or shorter at 1080p).</p>
+            <p>If auto-upload is off, open Media Gallery on the PS5, highlight the clip, press Options, and choose Upload to PlayStation App. Then open PS App > Library > Captures > Gran Turismo 7.</p>
+          </div>
+          <figure class="guide-media">
+            <Image src={psAppCaptures} alt="PlayStation App Captures tab open on Gran Turismo 7" width={720} loading="lazy" decoding="async" />
+            <figcaption>Captures in the PlayStation App.</figcaption>
+          </figure>
+        </li>
+        <li class="guide-step reveal">
+          <div class="guide-copy">
+            <h3>Share the clip with LapCraft</h3>
+            <p>Open the clip, tap Share, and choose LapCraft. LapCraft opens Choose a lap.</p>
+            <p>Pick the lap from the list. Use Attach if it has no replay, or Replace if it already has one.</p>
+            <p>LapCraft does not upload the clip anywhere. It copies the clip into the app's private storage on your phone.</p>
+          </div>
+          <figure class="guide-media">
+            <Image src={chooseLap} alt="Choose a lap screen listing two Suzuka laps with Attach and Replace actions" width={720} loading="lazy" decoding="async" />
+            <figcaption>Pick the lap the replay belongs to.</figcaption>
+          </figure>
+        </li>
+        <li class="guide-step reveal">
+          <div class="guide-copy">
+            <h3>Set the lap start</h3>
+            <p>Sync clip opens. Step to the first frame where the car crosses the line, then tap Use this frame.</p>
+            <p>If the HUD timer is counting up, type it in Timer on this frame to pull the start onto the line. Leave it empty when the HUD shows a lap time or the fastest-lap flash.</p>
+          </div>
+          <figure class="guide-media">
+            <Image src={syncStart} alt="Sync clip screen with the ruler on the first frame after the line and Use this frame" width={720} loading="lazy" decoding="async" />
+            <figcaption>Start on the first frame past the line.</figcaption>
+          </figure>
+        </li>
+        <li class="guide-step reveal">
+          <div class="guide-copy">
+            <h3>Check the finish and save</h3>
+            <p>Step to the finish frame. It should show the car crossing the line one lap after the start. The card shows Finish frame and Finish marker.</p>
+            <p>If it is off, move the lap start. Choose a replay quality preset, then tap Save clip.</p>
+          </div>
+          <figure class="guide-media">
+            <Image src={syncFinish} alt="Sync clip finish frame showing the finish frame and lap time" width={720} loading="lazy" decoding="async" />
+            <figcaption>Finish on the line, one lap later.</figcaption>
+          </figure>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <Connector color="var(--cyan)" />
+
+  <section class="alt" id="review">
+    <div class="wrap">
+      <div class="guide-review">
+        <div class="head">
+          <p class="eyebrow">After the save</p>
+          <h2 class="display">Review the lap.</h2>
+          <p>Open the lap. The charts and track map follow the cursor, and you can step frames one at a time.</p>
+        </div>
+        <figure class="guide-media reveal">
+          <Image src={charts} alt="Lap player showing speed trace and telemetry charts" width={720} loading="lazy" decoding="async" />
+          <figcaption>The charts follow the cursor.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <Connector color="var(--amber)" />
+
+  <section id="troubleshooting">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">Troubleshooting</p>
+        <h2 class="display">If something is not working.</h2>
+      </div>
+      <div class="grid">
+        <div class="card reveal">
+          <h3>Record stays on Waiting for telemetry</h3>
+          <p>Check the PS5 address, that the console is on the same network, and that no other app on the phone is using UDP 33740.</p>
+        </div>
+        <div class="card reveal">
+          <h3>Capture this lap stays dim</h3>
+          <p>Connect first, then let the replay cross the line so the lap starts.</p>
+        </div>
+        <div class="card reveal">
+          <h3>The clip is not in the PS App</h3>
+          <p>Check that auto-upload is on, the clip is under 3 minutes at 1080p, and the PS5 is online. If auto-upload was off, upload it from Media Gallery with Options > Upload to PlayStation App.</p>
+        </div>
+        <div class="card reveal">
+          <h3>The sync is off by a frame</h3>
+          <p>Step frames with -1 and +1. Use the timer field when the HUD timer is counting. Check that the finish frame shows the line.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Connector color="var(--amber)" />
+
+  <section class="closing">
+    <div class="wrap">
+      <img src="/icon-512.png" width="120" height="120" alt="" style="margin:0 auto 28px;border-radius:24px;display:block" />
+      <h2 class="display reveal">Ready for the first lap?</h2>
+      <p class="reveal">Install the app, connect to the PS5, and capture one lap.</p>
+      <div class="cta reveal">
+        <a class="btn primary" href="https://github.com/jlai403/lapcraft/releases/latest">Download latest stable</a>
+        <a class="btn" href="/">Back to LapCraft</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .guide-before { padding: 24px; }
+  .guide-note { color: var(--subtext); font-size: 0.95rem; max-width: 46em; margin-top: 16px; }
+  .guide-steps { counter-reset: guide-step; list-style: none; padding: 0; margin: 0; display: grid; gap: clamp(32px, 6vw, 64px); }
+  .guide-step { counter-increment: guide-step; border-top: 1px solid var(--surface0); padding-top: 28px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 380px); gap: 40px; align-items: start; }
+  .guide-copy::before {
+    content: "STEP " counter(guide-step, decimal-leading-zero);
+    display: block;
+    font: 600 0.72rem var(--mono);
+    letter-spacing: 0.18em;
+    color: var(--mint);
+    margin-bottom: 10px;
+  }
+  .guide-copy h3 { font-size: 1.2rem; margin: 0 0 10px; }
+  .guide-copy p { color: var(--subtext); margin: 0 0 12px; max-width: 46em; }
+  .guide-media {
+    margin: 0;
+    justify-self: end;
+    max-width: 380px;
+    border: 1px solid var(--surface0);
+    border-radius: 20px;
+    padding: 8px;
+    background: var(--crust);
+    box-shadow: var(--shadow);
+  }
+  .guide-media :global(img) { width: 100%; height: auto; border-radius: 14px; display: block; }
+  .guide-media figcaption { margin-top: 10px; color: var(--subtext); font-size: 0.88rem; text-align: center; padding: 0 4px 4px; }
+  .guide-review { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 380px); gap: 48px; align-items: center; }
+  .guide-review .head { margin-bottom: 0; }
+  @media (max-width: 900px) {
+    .guide-step { grid-template-columns: 1fr; gap: 20px; }
+    .guide-media { justify-self: start; max-width: 320px; }
+    .guide-review { grid-template-columns: 1fr; gap: 24px; }
+  }
+</style>

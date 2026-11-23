@@ -1,16 +1,25 @@
 ---
+interface Props {
+  path?: string
+}
+
+const { path = '/' } = Astro.props
 ---
 <nav>
   <div class="wrap">
-    <a class="brand" href="#top" aria-label="LapCraft home">
+    <a class="brand" href="/" aria-label="LapCraft home">
       <img src="/icon-128.png" width="26" height="26" alt="" style="border-radius:6px" />
       LapCraft
     </a>
     <div class="links">
-      <a href="#one-clock">Sync</a>
-      <a href="#showcase">Walkthrough</a>
-      <a href="#compare">Compare</a>
+      <a href="/" aria-current={path === '/' ? 'page' : undefined}>Home</a>
+      <a href="/guide" aria-current={path === '/guide' ? 'page' : undefined}>Guide</a>
     </div>
-    <a class="btn small primary" href="https://github.com/jlai403/lapcraft/releases" rel="noopener">Download</a>
+    <a class="btn small primary" href="https://github.com/jlai403/lapcraft/releases/latest" rel="noopener">Download</a>
   </div>
 </nav>
+
+<style>
+  .links a[aria-current='page'] { color: var(--text); }
+  .links a[aria-current='page']::after { transform: scaleX(1); }
+</style>
