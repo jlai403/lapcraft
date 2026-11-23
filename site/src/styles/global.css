@@ -44,8 +44,12 @@ nav .wrap { display: flex; align-items: center; gap: 24px; height: 64px; }
 .links a:hover { color: var(--text); text-decoration: none; }
 .links a:hover::after { transform: scaleX(1); }
 @media (max-width: 760px) {
-  .links { gap: 12px; font-size: 0.85rem; }
-  nav .btn { margin-left: 0; }
+  nav .wrap { gap: 12px; }
+  .links { gap: 10px; margin-left: auto; font-size: 0.8rem; }
+}
+@media (max-width: 380px) {
+  .brand { font-size: 1rem; gap: 8px; }
+  .links { gap: 8px; font-size: 0.75rem; }
 }
 
 /* CTA row */
