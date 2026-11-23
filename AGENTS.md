@@ -135,7 +135,9 @@ cd android && ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --t
   (Monday 07:00 to the next Monday 06:59:59). `EventCache.replaceGridstats` keeps the outgoing
   week until that real end, and `EventRefresh.repairDailyTags` rewrites snapshotted daily tags to
   the same window. The library runs it on every load from the laps it already has, so the repair
-  needs no network; a GridStats refresh runs it too.
+  needs no network; a GridStats refresh runs it too. Tags saved before windows existed get theirs
+  from the `begin_date` at the end of the id, and `EventGroups` reads the window from any lap in a
+  group, so a legacy tag cannot drag the group into Past events.
   The edit sheet's event
   field suggests cached events and stores free text as a manual Championship tag. `LapView.event` /
   `LapSummary.event`; `LapFilter`/`LapSort` event dimensions.

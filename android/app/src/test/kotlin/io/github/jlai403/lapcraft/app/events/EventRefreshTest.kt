@@ -165,6 +165,31 @@ class EventRefreshTest {
     }
 
     @Test
+    fun `a legacy daily tag derives its window from the id`() {
+        val legacy = EventTag(
+            id = "daily-Daily Race C-2026-11-16 00:00:00",
+            kind = EventKind.Daily,
+            label = "Daily Race C",
+            auto = false,
+        )
+        SessionFixtures.install(
+            context,
+            SessionFixtures.session(
+                createdAt = "2026-11-16T22:31:13Z",
+                lapTimesMs = listOf(90_000),
+                event = legacy,
+            ),
+        )
+
+        val changed = EventRefresh.repairDailyTags(context, lapStore(context).summaries())
+
+        assertTrue(changed)
+        val repaired = lapStore(context).summaries().single().event!!
+        assertEquals(Instant.parse("2026-11-16T07:00:00Z").toEpochMilli(), repaired.startMs)
+        assertEquals(Instant.parse("2026-11-23T06:59:59Z").toEpochMilli(), repaired.endMs)
+    }
+
+    @Test
     fun `a corrected daily tag needs no rewrite`() {
         val current = EventTag(
             id = "daily-Daily Race C-2026-11-16 00:00:00",
