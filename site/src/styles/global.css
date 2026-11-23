@@ -43,7 +43,15 @@ nav .wrap { display: flex; align-items: center; gap: 24px; height: 64px; }
 }
 .links a:hover { color: var(--text); text-decoration: none; }
 .links a:hover::after { transform: scaleX(1); }
-@media (max-width: 760px) { .links { display: none; } nav .btn { margin-left: auto; } }
+@media (max-width: 760px) {
+  nav .wrap { gap: 12px; }
+  .links { gap: 10px; margin-left: auto; font-size: 0.8rem; }
+  nav .btn { display: none; }
+}
+@media (max-width: 380px) {
+  .brand { font-size: 1rem; gap: 8px; }
+  .links { gap: 8px; font-size: 0.75rem; }
+}
 
 /* CTA row */
 .cta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: stretch; }
