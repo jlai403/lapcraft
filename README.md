@@ -9,7 +9,6 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/jlai403/lapcraft/releases">Download preview</a> &middot;
   <a href="https://lapcraft.jlai.ca">Website</a> &middot;
   <a href="https://github.com/jlai403/lapcraft">Source on GitHub</a> &middot;
   <a href="LICENSE">GPL-3.0</a>
