@@ -43,6 +43,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import io.github.jlai403.lapcraft.app.catalog.lapStore
 import io.github.jlai403.lapcraft.app.events.EventCache
 import io.github.jlai403.lapcraft.app.events.EventRefresh
 import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
@@ -53,6 +54,8 @@ import io.github.jlai403.lapcraft.core.events.EventKind
 import io.github.jlai403.lapcraft.core.events.EventMatcher
 import io.github.jlai403.lapcraft.core.events.EventTag
 import io.github.jlai403.lapcraft.core.events.eventRangeLabel
+import io.github.jlai403.lapcraft.core.events.normalizedDaily
+import io.github.jlai403.lapcraft.core.events.toCachedEvent
 import io.github.jlai403.lapcraft.core.events.toTag
 import io.github.jlai403.lapcraft.core.events.weekStartLabel
 import io.github.jlai403.lapcraft.core.profile.DriverProfile
@@ -112,6 +115,9 @@ internal fun EditLapSheet(
     var addingDriver by remember { mutableStateOf(false) }
 
     var localEvents by remember(events) { mutableStateOf(events) }
+    LaunchedEffect(events) {
+        localEvents = withContext(Dispatchers.IO) { eventsWithHistory(context, events) }
+    }
     var eventQuery by remember(lap.event?.id) { mutableStateOf(lap.event?.label.orEmpty()) }
     var suggestionsOpen by remember { mutableStateOf(false) }
     var refreshingEvents by remember { mutableStateOf(false) }
@@ -199,11 +205,16 @@ internal fun EditLapSheet(
         refreshingEvents = true
         scope.launch {
             runCatching { EventRefresh.refresh(context, force = true) }
-            localEvents = withContext(Dispatchers.IO) { EventCache(context).events() }
+            localEvents = withContext(Dispatchers.IO) {
+                eventsWithHistory(context, EventCache(context).events())
+            }
             refreshingEvents = false
         }
     }
 
+    val lapTimeMs = remember(lap.createdAt) {
+        runCatching { java.time.Instant.parse(lap.createdAt).toEpochMilli() }.getOrNull()
+    }
     val suggestions = if (!suggestionsOpen || eventQuery.isBlank()) {
         emptyList()
     } else {
@@ -211,7 +222,7 @@ internal fun EditLapSheet(
         localEvents.filter { event ->
             listOfNotNull(event.label, event.trackName, event.series, event.carClass)
                 .any { EventMatcher.normalize(it).contains(query) }
-        }.take(6)
+        }.sortedByDescending { suggestionRank(it, lapTimeMs) }.take(8)
     }
 
     LaunchedEffect(renamingTrack) {
@@ -709,6 +720,31 @@ private fun RemoveDriverDialog(profile: DriverProfile, onConfirm: () -> Unit, on
             TextButton(onClick = onDismiss) { Text("Keep") }
         },
     )
+}
+
+private const val SUGGESTION_NEAR_MS = 12L * 60 * 60 * 1000
+
+private fun suggestionRank(event: CachedEvent, lapMs: Long?): Int {
+    if (lapMs == null) return 0
+    return when {
+        lapMs in event.startMs..event.endMs -> 2
+        kotlin.math.abs(lapMs - event.startMs) <= SUGGESTION_NEAR_MS -> 1
+        kotlin.math.abs(lapMs - event.endMs) <= SUGGESTION_NEAR_MS -> 1
+        else -> 0
+    }
+}
+
+/**
+ * The feed only holds this and next week. Keep the events already tagged in the
+ * library in the picker so an older lap can still be tagged.
+ */
+private fun eventsWithHistory(context: android.content.Context, cached: List<CachedEvent>): List<CachedEvent> {
+    val cachedIds = cached.map { it.id }.toSet()
+    val history = lapStore(context).summaries()
+        .mapNotNull { it.event?.normalizedDaily() }
+        .filter { it.id !in cachedIds && it.startMs != null && it.endMs != null }
+        .map { it.toCachedEvent() }
+    return (cached + history).distinctBy { it.id }
 }
 
 private fun eventSubtitle(event: CachedEvent): String = listOfNotNull(
