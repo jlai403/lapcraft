@@ -32,21 +32,20 @@ fun List<LapSummary>.eventGroups(
     }
 
     fun eventStart(groupLaps: List<LapSummary>): Long {
-        val tag = groupLaps.first().event
-        if (tag?.startMs != null) return tag.startMs
+        val start = groupLaps.firstNotNullOfOrNull { it.event?.startMs }
+        if (start != null) return start
         return groupLaps.maxOfOrNull { capturedAtMs(it) } ?: 0L
     }
-    fun eventEnd(groupLaps: List<LapSummary>): Long {
-        val tag = groupLaps.first().event
-        if (tag?.endMs != null) return tag.endMs
-        return eventStart(groupLaps)
-    }
+    fun eventEnd(groupLaps: List<LapSummary>): Long =
+        groupLaps.firstNotNullOfOrNull { it.event?.endMs } ?: eventStart(groupLaps)
 
     val current = mutableListOf<LapEventGroup>()
     val lapsed = mutableListOf<LapEventGroup>()
     for ((key, laps) in byKey) {
         val tag = laps.first().event!!
-        val status = tag.status(nowMs, cacheIds)
+        // Legacy tags in the same group have no window; any lap's window is the event's.
+        val windowed = laps.firstNotNullOfOrNull { it.event?.takeIf { e -> e.startMs != null || e.endMs != null } } ?: tag
+        val status = windowed.status(nowMs, cacheIds)
         val resolved = if (status == EventStatus.Unknown) {
             val newest = laps.maxOfOrNull { capturedAtMs(it) } ?: 0L
             if (newest < weekStart) EventStatus.Lapsed else EventStatus.Unknown

@@ -76,6 +76,25 @@ class EventGroupsTest {
     }
 
     @Test
+    fun `a windowed tag in the group wins over a legacy tag`() {
+        val legacy = EventTag(id = "daily-A", kind = EventKind.Daily, label = "Daily Race A", auto = false)
+        val windowed = EventTag(
+            id = "daily-A",
+            kind = EventKind.Daily,
+            label = "Daily Race A",
+            auto = false,
+            startMs = epoch("2026-11-16T07:00:00Z"),
+            endMs = epoch("2026-11-23T06:59:59Z"),
+        )
+        val groups = listOf(
+            lap("old", 90_000, createdAt = "2026-11-16T10:00:00Z", event = legacy),
+            lap("new", 91_000, createdAt = "2026-11-17T10:00:00Z", event = windowed),
+        ).eventGroups(nowMs = epoch("2026-11-23T03:00:00Z"))
+
+        assertEquals(EventStatus.Current, groups.single().status)
+    }
+
+    @Test
     fun `manual tags with the same label share a group`() {
         val first = EventTag(id = "manual-1", kind = EventKind.Championship, label = "World Series · R3", auto = false)
         val second = EventTag(id = "manual-2", kind = EventKind.Championship, label = "World Series · R3", auto = false)

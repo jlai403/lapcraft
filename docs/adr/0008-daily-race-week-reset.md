@@ -7,7 +7,8 @@ A Daily Race week is not the calendar week in the feed. GT GridStats dates each 
 Two follow-ons keep the fix consistent across a roll:
 
 - `EventCache.replaceGridstats` keeps an outgoing gridstats row until its stored end, so the hours between the feed's 00:00 roll and the game's 07:00 roll still match. Rows replaced by a fresh id are dropped rather than duplicated.
-- `EventRefresh.repairDailyTags` rewrites snapshotted daily tags, since a tag stores the window it was created with. An auto tag whose lap falls outside the corrected week is cleared; a manually picked tag keeps its event with the corrected window. The library calls it on every load with the lap list it already has, so the repair needs no network. The GridStats refresh calls it as well.
+- `EventRefresh.repairDailyTags` rewrites snapshotted daily tags, since a tag stores the window it was created with. An auto tag whose lap falls outside the corrected week is cleared; a manually picked tag keeps its event with the corrected window. Tags that predate windows get theirs from the `begin_date` at the end of the id. The library calls the repair on every load with the lap list it already has, so no network is needed. The GridStats refresh calls it as well.
+- `EventGroups` takes the window from any lap in the group, not just the first, so one legacy tag cannot make a current event look lapsed.
 
 ## Considered options
 
