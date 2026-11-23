@@ -152,10 +152,10 @@ cd android && ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --t
   capture time, so a region change does not leave old tags in Past events. Range labels use the device
   zone (`EventDates.eventRangeLabel`) while ISO week labels stay UTC.
 - Library grouping: `LapSummary.eventGroups` (`core/events/EventGroups.kt`) orders current events,
-  the `No event` group (current-week untagged laps), then lapsed ones (lapsed events plus untagged
-  laps captured before the current ISO week); `EventTag.status` (`EventStatus.kt`) resolves current /
-  upcoming / lapsed / unknown. `EventTag.startMs`/`endMs` are snapshotted at tag time, so a lapsed
-  event keeps its window after the schedule refresh; auto tags without a window fall back to cache
+  the `No event` group (every untagged lap, however old), then lapsed events; `EventTag.status`
+  (`EventStatus.kt`) resolves current / upcoming / lapsed / unknown. `EventTag.startMs`/`endMs` are
+  snapshotted at tag time, so a lapsed event keeps its window after the schedule refresh; auto tags
+  without a window fall back to cache
   membership, manual tags without one stay `Unknown` unless their newest lap predates the week, in
   which case they are lapsed. `LibraryEventSection.kt` renders
   `CurrentEventHeader` (title + `series · dates · class · track · laps · Best`) and the
