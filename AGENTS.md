@@ -129,7 +129,14 @@ cd android && ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --t
   Settings or from the edit sheet's empty state. `Refresh events` forces both feeds even while the
   toggle is off, and `EventCacheFile.lastFetchedAtMs` (newest of the schedule and GridStats stamps)
   drives the card's last-updated line. Daily labels carry the ISO week (`Daily Race A · W47`)
-  while ids stay week-free; Time Trials label by track (`Time Trial · Suzuka`). The edit sheet's event
+  while ids stay week-free; Time Trials label by track (`Time Trial · Suzuka`). GridStats dates a
+  daily week Monday 00:00 to Sunday 23:59:59 UTC, but GT7 rolls it at 07:00 UTC, so
+  `GridStatsEventParser` anchors the window with `sportModeWeekStart`/`sportModeWeekEnd`
+  (Monday 07:00 to the next Monday 06:59:59). `EventCache.replaceGridstats` keeps the outgoing
+  week until that real end, and `EventRefresh.repairDailyTags` rewrites snapshotted daily tags to
+  the same window. The library runs it on every load from the laps it already has, so the repair
+  needs no network; a GridStats refresh runs it too.
+  The edit sheet's event
   field suggests cached events and stores free text as a manual Championship tag. `LapView.event` /
   `LapSummary.event`; `LapFilter`/`LapSort` event dimensions.
 - The Polyphony schedule is fetched from the region folder chosen by the device country

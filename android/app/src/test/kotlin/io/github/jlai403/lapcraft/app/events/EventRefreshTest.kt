@@ -113,6 +113,83 @@ class EventRefreshTest {
     }
 
     @Test
+    fun `a daily tag moves to the sport mode window`() {
+        val old = EventTag(
+            id = "daily-Daily Race C-2026-11-16 00:00:00",
+            kind = EventKind.Daily,
+            label = "Daily Race C · W47",
+            auto = true,
+            startMs = Instant.parse("2026-11-16T00:00:00Z").toEpochMilli(),
+            endMs = Instant.parse("2026-11-22T23:59:59Z").toEpochMilli(),
+        )
+        SessionFixtures.install(
+            context,
+            SessionFixtures.session(
+                createdAt = "2026-11-17T07:35:27Z",
+                lapTimesMs = listOf(90_000),
+                event = old,
+            ),
+        )
+
+        val changed = EventRefresh.repairDailyTags(context, lapStore(context).summaries())
+
+        assertTrue(changed)
+        val repaired = lapStore(context).summaries().single().event!!
+        assertEquals(Instant.parse("2026-11-16T07:00:00Z").toEpochMilli(), repaired.startMs)
+        assertEquals(Instant.parse("2026-11-23T06:59:59Z").toEpochMilli(), repaired.endMs)
+    }
+
+    @Test
+    fun `an auto daily tag outside the corrected week is dropped`() {
+        val early = EventTag(
+            id = "daily-Daily Race C-2026-11-23 00:00:00",
+            kind = EventKind.Daily,
+            label = "Daily Race C · W48",
+            auto = true,
+            startMs = Instant.parse("2026-11-23T00:00:00Z").toEpochMilli(),
+            endMs = Instant.parse("2026-11-29T23:59:59Z").toEpochMilli(),
+        )
+        SessionFixtures.install(
+            context,
+            SessionFixtures.session(
+                createdAt = "2026-11-23T01:00:00Z",
+                lapTimesMs = listOf(90_000),
+                event = early,
+            ),
+        )
+
+        val changed = EventRefresh.repairDailyTags(context, lapStore(context).summaries())
+
+        assertTrue(changed)
+        assertEquals(null, lapStore(context).summaries().single().event)
+    }
+
+    @Test
+    fun `a corrected daily tag needs no rewrite`() {
+        val current = EventTag(
+            id = "daily-Daily Race C-2026-11-16 00:00:00",
+            kind = EventKind.Daily,
+            label = "Daily Race C · W47",
+            auto = true,
+            startMs = Instant.parse("2026-11-16T07:00:00Z").toEpochMilli(),
+            endMs = Instant.parse("2026-11-23T06:59:59Z").toEpochMilli(),
+        )
+        SessionFixtures.install(
+            context,
+            SessionFixtures.session(
+                createdAt = "2026-11-17T07:35:27Z",
+                lapTimesMs = listOf(90_000),
+                event = current,
+            ),
+        )
+
+        val changed = EventRefresh.repairDailyTags(context, lapStore(context).summaries())
+
+        assertFalse(changed)
+        assertEquals(current, lapStore(context).summaries().single().event)
+    }
+
+    @Test
     fun `a forced refresh fills the schedule cache with event tags off`() = runBlocking {
         val result = EventRefresh.refresh(
             context,

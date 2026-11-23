@@ -6,12 +6,17 @@ import io.github.jlai403.lapcraft.app.settings.SettingsStore
 import io.github.jlai403.lapcraft.core.events.CachedEvent
 import io.github.jlai403.lapcraft.core.events.EventKind
 import io.github.jlai403.lapcraft.core.events.repairedFrom
+import io.github.jlai403.lapcraft.core.events.sportModeWeekEnd
+import io.github.jlai403.lapcraft.core.events.sportModeWeekStart
+import io.github.jlai403.lapcraft.core.session.LapSummary
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import java.time.DayOfWeek
 import java.time.Instant
+import java.time.ZoneOffset
 import java.util.zip.GZIPInputStream
 
 data class RefreshResult(
@@ -73,6 +78,7 @@ object EventRefresh {
                     GridStatsEventParser.parseTimeTrials(ttLive, ownerPsn, ownerTt)
                 if (anySuccess) {
                     cache.replaceGridstats(events, now)
+                    repairDailyWindows(context)
                     gridStatsWritten = true
                     gridStatsCount = events.size
                 } else {
@@ -105,6 +111,43 @@ object EventRefresh {
             val repaired = tag.repairedFrom(events, createdAtMs) ?: return@forEach
             store.setEvent(lap.lapId, repaired)
         }
+    }
+
+    /**
+     * Daily tags snapshot the window at tag time. Older tags carry the feed's
+     * Monday 00:00 UTC start, seven hours before the GT7 roll, so rewrite them.
+     * An auto tag whose lap falls outside the corrected week is dropped.
+     * Returns true when any lap changed.
+     */
+    fun repairDailyTags(context: android.content.Context, laps: List<LapSummary>): Boolean {
+        val store = lapStore(context)
+        var changed = false
+        laps.forEach { lap ->
+            val tag = lap.event ?: return@forEach
+            if (tag.kind != EventKind.Daily) return@forEach
+            val startMs = tag.startMs ?: return@forEach
+            val startDate = Instant.ofEpochMilli(startMs).atZone(ZoneOffset.UTC).toLocalDate()
+            if (startDate.dayOfWeek != DayOfWeek.MONDAY) return@forEach
+            val rawStart = startDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+            val expectedStart = sportModeWeekStart(startDate)
+            // Only the feed's old midnight start or the corrected reset start is ours to touch.
+            if (startMs != rawStart && startMs != expectedStart) return@forEach
+            val expectedEnd = sportModeWeekEnd(expectedStart)
+            if (startMs == expectedStart && tag.endMs == expectedEnd) return@forEach
+            val createdAtMs = runCatching { Instant.parse(lap.createdAt).toEpochMilli() }.getOrNull() ?: return@forEach
+            val repaired = if (tag.auto && createdAtMs !in expectedStart..expectedEnd) {
+                null
+            } else {
+                tag.copy(startMs = expectedStart, endMs = expectedEnd)
+            }
+            store.setEvent(lap.lapId, repaired)
+            changed = true
+        }
+        return changed
+    }
+
+    private fun repairDailyWindows(context: android.content.Context) {
+        repairDailyTags(context, lapStore(context).summaries())
     }
 
     private suspend fun httpGet(url: String): String? {

@@ -156,6 +156,10 @@ fun LibraryScreen(
             settings.trackIdentificationVersion = TrackNamer.VERSION
             laps = withContext(Dispatchers.IO) { store.summaries() }
         }
+        val repairedWindows = withContext(Dispatchers.IO) {
+            runCatching { EventRefresh.repairDailyTags(context, laps.orEmpty()) }.getOrDefault(false)
+        }
+        if (repairedWindows) laps = withContext(Dispatchers.IO) { store.summaries() }
         val cache = EventCache(context)
         if (cache.isPolyphonyStale() || cache.isGridstatsStale()) {
             runCatching { EventRefresh.refresh(context) }

@@ -26,6 +26,7 @@ import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
 import io.github.jlai403.lapcraft.core.tire.TyreCompound
+import java.time.Instant
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -121,7 +122,7 @@ class LibraryScreenTest {
             SessionFixtures.session(
                 id = "trial",
                 trackLabel = "Nurburgring",
-                createdAt = "2026-11-16T09:00:00Z",
+                createdAt = Instant.now().minusSeconds(120).toString(),
                 lapTimesMs = listOf(120_000),
                 event = EventTag(
                     id = "tt-Suzuka",
@@ -135,7 +136,7 @@ class LibraryScreenTest {
             SessionFixtures.session(
                 id = "untagged",
                 trackLabel = "Monza",
-                createdAt = "2026-11-16T10:00:00Z",
+                createdAt = Instant.now().minusSeconds(60).toString(),
                 lapTimesMs = listOf(100_000),
             ),
         )
@@ -166,7 +167,7 @@ class LibraryScreenTest {
                 id = "supra",
                 trackLabel = "Monza",
                 carCode = 0,
-                createdAt = "2026-11-16T09:00:00Z",
+                createdAt = Instant.now().minusSeconds(60).toString(),
                 lapTimesMs = listOf(100_000),
                 carName = "GR Supra Racing Concept '18",
             ),
@@ -258,14 +259,14 @@ class LibraryScreenTest {
         profiles.save(DriverProfile("friend", "Friend", "US"))
         SessionFixtures.install(
             context,
-            SessionFixtures.session(id = "mine", createdAt = "2026-11-16T08:00:00Z", lapTimesMs = listOf(90_000), driverPsnId = "skino2024"),
+            SessionFixtures.session(id = "mine", createdAt = Instant.now().minusSeconds(180).toString(), lapTimesMs = listOf(90_000), driverPsnId = "skino2024"),
         )
         SessionFixtures.install(
             context,
             SessionFixtures.session(
                 id = "theirs",
                 trackLabel = "Monza",
-                createdAt = "2026-11-16T09:30:00Z",
+                createdAt = Instant.now().minusSeconds(120).toString(),
                 lapTimesMs = listOf(100_000),
                 driverPsnId = "friend",
             ),
@@ -275,7 +276,7 @@ class LibraryScreenTest {
             SessionFixtures.session(
                 id = "legacy",
                 trackLabel = "Spa",
-                createdAt = "2026-11-16T10:00:00Z",
+                createdAt = Instant.now().minusSeconds(60).toString(),
                 lapTimesMs = listOf(110_000),
             ),
         )
