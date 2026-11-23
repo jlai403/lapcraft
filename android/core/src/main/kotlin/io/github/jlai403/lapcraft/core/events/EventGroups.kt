@@ -57,24 +57,14 @@ fun List<LapSummary>.eventGroups(
     }
     current.sortByDescending { eventStart(it.laps) }
 
-    // Untagged laps split by age: this week stays in the main feed, older ones archive.
-    val (untaggedCurrent, untaggedOld) = untagged.partition { capturedAtMs(it) >= weekStart }
-    if (untaggedCurrent.isNotEmpty()) {
+    // An untagged lap has no event that can lapse, so it always stays in the main feed.
+    if (untagged.isNotEmpty()) {
         current += LapEventGroup(
             key = "untagged",
             tag = null,
             status = EventStatus.Unknown,
-            laps = untaggedCurrent,
-            bestLapMs = untaggedCurrent.minOf { it.lapTimeMs },
-        )
-    }
-    if (untaggedOld.isNotEmpty()) {
-        lapsed += LapEventGroup(
-            key = "untagged-past",
-            tag = null,
-            status = EventStatus.Lapsed,
-            laps = untaggedOld,
-            bestLapMs = untaggedOld.minOf { it.lapTimeMs },
+            laps = untagged,
+            bestLapMs = untagged.minOf { it.lapTimeMs },
         )
     }
     lapsed.sortByDescending { eventEnd(it.laps) }

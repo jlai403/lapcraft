@@ -634,7 +634,7 @@ class LibraryScreenTest {
     }
 
     @Test
-    fun `old untagged laps stay collapsed under Past events`() {
+    fun `old untagged laps stay in the main feed`() {
         SessionFixtures.install(
             context,
             SessionFixtures.session(id = "old", createdAt = "2026-11-10T10:00:00Z", lapTimesMs = listOf(90_000)),
@@ -645,15 +645,13 @@ class LibraryScreenTest {
         }
 
         compose.waitUntil(TIMEOUT) {
-            compose.onAllNodesWithText("Past events", substring = true).fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithText("1:30.000").fetchSemanticsNodes().isNotEmpty()
         }
+        compose.onNodeWithText("No event").assertExists()
         assertTrue(
-            "old untagged lap should be hidden while collapsed",
-            compose.onAllNodesWithText("1:30.000").fetchSemanticsNodes().isEmpty(),
+            "an untagged lap is not an event and cannot lapse",
+            compose.onAllNodesWithText("Past events", substring = true).fetchSemanticsNodes().isEmpty(),
         )
-        compose.onNodeWithText("Past events", substring = true).performClick()
-        compose.waitForIdle()
-        compose.onNodeWithText("1:30.000").assertExists()
     }
 
     private companion object {

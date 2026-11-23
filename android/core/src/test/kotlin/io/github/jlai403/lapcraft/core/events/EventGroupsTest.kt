@@ -140,14 +140,15 @@ class EventGroupsTest {
     }
 
     @Test
-    fun `untagged laps older than this week archive under past`() {
+    fun `untagged laps stay in the feed however old`() {
         val groups = listOf(
             lap("old", 90_000, createdAt = "2026-11-10T10:00:00Z"),
-            lap("current", 91_000, createdAt = "2026-11-16T10:00:00Z"),
+            lap("older", 91_000, createdAt = "2026-10-05T10:00:00Z"),
         ).eventGroups(nowMs = now)
-        assertEquals(listOf("untagged", "untagged-past"), groups.map { it.key })
+
+        assertEquals(listOf("untagged"), groups.map { it.key })
         assertEquals(EventStatus.Unknown, groups[0].status)
-        assertEquals(EventStatus.Lapsed, groups[1].status)
+        assertEquals(2, groups[0].laps.size)
     }
 
     @Test
