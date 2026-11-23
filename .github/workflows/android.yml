@@ -402,16 +402,11 @@ jobs:
           else
             gh release create "$tag" dist/*.apk dist/latest.json
           fi
+          # Keep the commit's LapCraft-preview.apk: Obtainium configs pinned to a
+          # per-build tag would otherwise lose their asset the moment that tag is
+          # promoted, and the preview package id keeps it distinct from LapCraft.apk.
           gh release edit "$tag" \
             --title "LapCraft ${{ steps.version.outputs.version_name }}" \
             --notes "Stable build ${{ steps.resolve.outputs.tag }}" \
             --prerelease=false \
             --latest
-
-      - name: Remove leftover preview asset
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        run: |
-          tag="${{ steps.resolve.outputs.tag }}"
-          gh release delete-asset "$tag" LapCraft-preview.apk --yes || true
