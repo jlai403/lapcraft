@@ -45,7 +45,7 @@ const ogImage = new URL('/og.png', Astro.site).href
     </script>
   </head>
   <body>
-    <Nav />
+    <Nav path={path} />
     <main id="top">
       <slot />
     </main>

@@ -9,10 +9,10 @@ test('mobile: no horizontal overflow and scrub is live', async ({ page }) => {
   await expect(page.locator('.scrub')).toBeVisible()
 })
 
-test('mobile: walkthrough link stays in the header', async ({ page }) => {
+test('mobile: guide link stays in the header', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('link', { name: 'Walkthrough' })).toBeVisible()
-  await expect(page.locator('nav .btn')).toBeHidden()
+  await expect(page.locator('nav a[href="/guide"]')).toBeVisible()
+  await expect(page.locator('nav .btn')).toBeVisible()
 })
 
 test('mobile: scrub video exists and is portrait', async ({ page }) => {

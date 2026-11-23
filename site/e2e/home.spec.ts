@@ -32,7 +32,8 @@ test('every reveal resolves to visible after scroll', async ({ page }) => {
 
 test('primary ctas and sections present', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('link', { name: /Download preview APK/i }).first()).toBeVisible()
+  await expect(page.getByRole('link', { name: /Download APK/i }).first()).toBeVisible()
+  await expect(page.locator('#download a[href*="releases/latest"]')).toBeVisible()
   await expect(page.getByRole('link', { name: /Source on GitHub/i }).first()).toBeVisible()
   for (const h of ['The replay shows the lap.', 'Capture, import, compare.', 'Two laps, one clock.', 'Your laps stay on your phone.', 'Upload a lap. Compare against the field.']) {
     await expect(page.getByRole('heading', { name: h })).toBeVisible()
