@@ -1,5 +1,8 @@
 package io.github.jlai403.lapcraft.app.ui
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -44,7 +47,11 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.ui.PlayerView
+import io.github.jlai403.lapcraft.app.Diagnostics
 import io.github.jlai403.lapcraft.app.replay.ClipTrimmer
+import io.github.jlai403.lapcraft.app.replay.TrimFailureReason
+import io.github.jlai403.lapcraft.app.replay.TrimOutcome
+import io.github.jlai403.lapcraft.app.replay.trimFailureMessage
 import io.github.jlai403.lapcraft.app.replay.ReplayStore
 import io.github.jlai403.lapcraft.app.replay.VideoTranscoder
 import io.github.jlai403.lapcraft.app.replay.probeClip
@@ -329,7 +336,7 @@ fun ImportSyncScreen(
     val rulerEvents = remember(events, sync) {
         sync?.let { s -> events.map { LapEvent(it.type, s.clipMs(it.timeMs).toInt()) } } ?: events
     }
-    val range = sync?.let { TrimPlan.forSync(it, durationMs) }
+    val range = sync?.let { TrimPlan.forSync(it, durationMs, frameTimeline) }
     val estimateMs = range?.let { (it.endMs - it.startMs).coerceAtLeast(1) }
         ?: currentLap?.lapTimeMs?.toLong()
         ?: 0L
@@ -563,8 +570,26 @@ fun ImportSyncScreen(
                         )
                     }
                 }
-                error?.let {
-                    Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                error?.let { msg ->
+                    Text(msg, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    GhostPill(
+                        text = "Copy diagnostics",
+                        onClick = {
+                            val report = buildString {
+                                appendLine("LapCraft trim diagnostics")
+                                appendLine("Lap: ${lapId.value}")
+                                appendLine("Source: ${sourceFile?.name} (${sourceFile?.length() ?: 0} bytes)")
+                                appendLine("Duration: $durationMs ms")
+                                appendLine("Range: ${range?.startMs}..${range?.endMs} ms")
+                                appendLine("Error: $msg")
+                                appendLine("Recent log:")
+                                Diagnostics.tail(context, 40).forEach { appendLine(it) }
+                            }
+                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                            clipboard.setPrimaryClip(ClipData.newPlainText("LapCraft trim diagnostics", report))
+                            Toast.makeText(context, "Diagnostics copied", Toast.LENGTH_SHORT).show()
+                        },
+                    )
                 }
             }
             SectionCard(title = "Replay quality") {
@@ -640,49 +665,53 @@ fun ImportSyncScreen(
                             if (trimRange != null && source != null && !saving) {
                                 saving = true
                                 scope.launch {
-                                    val result = withContext(Dispatchers.IO) {
+                                    val outcome = withContext(Dispatchers.IO) {
                                         val output = File(
                                             store.lapDir(lapId),
                                             "replay.mp4",
                                         )
-                                        val trimmed = trimmer.trim(source, output, trimRange)
-                                            ?: return@withContext null
-                                        val profile = effectiveProfile
-                                        var compactFailed = false
-                                        if (profile.transcode) {
-                                            val compact = File(output.absolutePath + ".compact.mp4")
-                                            if (transcoder.transcode(output, compact, profile)) {
-                                                if (output.delete() && compact.renameTo(output)) {
-                                                } else {
-                                                    compact.delete()
-                                                    compactFailed = true
+                                        when (val trimResult = trimmer.trim(source, output, trimRange)) {
+                                            is TrimOutcome.Failure -> SaveOutcome.TrimFailed(trimResult.reason)
+                                            is TrimOutcome.Success -> {
+                                                val trimmed = trimResult.result
+                                                val profile = effectiveProfile
+                                                var compactFailed = false
+                                                if (profile.transcode) {
+                                                    val compact = File(output.absolutePath + ".compact.mp4")
+                                                    if (transcoder.transcode(output, compact, profile)) {
+                                                        if (output.delete() && compact.renameTo(output)) {
+                                                        } else {
+                                                            compact.delete()
+                                                            compactFailed = true
+                                                        }
+                                                    } else {
+                                                        compactFailed = true
+                                                    }
                                                 }
-                                            } else {
-                                                compactFailed = true
+                                                store.attachClip(
+                                                    lapId,
+                                                    trimmed.startOffsetMs,
+                                                )
+                                                SaveOutcome.Success(compactFailed)
                                             }
                                         }
-                                        store.attachClip(
-                                            lapId,
-                                            trimmed.startOffsetMs,
-                                        )
-                                        trimmed to compactFailed
                                     }
                                     saving = false
-                                    if (result == null) {
-                                        error = if (hadClip) {
-                                            "Trim failed. The current replay is unchanged; try again."
-                                        } else {
-                                            "Trim failed. No replay was attached; try again."
+                                    when (outcome) {
+                                        is SaveOutcome.TrimFailed -> {
+                                            Diagnostics.log("trim failed: ${outcome.reason}")
+                                            error = trimFailureMessage(outcome.reason, hadClip)
                                         }
-                                    } else {
-                                        if (result.second) {
-                                            Toast.makeText(
-                                                context,
-                                                "Compaction failed. The clip stays uncompressed.",
-                                                Toast.LENGTH_SHORT,
-                                            ).show()
+                                        is SaveOutcome.Success -> {
+                                            if (outcome.compactFailed) {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Compaction failed. The clip stays uncompressed.",
+                                                    Toast.LENGTH_SHORT,
+                                                ).show()
+                                            }
+                                            onDone()
                                         }
-                                        onDone()
                                     }
                                 }
                             }
@@ -758,6 +787,11 @@ private fun MetricLine(label: String, value: String) {
         )
         NumericText(value, style = MaterialTheme.typography.bodySmall)
     }
+}
+
+private sealed interface SaveOutcome {
+    data class TrimFailed(val reason: TrimFailureReason) : SaveOutcome
+    data class Success(val compactFailed: Boolean) : SaveOutcome
 }
 
 private fun trimRange(lap: LapView?, lapStartMs: Long?, offsetMs: Long?, durationMs: Long, frames: FrameTimeline? = null) =
