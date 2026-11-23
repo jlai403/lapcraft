@@ -2,6 +2,7 @@ package io.github.jlai403.lapcraft.core.events
 
 import java.time.DayOfWeek
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -9,6 +10,17 @@ import java.time.temporal.WeekFields
 import java.util.Locale
 
 private val dayFormat = DateTimeFormatter.ofPattern("MMM d", Locale.UK).withZone(ZoneOffset.UTC)
+
+/** GT7 Sport Mode rolls Daily Races at 07:00 UTC on Monday. */
+private const val SPORT_MODE_RESET_HOUR_UTC = 7
+private const val SPORT_MODE_WEEK_MS = 7L * 24 * 60 * 60 * 1000
+
+/** Start of the Sport Mode week that begins on [date], which is a Monday. */
+fun sportModeWeekStart(date: LocalDate): Long =
+    date.atTime(SPORT_MODE_RESET_HOUR_UTC, 0).toInstant(ZoneOffset.UTC).toEpochMilli()
+
+/** Last second of the Sport Mode week starting at [startMs]. */
+fun sportModeWeekEnd(startMs: Long): Long = startMs + SPORT_MODE_WEEK_MS - 1_000
 
 /** ISO week of a timestamp in UTC. Daily races rotate weekly, so the week names the round. */
 fun isoWeekOf(epochMs: Long): Int =

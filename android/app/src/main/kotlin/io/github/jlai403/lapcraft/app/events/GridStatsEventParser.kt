@@ -3,10 +3,13 @@ package io.github.jlai403.lapcraft.app.events
 import io.github.jlai403.lapcraft.core.events.CachedEvent
 import io.github.jlai403.lapcraft.core.events.EventKind
 import io.github.jlai403.lapcraft.core.events.isoWeekOf
+import io.github.jlai403.lapcraft.core.events.sportModeWeekEnd
+import io.github.jlai403.lapcraft.core.events.sportModeWeekStart
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -33,10 +36,11 @@ object GridStatsEventParser {
                 val raceLabel = normalizeRaceType(raceTypeRaw)
                 val track = o["track_name"]?.jsonPrimitive?.content
                 val begin = o["begin_date"]?.jsonPrimitive?.content
-                val end = o["end_date"]?.jsonPrimitive?.content
                 val carClass = o["car_class"]?.jsonPrimitive?.content
-                val startMs = parseDate(begin) ?: return@forEach
-                val endMs = parseDate(end) ?: startMs
+                val startMs = dailyWeekStart(begin) ?: return@forEach
+                // The feed dates a daily week Monday 00:00 to Sunday 23:59:59; GT7
+                // rolls it at 07:00 UTC, so the raw end is seven hours early.
+                val endMs = sportModeWeekEnd(startMs)
                 val id = "daily-$raceLabel-${begin ?: ""}"
                 val ownerCar = ownerResults.firstOrNull {
                     normalizeRaceType(it.raceType) == raceLabel && (track == null || it.trackName == track)
@@ -113,6 +117,12 @@ object GridStatsEventParser {
             val ldt = LocalDateTime.parse(s.trim(), fmt)
             ldt.atZone(ZoneOffset.UTC).toInstant().toEpochMilli()
         }.getOrNull()
+    }
+
+    /** Anchor the feed's calendar date to the Monday 07:00 UTC Sport Mode roll. */
+    private fun dailyWeekStart(begin: String?): Long? {
+        if (begin.isNullOrBlank()) return null
+        return runCatching { LocalDate.parse(begin.trim().take(10)) }.getOrNull()?.let(::sportModeWeekStart)
     }
 
     private data class OwnerDaily(val raceType: String, val trackName: String?, val carName: String?)

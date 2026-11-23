@@ -4,14 +4,17 @@ import io.github.jlai403.lapcraft.core.events.EventKind
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import java.time.Instant
 
 class GridStatsEventParserTest {
+    private fun epoch(iso: String): Long = Instant.parse(iso).toEpochMilli()
+
     private val dailies = """
         {"data":[
-          {"race_type":"A","track_name":"Suzuka Circuit","begin_date":"2026-11-16 07:00:00",
-           "end_date":"2026-11-23 07:00:00","car_class":"Gr.4"},
-          {"race_type":"B","track_name":"Deep Forest Raceway","begin_date":"2026-11-16 07:00:00",
-           "end_date":"2026-11-23 07:00:00","car_class":"Gr.3"}
+          {"race_type":"A","track_name":"Suzuka Circuit","begin_date":"2026-11-16 00:00:00",
+           "end_date":"2026-11-22 23:59:59","car_class":"Gr.4"},
+          {"race_type":"B","track_name":"Deep Forest Raceway","begin_date":"2026-11-16 00:00:00",
+           "end_date":"2026-11-22 23:59:59","car_class":"Gr.3"}
         ]}
     """.trimIndent()
 
@@ -37,7 +40,28 @@ class GridStatsEventParserTest {
     fun `daily ids ignore the week so a refreshed cache does not churn`() {
         val events = GridStatsEventParser.parseDailies(dailies, null, null, null)
 
-        assertEquals("daily-Daily Race A-2026-11-16 07:00:00", events.first().id)
+        assertEquals("daily-Daily Race A-2026-11-16 00:00:00", events.first().id)
+    }
+
+    @Test
+    fun `daily windows start at the sport mode reset`() {
+        val event = GridStatsEventParser.parseDailies(dailies, null, null, null).first()
+
+        assertEquals(epoch("2026-11-16T07:00:00Z"), event.startMs)
+        assertEquals(epoch("2026-11-23T06:59:59Z"), event.endMs)
+    }
+
+    @Test
+    fun `next week uses the same reset`() {
+        val next = """
+            {"data":[{"race_type":"A","track_name":"Monza","begin_date":"2026-11-23 00:00:00",
+                      "end_date":"2026-11-29 23:59:59"}]}
+        """.trimIndent()
+
+        val event = GridStatsEventParser.parseDailies(null, next, null, null).single()
+
+        assertEquals(epoch("2026-11-23T07:00:00Z"), event.startMs)
+        assertEquals(epoch("2026-11-30T06:59:59Z"), event.endMs)
     }
 
     @Test

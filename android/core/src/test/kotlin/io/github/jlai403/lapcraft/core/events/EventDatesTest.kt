@@ -3,6 +3,7 @@ package io.github.jlai403.lapcraft.core.events
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
 
@@ -47,6 +48,14 @@ class EventDatesTest {
                 ZoneId.of("America/Edmonton"),
             ),
         )
+    }
+
+    @Test
+    fun `sport mode week starts Monday at seven UTC`() {
+        val start = sportModeWeekStart(LocalDate.parse("2026-11-16"))
+
+        assertEquals(epoch("2026-11-16T07:00:00Z"), start)
+        assertEquals(epoch("2026-11-23T06:59:59Z"), sportModeWeekEnd(start))
     }
 
     @Test

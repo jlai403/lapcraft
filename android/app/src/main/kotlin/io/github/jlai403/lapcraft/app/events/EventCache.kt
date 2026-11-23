@@ -47,7 +47,17 @@ class EventCache(private val rootDir: File) {
 
     fun replaceGridstats(events: List<CachedEvent>, nowMs: Long = System.currentTimeMillis()) {
         val current = load()
-        val kept = current.events.filterNot { it.source == "gridstats" }
+        val freshIds = events.map { it.id }.toSet()
+        val kept = current.events.filter { e ->
+            when {
+                e.source != "gridstats" -> true
+                e.id in freshIds -> false
+                // The feed drops the daily week at 00:00 UTC; GT7 runs it to 07:00.
+                // Keep the outgoing row until its real end so those laps still tag.
+                e.endMs >= nowMs -> true
+                else -> false
+            }
+        }
         save(current.copy(gridstatsFetchedAtMs = nowMs, events = kept + events))
     }
 
