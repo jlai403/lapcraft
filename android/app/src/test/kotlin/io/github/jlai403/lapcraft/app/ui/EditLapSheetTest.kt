@@ -20,6 +20,7 @@ import io.github.jlai403.lapcraft.core.profile.DriverProfile
 import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LapSummary
 import io.github.jlai403.lapcraft.core.track.TrackCandidate
+import java.time.Instant
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -297,6 +298,56 @@ class EditLapSheetTest {
         assertEquals(daily.id, assigned?.id)
         assertEquals(EventKind.Daily, assigned?.kind)
         assertEquals(false, assigned?.auto)
+    }
+
+    @Test
+    fun `library events stay in the picker after the feed rolls`() {
+        val tagged = EventTag(
+            id = "daily-Daily Race C-2026-11-16 00:00:00",
+            kind = EventKind.Daily,
+            label = "Daily Race C · W47",
+            startMs = Instant.parse("2026-11-16T00:00:00Z").toEpochMilli(),
+            endMs = Instant.parse("2026-11-22T23:59:59Z").toEpochMilli(),
+        )
+        SessionFixtures.install(
+            context,
+            SessionFixtures.session(
+                id = "history",
+                createdAt = "2026-11-16T22:31:13Z",
+                lapTimesMs = listOf(90_000),
+                event = tagged,
+            ),
+        )
+        var assigned: EventTag? = null
+
+        compose.setContent {
+            LapCraftTheme {
+                EditLapSheet(
+                    lap = lap,
+                    driver = null,
+                    owner = null,
+                    profiles = emptyList(),
+                    candidates = null,
+                    onDismiss = {},
+                    onSaveTrack = {},
+                    onAssignDriver = {},
+                    onAddReplay = {},
+                    onOpenPlayStation = {},
+                    onResumeSync = {},
+                    events = emptyList(),
+                    onAssignEvent = { assigned = it },
+                )
+            }
+        }
+
+        compose.onNodeWithTag("edit-event").performTextReplacement("daily")
+        compose.waitUntil(10_000) {
+            compose.onAllNodesWithTag("event-suggestion-${tagged.id}").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithTag("event-suggestion-${tagged.id}").performClick()
+
+        assertEquals(Instant.parse("2026-11-16T07:00:00Z").toEpochMilli(), assigned?.startMs)
+        assertEquals(Instant.parse("2026-11-23T06:59:59Z").toEpochMilli(), assigned?.endMs)
     }
 
     @Test

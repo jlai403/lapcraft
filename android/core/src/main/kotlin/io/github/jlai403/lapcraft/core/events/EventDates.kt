@@ -22,6 +22,36 @@ fun sportModeWeekStart(date: LocalDate): Long =
 /** Last second of the Sport Mode week starting at [startMs]. */
 fun sportModeWeekEnd(startMs: Long): Long = startMs + SPORT_MODE_WEEK_MS - 1_000
 
+private val dailyIdDate = Regex("""(\d{4}-\d{2}-\d{2}) \d{2}:\d{2}:\d{2}$""")
+
+/**
+ * Put a daily tag on the Sport Mode week. Tags written before windows existed
+ * carry only the feed's `begin_date` at the end of their id.
+ */
+fun EventTag.normalizedDaily(): EventTag {
+    if (kind != EventKind.Daily) return this
+    val weekStart = dailyWeekDate() ?: return this
+    val start = sportModeWeekStart(weekStart)
+    val end = sportModeWeekEnd(start)
+    return if (startMs == start && endMs == end) this else copy(startMs = start, endMs = end)
+}
+
+private fun EventTag.dailyWeekDate(): LocalDate? {
+    val start = startMs
+    val date = if (start == null) {
+        dailyIdDate.find(id)?.groupValues?.get(1)?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+    } else {
+        Instant.ofEpochMilli(start).atZone(ZoneOffset.UTC).toLocalDate()
+    } ?: return null
+    if (date.dayOfWeek != DayOfWeek.MONDAY) return null
+    if (start != null) {
+        val rawStart = date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+        // Only the feed's old midnight start or the corrected reset start is ours to touch.
+        if (start != rawStart && start != sportModeWeekStart(date)) return null
+    }
+    return date
+}
+
 /** ISO week of a timestamp in UTC. Daily races rotate weekly, so the week names the round. */
 fun isoWeekOf(epochMs: Long): Int =
     Instant.ofEpochMilli(epochMs)

@@ -35,16 +35,17 @@ class EventCacheTest {
     }
 
     @Test
-    fun `an outgoing week is kept until its real end`() {
+    fun `a rolled week stays available for a month`() {
         val cache = cache()
         val outgoing = daily("daily-A-2026-11-16 00:00:00", "2026-11-16T07:00:00Z", "2026-11-23T06:59:59Z")
-        val stale = daily("daily-A-2026-11-09 00:00:00", "2026-11-09T07:00:00Z", "2026-11-16T06:59:59Z")
-        cache.save(EventCacheFile(events = listOf(outgoing, stale)))
+        val recent = daily("daily-A-2026-11-09 00:00:00", "2026-11-09T07:00:00Z", "2026-11-16T06:59:59Z")
+        val stale = daily("daily-A-2026-10-05 00:00:00", "2026-10-05T07:00:00Z", "2026-10-12T06:59:59Z")
+        cache.save(EventCacheFile(events = listOf(outgoing, recent, stale)))
         val incoming = daily("daily-A-2026-11-23 00:00:00", "2026-11-23T07:00:00Z", "2026-11-30T06:59:59Z")
 
         cache.replaceGridstats(listOf(incoming), nowMs = epoch("2026-11-23T00:20:00Z"))
 
-        assertEquals(listOf(outgoing.id, incoming.id), cache.events().map { it.id })
+        assertEquals(listOf(outgoing.id, recent.id, incoming.id), cache.events().map { it.id })
     }
 
     @Test

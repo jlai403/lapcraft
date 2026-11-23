@@ -23,3 +23,17 @@ val EventTag.matchKey: String
 
 fun CachedEvent.toTag(auto: Boolean = false): EventTag =
     EventTag(id, kind, label, series, round, carClass, auto, startMs, endMs)
+
+/** Offer an event already tagged in the library after the feed has moved on. */
+fun EventTag.toCachedEvent(): CachedEvent = CachedEvent(
+    id = id,
+    kind = kind,
+    label = label,
+    series = series,
+    round = round,
+    carClass = carClass,
+    startMs = startMs ?: 0,
+    endMs = endMs ?: 0,
+    source = "library",
+    fetchedAtMs = 0,
+)

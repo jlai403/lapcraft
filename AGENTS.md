@@ -136,8 +136,10 @@ cd android && ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --t
   week until that real end, and `EventRefresh.repairDailyTags` rewrites snapshotted daily tags to
   the same window. The library runs it on every load from the laps it already has, so the repair
   needs no network; a GridStats refresh runs it too. Tags saved before windows existed get theirs
-  from the `begin_date` at the end of the id, and `EventGroups` reads the window from any lap in a
-  group, so a legacy tag cannot drag the group into Past events.
+  from the `begin_date` at the end of the id, and `EventGroups` normalizes a daily tag's window and
+  reads it from any lap in the group, so a legacy tag cannot drag the group into Past events. The
+  edit sheet merges events already tagged in the library into its suggestions, so an older week
+  stays pickable after the feed rolls; suggestions that contain the lap's capture time rank first.
   The edit sheet's event
   field suggests cached events and stores free text as a manual Championship tag. `LapView.event` /
   `LapSummary.event`; `LapFilter`/`LapSort` event dimensions.

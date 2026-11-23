@@ -76,6 +76,38 @@ class EventGroupsTest {
     }
 
     @Test
+    fun `an old daily window resolves against the sport mode reset`() {
+        val old = tag(
+            id = "daily-Daily Race C-2026-11-16 00:00:00",
+            label = "Daily Race C · W47",
+            start = epoch("2026-11-16T00:00:00Z"),
+            end = epoch("2026-11-22T23:59:59Z"),
+        )
+        val groups = listOf(lap("c", 90_000, createdAt = "2026-11-16T22:31:13Z", event = old))
+            .eventGroups(nowMs = epoch("2026-11-23T05:00:00Z"))
+
+        assertEquals(EventStatus.Current, groups.single().status)
+        assertEquals(epoch("2026-11-16T07:00:00Z"), groups.single().tag!!.startMs)
+        assertEquals(epoch("2026-11-23T06:59:59Z"), groups.single().tag!!.endMs)
+    }
+
+    @Test
+    fun `a windowless daily tag uses the date in its id`() {
+        val legacy = EventTag(
+            id = "daily-Daily Race C-2026-11-16 00:00:00",
+            kind = EventKind.Daily,
+            label = "Daily Race C",
+            auto = false,
+        )
+        val groups = listOf(lap("legacy", 90_000, createdAt = "2026-11-16T22:31:13Z", event = legacy))
+            .eventGroups(nowMs = epoch("2026-11-23T05:00:00Z"))
+
+        assertEquals(EventStatus.Current, groups.single().status)
+        assertEquals(epoch("2026-11-16T07:00:00Z"), groups.single().tag!!.startMs)
+        assertEquals(epoch("2026-11-23T06:59:59Z"), groups.single().tag!!.endMs)
+    }
+
+    @Test
     fun `a windowed tag in the group wins over a legacy tag`() {
         val legacy = EventTag(id = "daily-A", kind = EventKind.Daily, label = "Daily Race A", auto = false)
         val windowed = EventTag(
