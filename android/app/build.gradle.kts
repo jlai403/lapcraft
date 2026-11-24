@@ -57,6 +57,8 @@ android {
         buildConfigField("String", "BUILD_NUMBER", "\"$buildNumber\"")
         buildConfigField("String", "GIT_SHA", "\"$gitSha\"")
         buildConfigField("String", "UPDATE_CHANNEL", "\"preview\"")
+        buildConfigField("String", "POSTHOG_PROJECT_TOKEN", "\"${providers.environmentVariable("POSTHOG_PROJECT_TOKEN").orNull.orEmpty()}\"")
+        buildConfigField("String", "POSTHOG_HOST", "\"${providers.environmentVariable("POSTHOG_HOST").orNull ?: "https://us.i.posthog.com"}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -150,6 +152,7 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer:1.5.1")
     implementation("androidx.media3:media3-transformer:1.5.1")
     implementation("androidx.media3:media3-ui:1.5.1")
+    implementation("com.posthog:posthog-android:3.77.1")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     testImplementation("junit:junit:4.13.2")

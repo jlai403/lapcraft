@@ -75,7 +75,7 @@ The phone records no video and no audio. Telemetry uses UDP 33739/33740; the onl
 
 ## Your data
 
-Local-first. No accounts, analytics, or background cloud calls. The optional profile lookup sends only the PSN ID to gt-gridstats.com (plus a Bearer API key you paste in Settings when you want DR, SR, and car names); manual driver entry stays offline. Car names come from a bundled catalogue generated from GT GridStats. Optional event tags use the same key plus the public GT championship schedule.
+Local-first. No accounts or cloud calls. Anonymous usage sharing is opt-in and off by default (PostHog, US region); the app sends no telemetry unless the user turns it on. The optional profile lookup sends only the PSN ID to gt-gridstats.com (plus a Bearer API key you paste in Settings when you want DR, SR, and car names); manual driver entry stays offline. Car names come from a bundled catalogue generated from GT GridStats. Optional event tags use the same key plus the public GT championship schedule.
 
 Settings, Library exports the laps you select to one `.zip` (`lapcraft-library-<date>.zip`). Each lap is a directory inside the archive holding `lap.json`, its `.gt7lap` telemetry, and any clip or pending source the lap references, so the file is inspectable with any zip tool. Clips are passed through uncompressed; telemetry and JSON are deflated.
 

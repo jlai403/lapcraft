@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
+import io.github.jlai403.lapcraft.app.telemetry.Telemetry
 import io.github.jlai403.lapcraft.core.profile.DriverProfile
 import io.github.jlai403.lapcraft.app.share.LibraryTransfer
 import io.github.jlai403.lapcraft.core.session.ExportReport
@@ -63,7 +64,10 @@ internal fun LibrarySection() {
                         transfer = Transfer.Busy("Exporting", done, total)
                     }
                 }
-                    .onSuccess { transfer = Transfer.Done(exportSummary(it)) }
+                    .onSuccess {
+                        Telemetry.capture("share_exported", mapOf("kind" to "library", "count" to it.laps))
+                        transfer = Transfer.Done(exportSummary(it))
+                    }
                     .onFailure { transfer = Transfer.Failed(it.message ?: "Export failed") }
                 laps = store.summaries()
                 pending = emptyList()
@@ -79,7 +83,10 @@ internal fun LibrarySection() {
                         transfer = Transfer.Busy("Importing", done, total)
                     }
                 }
-                    .onSuccess { transfer = Transfer.Done(importSummary(it)) }
+                    .onSuccess {
+                        Telemetry.capture("library_imported", mapOf("count" to it.laps))
+                        transfer = Transfer.Done(importSummary(it))
+                    }
                     .onFailure { transfer = Transfer.Failed(it.message ?: "Import failed") }
                 laps = store.summaries()
             }

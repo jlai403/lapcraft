@@ -92,6 +92,14 @@ class SettingsStore(context: Context) {
         get() = prefs.getBoolean(KEY_EVENT_TAGS, false)
         set(value) = prefs.edit().putBoolean(KEY_EVENT_TAGS, value).apply()
 
+    var analyticsEnabled: Boolean
+        get() = prefs.getBoolean(KEY_ANALYTICS_ENABLED, false)
+        set(value) = prefs.edit().putBoolean(KEY_ANALYTICS_ENABLED, value).apply()
+
+    var analyticsPromptShown: Boolean
+        get() = prefs.getBoolean(KEY_ANALYTICS_PROMPT_SHOWN, false)
+        set(value) = prefs.edit().putBoolean(KEY_ANALYTICS_PROMPT_SHOWN, value).apply()
+
     var currentTyre: TyreCompound?
         get() = runCatching { enumValueOf<TyreCompound>(prefs.getString(KEY_CURRENT_TYRE, null).orEmpty()) }.getOrNull()
         set(value) = prefs.edit().putString(KEY_CURRENT_TYRE, value?.name).apply()
@@ -132,6 +140,8 @@ class SettingsStore(context: Context) {
         const val KEY_TRACK_ID_VERSION = "track_id_version"
         const val KEY_SEED_VERSION = "seed_version"
         const val KEY_EVENT_TAGS = "event_tags"
+    const val KEY_ANALYTICS_ENABLED = "analytics_enabled"
+    const val KEY_ANALYTICS_PROMPT_SHOWN = "analytics_prompt_shown"
         const val KEY_CURRENT_TYRE = "current_tyre"
         const val KEY_CURRENT_TCS = "current_tcs"
         const val KEY_CURRENT_BRAKE_BALANCE = "current_brake_balance"
