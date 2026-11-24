@@ -31,6 +31,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import io.github.jlai403.lapcraft.app.telemetry.Telemetry
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -176,6 +178,42 @@ internal fun PlaybackFooter(
     markersMs: List<Long> = emptyList(),
     frameSteps: Boolean = true,
 ) {
+    val rewind = {
+        onRewind()
+        Telemetry.capture("playback_rewind")
+    }
+    val playPause = {
+        onPlayPause()
+        Telemetry.capture("playback_toggled", mapOf("playing" to !playing, "speed" to speed))
+    }
+    val forward = {
+        onForward()
+        Telemetry.capture("playback_forward")
+    }
+    val toggleLoop = {
+        onToggleLoop()
+        Telemetry.capture("playback_looped", mapOf("enabled" to !looping))
+    }
+    val speedChange = { newSpeed: Float ->
+        onSpeedChange(newSpeed)
+        Telemetry.capture("playback_speed_changed", mapOf("speed" to newSpeed))
+    }
+    val step = { frames: Int ->
+        onStep(frames)
+        Telemetry.capture("playback_stepped", mapOf("frames" to frames))
+    }
+    val scrubStart = {
+        onScrubStart()
+        Telemetry.capture("ruler_scrub_started")
+    }
+    val scrubEnd = {
+        onScrubEnd()
+        Telemetry.capture("ruler_scrub_ended")
+    }
+    val seekFraction = { fraction: Float ->
+        onSeekFraction(fraction)
+        Telemetry.capture("ruler_seeked")
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -195,10 +233,10 @@ internal fun PlaybackFooter(
                     playing = playing,
                     enabled = enabled,
                     hapticsEnabled = hapticsEnabled,
-                    onRewind = onRewind,
-                    onPlayPause = onPlayPause,
-                    onForward = onForward,
-                    onStep = onStep,
+                    onRewind = rewind,
+                    onPlayPause = playPause,
+                    onForward = forward,
+                    onStep = step,
                     showSteps = frameSteps,
                 )
                 FrameRuler(
@@ -207,19 +245,19 @@ internal fun PlaybackFooter(
                     endMs = endMs.toLong(),
                     frameStepMs = frameStepMs,
                     enabled = enabled,
-                    onScrubStart = onScrubStart,
+                    onScrubStart = scrubStart,
                     onScrub = onScrub,
-                    onScrubEnd = onScrubEnd,
+                    onScrubEnd = scrubEnd,
                     events = events,
                     showProgress = true,
-                    onSeekFraction = onSeekFraction,
+                    onSeekFraction = seekFraction,
                     markersMs = markersMs,
                     hapticsEnabled = hapticsEnabled,
                     compact = true,
                     modifier = Modifier.weight(1f),
                 )
-                SpeedCycle(speed = speed, enabled = enabled, onSpeedChange = onSpeedChange)
-                LoopButton(looping = looping, enabled = enabled, onToggle = onToggleLoop)
+                SpeedCycle(speed = speed, enabled = enabled, onSpeedChange = speedChange)
+                LoopButton(looping = looping, enabled = enabled, onToggle = toggleLoop)
             }
         } else {
             Column(
@@ -244,10 +282,10 @@ internal fun PlaybackFooter(
                     }
                     FilterChip(
                         selected = looping,
-                        onClick = onToggleLoop,
+                        onClick = toggleLoop,
                         label = { Text("Loop") },
                     )
-                    SpeedStepper(speed = speed, onSpeedChange = onSpeedChange)
+                    SpeedStepper(speed = speed, onSpeedChange = speedChange)
                 }
                 lapMs?.let { ms ->
                     Row(
@@ -279,12 +317,12 @@ internal fun PlaybackFooter(
                     endMs = endMs.toLong(),
                     frameStepMs = frameStepMs,
                     enabled = enabled,
-                    onScrubStart = onScrubStart,
+                    onScrubStart = scrubStart,
                     onScrub = onScrub,
-                    onScrubEnd = onScrubEnd,
+                    onScrubEnd = scrubEnd,
                     events = events,
                     showProgress = true,
-                    onSeekFraction = onSeekFraction,
+                    onSeekFraction = seekFraction,
                     markersMs = markersMs,
                     hapticsEnabled = hapticsEnabled,
                 )
@@ -294,10 +332,10 @@ internal fun PlaybackFooter(
                         playing = playing,
                         enabled = enabled,
                         hapticsEnabled = hapticsEnabled,
-                        onRewind = onRewind,
-                        onPlayPause = onPlayPause,
-                        onForward = onForward,
-                        onStep = onStep,
+                        onRewind = rewind,
+                        onPlayPause = playPause,
+                        onForward = forward,
+                        onStep = step,
                         showSteps = frameSteps,
                     )
                 }
