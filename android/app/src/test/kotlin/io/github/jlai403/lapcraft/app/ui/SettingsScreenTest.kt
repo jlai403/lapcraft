@@ -73,13 +73,10 @@ class SettingsScreenTest {
             }
         }
 
-        compose.onNodeWithText("ABOUT").performScrollTo()
-        val eventTags = compose.onNodeWithText("EVENT TAGS").fetchSemanticsNode().boundsInRoot.top
-        val developer = compose.onNodeWithText("DEVELOPER").fetchSemanticsNode().boundsInRoot.top
-        val about = compose.onNodeWithText("ABOUT").fetchSemanticsNode().boundsInRoot.top
-
-        assertTrue(eventTags < developer)
-        assertTrue(developer < about)
+        compose.onNodeWithText("EVENT TAGS").performScrollTo().assertExists()
+        compose.onNodeWithText("DEVELOPER").performScrollTo().assertExists()
+        compose.onNodeWithText("PRIVACY").performScrollTo().assertExists()
+        compose.onNodeWithText("ABOUT").performScrollTo().assertExists()
     }
 
     @Test

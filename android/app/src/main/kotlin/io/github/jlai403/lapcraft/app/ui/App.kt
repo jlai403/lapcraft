@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
+import io.github.jlai403.lapcraft.app.telemetry.Telemetry
 import io.github.jlai403.lapcraft.app.updater.UpdateManager
 
 @Composable
@@ -51,6 +52,7 @@ fun App(
     var screen by remember { mutableStateOf<Screen>(Screen.Library) }
     val context = LocalContext.current
     val settings = remember(context) { SettingsStore(context) }
+    var analyticsPrompt by remember { mutableStateOf(!settings.analyticsPromptShown) }
     var currentTyre by remember { mutableStateOf(settings.currentTyre) }
     var currentTcs by remember { mutableStateOf(settings.currentTcs) }
     var currentBrakeBalance by remember { mutableStateOf(settings.currentBrakeBalance) }
@@ -65,6 +67,22 @@ fun App(
         val uri = sharedVideoUri ?: return@LaunchedEffect
         screen = Screen.ImportPick(uri)
         onSharedVideoHandled()
+    }
+
+    LaunchedEffect(screen) {
+        val name = when (screen) {
+            Screen.Library -> "library"
+            Screen.Record -> "record"
+            Screen.Settings -> "settings"
+            is Screen.Player -> "player"
+            is Screen.Compare -> "compare"
+            is Screen.ImportPick -> "import_pick"
+            is Screen.ImportSync -> "sync"
+        }
+        Telemetry.screen(name)
+        if (screen is Screen.Compare) {
+            Telemetry.capture("compare_opened", mapOf("tab" to "video"))
+        }
     }
 
     BackHandler(enabled = screen != Screen.Library && screen !is Screen.ImportSync) {
@@ -173,6 +191,35 @@ fun App(
                             onCheckUpdate = onCheckUpdate,
                         )
                     }
+                }
+                if (analyticsPrompt) {
+                    AlertDialog(
+                        onDismissRequest = {
+                            settings.analyticsPromptShown = true
+                            analyticsPrompt = false
+                        },
+                        title = { Text("Share anonymous usage?") },
+                        text = {
+                            Text(
+                                "LapCraft can send anonymous events to help find bugs and see which " +
+                                    "parts get used. It never sends your PSN ID, lap times, car or " +
+                                    "event names, or file names. You can turn this off in Settings.",
+                            )
+                        },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                settings.analyticsPromptShown = true
+                                Telemetry.setEnabled(context, true)
+                                analyticsPrompt = false
+                            }) { Text("Share") }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = {
+                                settings.analyticsPromptShown = true
+                                analyticsPrompt = false
+                            }) { Text("Not now") }
+                        },
+                    )
                 }
                 UpdatePrompt(update = update)
                 if (activeTab != null) {

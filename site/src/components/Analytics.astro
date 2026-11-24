@@ -1,25 +1,27 @@
 ---
-import ConsentBanner from '../islands/ConsentBanner.svelte'
-import { cfBeacon } from '../lib/consent'
+import { posthogKey, posthogHost, cfBeacon } from '../lib/consent'
+const key = posthogKey()
+const host = posthogHost()
 const beacon = cfBeacon()
 ---
-<!-- Consent Mode v2 defaults: deny until the user opts in. -->
-<script is:inline>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){ window.dataLayer.push(arguments); }
-  gtag('consent', 'default', {
-    analytics_storage: 'denied',
-    ad_storage: 'denied',
-    ad_user_data: 'denied',
-    ad_personalization: 'denied',
-    wait_for_update: 500
-  });
-</script>
+{key && (
+  <script define:vars={{ key, host }}>
+    import posthog from 'posthog-js'
+    if (location.hostname === 'lapcraft.jlai.ca') {
+      posthog.init(key, {
+        api_host: host,
+        cookieless_mode: 'always',
+        autocapture: false,
+        capture_pageview: true,
+        person_profiles: 'never',
+        disable_session_recording: true,
+      })
+    }
+  </script>
+)}
 
 {beacon && (
   <script is:inline define:vars={{ token: beacon }}>
-    // Preview URLs and localhost would only add noise, and the beacon's CORS
-    // preflight fails off the production host.
     if (location.hostname === 'lapcraft.jlai.ca') {
       var s = document.createElement('script');
       s.defer = true;
@@ -29,5 +31,3 @@ const beacon = cfBeacon()
     }
   </script>
 )}
-
-<ConsentBanner client:load />

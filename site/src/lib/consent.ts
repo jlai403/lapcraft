@@ -21,10 +21,15 @@ export function writeConsent(state: 'granted' | 'denied'): void {
   }
 }
 
-export function gtmId(): string {
-  const id = import.meta.env.PUBLIC_GTM_ID ?? ''
-  // Only a well-formed container id may reach the inline script and selector.
-  return /^GTM-[A-Z0-9]{4,12}$/.test(id) ? id : ''
+export function posthogKey(): string {
+  const key = import.meta.env.PUBLIC_POSTHOG_KEY ?? ''
+  // Only a well-formed project key may reach the inline script.
+  return /^phc_[A-Za-z0-9]{20,}$/.test(key) ? key : ''
+}
+
+export function posthogHost(): string {
+  const host = import.meta.env.PUBLIC_POSTHOG_HOST ?? ''
+  return /^https:\/\/[a-z0-9.-]+\.i\.posthog\.com$/.test(host) ? host : 'https://us.i.posthog.com'
 }
 
 export function cfBeacon(): string {

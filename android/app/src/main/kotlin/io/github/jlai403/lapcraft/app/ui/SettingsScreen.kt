@@ -33,8 +33,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
+import io.github.jlai403.lapcraft.app.Diagnostics
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import io.github.jlai403.lapcraft.BuildConfig
@@ -45,6 +50,7 @@ import io.github.jlai403.lapcraft.app.events.EventCache
 import io.github.jlai403.lapcraft.app.events.EventRefresh
 import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
+import io.github.jlai403.lapcraft.app.telemetry.Telemetry
 import io.github.jlai403.lapcraft.app.updater.UpdateManager
 import io.github.jlai403.lapcraft.core.network.Ipv4
 import java.text.DateFormat
@@ -75,6 +81,7 @@ fun SettingsScreen(
     var previewEmpty by remember { mutableStateOf(settings.previewEmptyLibrary) }
     var developerTools by remember { mutableStateOf(settings.developerTools) }
     var eventTags by remember { mutableStateOf(settings.eventTags) }
+    var analyticsEnabled by remember { mutableStateOf(settings.analyticsEnabled) }
     var refreshingEvents by remember { mutableStateOf(false) }
     var eventStatus by remember { mutableStateOf<String?>(null) }
     var eventCache by remember { mutableStateOf(EventCache(context).load()) }
@@ -298,6 +305,31 @@ fun SettingsScreen(
                     UpdatesContent(update = update, onCheckUpdate = onCheckUpdate)
                 }
             }
+        }
+
+        SectionCard(title = "Privacy") {
+            SettingToggleRow(
+                label = "Share anonymous usage",
+                supporting = "Event names and counts only. No PSN ID, lap times, car or event names, or file names.",
+                checked = analyticsEnabled,
+                modifier = Modifier.testTag("analytics-enabled"),
+            ) {
+                analyticsEnabled = it
+                Telemetry.setEnabled(context, it)
+            }
+            SettingRow(
+                label = "Copy diagnostics",
+                value = "Log and clip facts",
+                onClick = {
+                    val report = buildString {
+                        appendLine("LapCraft diagnostics")
+                        Diagnostics.tail(context, 40).forEach { appendLine(it) }
+                    }
+                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    clipboard.setPrimaryClip(ClipData.newPlainText("LapCraft diagnostics", report))
+                    Toast.makeText(context, "Diagnostics copied", Toast.LENGTH_SHORT).show()
+                },
+            )
         }
 
         SectionCard(title = "About") {

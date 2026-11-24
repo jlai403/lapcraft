@@ -8,8 +8,7 @@ import Base from '../layouts/Base.astro'
       <h2 style="font-size:1.2rem;margin:24px 0 8px">This site</h2>
       <ul style="color:var(--subtext);line-height:1.7">
         <li>Cloudflare Web Analytics counts page views. It sets no cookies and does not fingerprint you.</li>
-        <li>A Google Analytics tag loads on every page view, before you choose.</li>
-        <li>If you accept, Google Tag Manager loads tags that may set cookies.</li>
+        <li>PostHog counts page views and a handful of button clicks in cookieless mode. It sets no cookies and creates no person profile.</li>
         <li>The Buy Me a Coffee button in the footer is an image loaded from cdn.buymeacoffee.com, so that host sees your IP address.</li>
         <li>No account, no newsletter, no email capture.</li>
       </ul>
@@ -17,9 +16,11 @@ import Base from '../layouts/Base.astro'
       <ul style="color:var(--subtext);line-height:1.7">
         <li>Laps, clips and settings stay in the app's private storage on your phone.</li>
         <li>Telemetry arrives from Gran Turismo 7 over UDP 33739 and 33740 on your own network.</li>
-        <li>The only outbound request is an optional GT GridStats profile lookup, using a key you paste in Settings.</li>
-        <li>Updates download from GitHub releases and are verified by SHA-256.</li>
-        <li>No accounts, no analytics, no ads, no cloud backup.</li>
+        <li>The app checks GitHub for updates on launch and opens release pages in your browser. It does not download or install anything itself.</li>
+        <li>If you turn on event tags, the app fetches the GT championship schedule and, with a GT GridStats key, driver profiles.</li>
+        <li>If you turn on anonymous usage sharing, the app sends event names and counts to PostHog: which screens open, clip saves, trim failures with a reason code, and import and share counts. It never sends your PSN ID, lap times, car or event names, or file names.</li>
+        <li>The optional GT GridStats profile lookup sends only the PSN ID, using a key you paste in Settings.</li>
+        <li>No accounts, no ads, no cloud backup. Anonymous usage is off by default.</li>
       </ul>
     </div>
   </section>

@@ -48,6 +48,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.ui.PlayerView
 import io.github.jlai403.lapcraft.app.Diagnostics
+import io.github.jlai403.lapcraft.app.telemetry.Telemetry
 import io.github.jlai403.lapcraft.app.replay.ClipTrimmer
 import io.github.jlai403.lapcraft.app.replay.TrimFailureReason
 import io.github.jlai403.lapcraft.app.replay.TrimOutcome
@@ -700,9 +701,26 @@ fun ImportSyncScreen(
                                     when (outcome) {
                                         is SaveOutcome.TrimFailed -> {
                                             Diagnostics.log("trim failed: ${outcome.reason}")
+                                            Telemetry.failed(
+                                                outcome.reason.name,
+                                                mapOf(
+                                                    "codec" to effectiveProfile.videoMime,
+                                                    "keyframe_bytes" to (sourceFile?.length() ?: 0L),
+                                                    "free_bytes" to (store.lapDir(lapId).freeSpace),
+                                                    "duration_ms" to (range?.let { it.endMs - it.startMs } ?: 0L),
+                                                ),
+                                            )
                                             error = trimFailureMessage(outcome.reason, hadClip)
                                         }
                                         is SaveOutcome.Success -> {
+                                            Telemetry.capture(
+                                                "clip_saved",
+                                                mapOf(
+                                                    "duration_ms" to (range?.let { it.endMs - it.startMs } ?: 0L),
+                                                    "profile" to replayPreset.name,
+                                                    "compacted" to effectiveProfile.transcode,
+                                                ),
+                                            )
                                             if (outcome.compactFailed) {
                                                 Toast.makeText(
                                                     context,
