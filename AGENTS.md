@@ -165,7 +165,10 @@ cd android && ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --t
 - Acknowledgements: always-visible row at the bottom of Settings (in the About card) links to GT GridStats (DriverProfileLinks.gridStatsHome).
 - Build: `org.gradle.caching` and configuration cache are on; app unit tests run with 2 forks and a
   1 GB heap (`android/app/build.gradle.kts`). Inner loop is `:app:assembleDebug` (~3 s) plus targeted
-  `--tests`; `:app:lintDebug` (~25 s) is CI/pre-merge only. TrackMap's root carries `testTag("track-map")`.
+  `--tests`; `:app:lintDebug` (~25 s) is CI/pre-merge only.
+- Robolectric android-all is resolved as a Gradle dependency (`robolectricJars`) and copied into
+  `build/robolectric-jars` with `robolectric.dependency.dir` set, so tests never fetch from Maven
+  Central at runtime. Update the pinned coordinate when bumping Robolectric or changing `@Config(sdk)`. TrackMap's root carries `testTag("track-map")`.
   Build types: `debug` (dev), `stable` (production id, UPDATE_CHANNEL=stable), `preview` (id suffix `.preview`).
   Preview icons and label live in `android/app/src/preview/res`; regenerate with `tools/generate-preview-icon.py`.
 - Device tests live in `android/app/src/androidTest` (Espresso + Compose, `AndroidJUnitRunner`). They are
