@@ -129,7 +129,9 @@ cd android && ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --t
   Settings or from the edit sheet's empty state. `Refresh events` forces both feeds even while the
   toggle is off, and `EventCacheFile.lastFetchedAtMs` (newest of the schedule and GridStats stamps)
   drives the card's last-updated line. Daily labels carry the ISO week (`Daily Race A · W47`)
-  while ids stay week-free; Time Trials label by track (`Time Trial · Suzuka`). GridStats dates a
+  while ids stay week-free; Time Trials label by track (`Time Trial · Suzuka`).
+  Championship labels lead with the cup (`Nations Cup 2026 - Exhibition 3 · R1`), and the
+  library detail line hides `series` when the label already names it. GridStats dates a
   daily week Monday 00:00 to Sunday 23:59:59 UTC, but GT7 rolls it at 07:00 UTC, so
   `GridStatsEventParser` anchors the window with `sportModeWeekStart`/`sportModeWeekEnd`
   (Monday 07:00 to the next Monday 06:59:59). `EventCache.replaceGridstats` keeps the outgoing

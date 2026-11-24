@@ -7,6 +7,7 @@ import io.github.jlai403.lapcraft.core.events.CachedEvent
 import io.github.jlai403.lapcraft.core.events.EventKind
 import io.github.jlai403.lapcraft.core.events.normalizedDaily
 import io.github.jlai403.lapcraft.core.events.repairedFrom
+import io.github.jlai403.lapcraft.core.events.toTag
 import io.github.jlai403.lapcraft.core.session.LapSummary
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -102,8 +103,16 @@ object EventRefresh {
     private fun repairChampionshipTags(context: android.content.Context, events: List<CachedEvent>) {
         if (events.none { it.kind == EventKind.Championship }) return
         val store = lapStore(context)
+        val byId = events.associateBy { it.id }
         store.summaries().forEach { lap ->
             val tag = lap.event ?: return@forEach
+            if (!tag.auto || tag.kind != EventKind.Championship) return@forEach
+            val cached = byId[tag.id]
+            if (cached != null) {
+                val refreshed = cached.toTag(auto = true)
+                if (refreshed != tag) store.setEvent(lap.lapId, refreshed)
+                return@forEach
+            }
             val createdAtMs = runCatching { Instant.parse(lap.createdAt).toEpochMilli() }.getOrNull() ?: return@forEach
             val repaired = tag.repairedFrom(events, createdAtMs) ?: return@forEach
             store.setEvent(lap.lapId, repaired)
