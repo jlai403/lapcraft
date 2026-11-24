@@ -25,6 +25,10 @@ on:
 permissions:
   contents: read
 
+env:
+  PUBLIC_POSTHOG_KEY: ${{ vars.PUBLIC_POSTHOG_KEY }}
+  PUBLIC_POSTHOG_HOST: ${{ vars.PUBLIC_POSTHOG_HOST }}
+
 concurrency:
   group: android-${{ github.ref }}
   cancel-in-progress: true

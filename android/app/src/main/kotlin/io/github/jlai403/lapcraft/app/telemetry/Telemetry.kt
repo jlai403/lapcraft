@@ -34,13 +34,13 @@ object Telemetry {
 
     private fun enable(context: Context) {
         if (enabled) return
-        if (BuildConfig.POSTHOG_PROJECT_TOKEN.isBlank()) return
+        if (BuildConfig.POSTHOG_KEY.isBlank()) return
         val installer = runCatching {
             context.packageManager.getInstallerPackageName(context.packageName)
         }.getOrNull()
         val isPlayInstall = installer == "com.android.vending"
         val config = PostHogAndroidConfig(
-            apiKey = BuildConfig.POSTHOG_PROJECT_TOKEN,
+            apiKey = BuildConfig.POSTHOG_KEY,
             host = BuildConfig.POSTHOG_HOST,
         ).apply {
             captureApplicationLifecycleEvents = true
