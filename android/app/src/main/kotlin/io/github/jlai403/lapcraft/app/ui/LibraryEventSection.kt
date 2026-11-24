@@ -72,7 +72,9 @@ fun PastEventsHeader(
 private fun eventDetail(group: LapEventGroup): String {
     val tag = group.tag
     val parts = mutableListOf<String>()
-    tag?.series?.let { parts += it }
+    tag?.let { t ->
+        t.series?.takeIf { !t.label.contains(it, ignoreCase = true) }?.let { parts += it }
+    }
     val start = tag?.startMs
     val end = tag?.endMs
     if (start != null && end != null && end > start) {

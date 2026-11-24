@@ -110,6 +110,41 @@ class EventRefreshTest {
         val repaired = lapStore(context).summaries().single().event!!
         assertEquals("champ-22-1801-r4", repaired.id)
         assertEquals(Instant.parse("2026-11-22T04:59:59Z").toEpochMilli(), repaired.endMs)
+        assertEquals("Manufacturers Cup 2026 - Exhibition 3 · R4", repaired.label)
+    }
+
+    @Test
+    fun `an auto championship tag is relabelled when its event is still cached`() = runBlocking {
+        val old = EventTag(
+            id = "champ-22-1801-r4",
+            kind = EventKind.Championship,
+            label = "World Series 2026 - Exhibition 3 · R4",
+            series = "Manufacturers Cup",
+            round = 4,
+            auto = true,
+            startMs = Instant.parse("2026-11-21T15:00:00Z").toEpochMilli(),
+            endMs = Instant.parse("2026-11-22T04:59:59Z").toEpochMilli(),
+        )
+        SessionFixtures.install(
+            context,
+            SessionFixtures.session(
+                createdAt = "2026-11-21T18:00:00Z",
+                lapTimesMs = listOf(90_000),
+                event = old,
+            ),
+        )
+
+        EventRefresh.refresh(
+            context,
+            force = true,
+            fetchCdn = { northAmericaR4 },
+            fetchApi = { _, _ -> null },
+            regionFolder = PolyphonyRegion.NORTH_AMERICA,
+        )
+
+        val repaired = lapStore(context).summaries().single().event!!
+        assertEquals("champ-22-1801-r4", repaired.id)
+        assertEquals("Manufacturers Cup 2026 - Exhibition 3 · R4", repaired.label)
     }
 
     @Test

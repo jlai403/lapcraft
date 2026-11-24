@@ -220,7 +220,12 @@ internal fun EditLapSheet(
     } else {
         val query = EventMatcher.normalize(eventQuery)
         localEvents.filter { event ->
-            listOfNotNull(event.label, event.trackName, event.series, event.carClass)
+            listOfNotNull(
+                event.label,
+                event.trackName,
+                event.series?.takeIf { !event.label.contains(it, ignoreCase = true) },
+                event.carClass,
+            )
                 .any { EventMatcher.normalize(it).contains(query) }
         }.sortedByDescending { suggestionRank(it, lapTimeMs) }.take(8)
     }
@@ -337,7 +342,7 @@ internal fun EditLapSheet(
                                 suggestionsOpen = true
                             },
                             singleLine = true,
-                            placeholder = { Text("Event name (e.g. World Series · R3)") },
+                            placeholder = { Text("Event name (e.g. Nations Cup · R3)") },
                             shape = RoundedCornerShape(14.dp),
                             trailingIcon = if (lap.event != null) {
                                 {

@@ -25,6 +25,7 @@ object PolyphonyCdnParser {
             val seriesMap = o["season_title_map"]?.jsonObject
             val series = seriesMap?.get("GB")?.jsonPrimitive?.content
                 ?: seriesMap?.get("US")?.jsonPrimitive?.content
+            val cup = cupName(series, title)
             val seasonId = o["season_id"]?.jsonPrimitive?.content ?: return@forEach
             val seriesId = o["series_id"]?.jsonPrimitive?.content ?: return@forEach
             val rounds = o["rounds"]?.jsonArray ?: return@forEach
@@ -45,7 +46,7 @@ object PolyphonyCdnParser {
                     CachedEvent(
                         id = id,
                         kind = EventKind.Championship,
-                        label = "$title · R$roundId",
+                        label = championshipLabel(cup, title, series, roundId),
                         series = series,
                         round = roundId,
                         carClass = carClass,
@@ -75,5 +76,37 @@ object PolyphonyCdnParser {
         "CAR_CLASS_GRX" -> "Gr.X"
         "CAR_CLASS_GRN" -> "Gr.N"
         else -> null
+    }
+
+    private fun cupName(series: String?, title: String?): String? {
+        for (text in listOf(series, title)) {
+            val s = text ?: continue
+            if (s.contains("Manufacturers Cup")) return "Manufacturers Cup"
+            if (s.contains("Nations Cup")) return "Nations Cup"
+        }
+        return null
+    }
+
+    private fun championshipLabel(cup: String?, title: String, series: String?, roundId: Int): String {
+        val dot = " · "
+        if (cup == null) return "$title$dot" + "R$roundId"
+        val cupInTitle = title.contains(cup)
+        val eventName = if (cupInTitle) {
+            series
+        } else {
+            val remainder = title.removePrefix("World Series")
+            if (remainder === title) title else {
+                val trimmed = remainder.trimEnd()
+                if (trimmed.isEmpty() || trimmed.startsWith(" ")) trimmed else " $trimmed"
+            }
+        }
+        val head = if (eventName.isNullOrBlank()) {
+            cup
+        } else if (cupInTitle) {
+            "$cup · $eventName"
+        } else {
+            "$cup$eventName"
+        }
+        return "$head$dot" + "R$roundId"
     }
 }
