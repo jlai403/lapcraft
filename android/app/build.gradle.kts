@@ -57,8 +57,8 @@ android {
         buildConfigField("String", "BUILD_NUMBER", "\"$buildNumber\"")
         buildConfigField("String", "GIT_SHA", "\"$gitSha\"")
         buildConfigField("String", "UPDATE_CHANNEL", "\"preview\"")
-        buildConfigField("String", "POSTHOG_PROJECT_TOKEN", "\"${providers.environmentVariable("POSTHOG_PROJECT_TOKEN").orNull.orEmpty()}\"")
-        buildConfigField("String", "POSTHOG_HOST", "\"${providers.environmentVariable("POSTHOG_HOST").orNull ?: "https://us.i.posthog.com"}\"")
+        buildConfigField("String", "POSTHOG_KEY", "\"${providers.environmentVariable("PUBLIC_POSTHOG_KEY").orNull.orEmpty()}\"")
+        buildConfigField("String", "POSTHOG_HOST", "\"${providers.environmentVariable("PUBLIC_POSTHOG_HOST").orNull ?: "https://us.i.posthog.com"}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
