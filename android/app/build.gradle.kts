@@ -124,7 +124,26 @@ android {
     }
 }
 
+// Robolectric fetches android-all at test runtime via MavenArtifactFetcher, which
+// bypasses Gradle's cache, retries and mirrors, so a single Maven Central blip
+// fails every Robolectric test class. Declare the jar as a real dependency and
+// point Robolectric at the resolved copy so it never leaves the machine.
+val robolectricJars by configurations.creating {
+    isCanBeResolved = true
+    isCanBeConsumed = false
+}
+
+val copyRobolectricJars by tasks.registering(Copy::class) {
+    from(robolectricJars)
+    into(layout.buildDirectory.dir("robolectric-jars"))
+}
+
 tasks.withType<Test>().configureEach {
+    dependsOn(copyRobolectricJars)
+    systemProperty(
+        "robolectric.dependency.dir",
+        layout.buildDirectory.dir("robolectric-jars").get().asFile.absolutePath,
+    )
     maxParallelForks = 2
     maxHeapSize = "1g"
 }
@@ -157,6 +176,7 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
+    robolectricJars("org.robolectric:android-all-instrumented:15-robolectric-13954326-i7")
     testImplementation("androidx.compose.ui:ui-test-junit4")
     testImplementation("androidx.test:core-ktx:1.7.0")
     testImplementation("org.robolectric:robolectric:4.17")
