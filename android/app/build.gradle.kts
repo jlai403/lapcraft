@@ -46,6 +46,7 @@ if (releaseRequested && !hasReleaseSigning) {
 
 android {
     namespace = "io.github.jlai403.lapcraft"
+    // Preview trigger: no functional change.
     compileSdk = 36
 
     defaultConfig {
