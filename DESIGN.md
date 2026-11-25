@@ -209,7 +209,7 @@ Dialogs use Material 3 `AlertDialog`. Destructive confirmation labels are red; c
 ### Settings
 
 - Header: `Settings`, subtitle `Display, console, replay, and data`.
-- Cards in order: **Display & playback**, **Console**, **Replay compression**, **Driver profile**, **Library**, **Event tags**, **Developer** (preview channel only), **About**.
+- Cards in order: **Display & playback**, **Console**, **Capture**, **Replay compression**, **Driver profile**, **Library**, **Event tags**, **Developer** (preview channel only), **About**.
 - Every setting uses `SettingRow`: label left, at most one line of supporting text, value and trailing control flush right; the whole row is the 44 dp target. `SettingToggleRow` uses `toggleable` with `Role.Switch` and a display-only `Switch`, so a row is one semantic node. Toggle rows are fully clickable; the switch is display-only.
 - Display & playback: `Imperial units`, `Frame ruler haptics` (supporting text `Ticks as you drag the ruler.`), `Telemetry HUD`, plus `Default playback speed` (0.5×/1×/1.5×/2×) and `Chart window` (±2/±3/±5/±10 s) dropdown rows. Tapping the row opens its menu. Haptics and HUD are on by default.
 - Console: `PS5 address` row showing the saved address or `Not set`. Tapping opens a dialog with the IPv4 field and `Save IP` / `Cancel`; an invalid address keeps the dialog open with `Enter a valid IPv4 address`, and a valid save closes it and the row reads `Saved <ip>`.

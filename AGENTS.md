@@ -177,6 +177,11 @@ cd android && ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --t
   device-gated (no emulator/`/dev/kvm` in this environment): run with
   `:app:connectedDebugAndroidTest` or a Gradle managed device once `/dev/kvm` is exposed.
 
+## Post-capture edit
+
+- After a lap saves, the edit sheet opens over the Record screen (toggle `Open lap details after capture` in Settings → Capture, default on). The Saved card also has an `Edit lap` action. The sheet is hosted by `app/ui/LapEditHost.kt`.
+- Event tags are detected from the feed using track, car class, the car itself, tyre rules and the completed lap number. `core/events/EventMatcher` scores these signals and only auto-tags when at least two agree (or a single track match is the only candidate); otherwise the sheet lists ranked suggestions with a reason line. Cached events carry `laps`, `tyreFamily`, `tyreCompounds` and `cars` from the GridStats feed; dailies need a GridStats key.
+
 ## Library transfer
 
 - `LibraryArchive` (`core/.../session/LibraryArchive.kt`) writes a zip: `library.json` with `format`, `exportedAt`, `laps`, `bytes`, an optional `profiles.json` with the cached GT Grid profiles for the exported laps' drivers, then one `library/<id>/` per lap holding `session.json`, `lap.json`, the `.gt7lap`, and any clip or pending source the lap references.

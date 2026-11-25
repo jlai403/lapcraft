@@ -1,6 +1,7 @@
 package io.github.jlai403.lapcraft.app.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -34,6 +35,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
+import io.github.jlai403.lapcraft.core.capture.CaptureState
+import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.app.telemetry.Telemetry
 import io.github.jlai403.lapcraft.app.updater.UpdateManager
 
@@ -52,6 +55,26 @@ fun App(
     var screen by remember { mutableStateOf<Screen>(Screen.Library) }
     val context = LocalContext.current
     val settings = remember(context) { SettingsStore(context) }
+    var editingLapId by remember { mutableStateOf<LapId?>(null) }
+    var lastOpenedSave by remember { mutableStateOf<String?>(null) }
+    var pendingImportLapId by remember { mutableStateOf<LapId?>(null) }
+    val editImportLauncher = rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        val id = pendingImportLapId
+        pendingImportLapId = null
+        if (uri != null && id != null) screen = Screen.ImportSync(id, uri.toString())
+    }
+
+    val savedLapId = (capture.capture as? CaptureState.Saved)?.lapId
+    LaunchedEffect(savedLapId, screen) {
+        val id = savedLapId ?: return@LaunchedEffect
+        if (screen != Screen.Record) return@LaunchedEffect
+        if (!settings.openEditAfterCapture) return@LaunchedEffect
+        if (lastOpenedSave == id.value) return@LaunchedEffect
+        lastOpenedSave = id.value
+        editingLapId = id
+    }
     var analyticsPrompt by remember { mutableStateOf(!settings.analyticsPromptShown) }
     var currentTyre by remember { mutableStateOf(settings.currentTyre) }
     var currentTcs by remember { mutableStateOf(settings.currentTcs) }
@@ -183,6 +206,7 @@ fun App(
                             onCapture = onCapture,
                             onCancelCapture = onCancelCapture,
                             onOpenLap = { lapId -> screen = Screen.Player(lapId) },
+                            onEditLap = { lapId -> editingLapId = lapId },
                             onOpenSettings = { screen = Screen.Settings },
                         )
 
@@ -191,6 +215,21 @@ fun App(
                             onCheckUpdate = onCheckUpdate,
                         )
                     }
+                }
+                editingLapId?.let { id ->
+                    LapEditHost(
+                        lapId = id,
+                        onDismiss = { editingLapId = null },
+                        onAddReplay = { lapId ->
+                            editingLapId = null
+                            pendingImportLapId = lapId
+                            editImportLauncher.launch(arrayOf("video/*"))
+                        },
+                        onOpenPlayStation = {},
+                        onResumeSync = { lapId -> screen = Screen.ImportSync(lapId, null) },
+                        developerTools = settings.developerTools,
+                        onMessage = { msg -> android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT).show() },
+                    )
                 }
                 if (analyticsPrompt) {
                     AlertDialog(

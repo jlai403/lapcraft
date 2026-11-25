@@ -1,6 +1,7 @@
 package io.github.jlai403.lapcraft.app.events
 
 import io.github.jlai403.lapcraft.core.events.CachedEvent
+import io.github.jlai403.lapcraft.core.events.EventKind
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -35,7 +36,8 @@ class EventCache(private val rootDir: File) {
     fun events(): List<CachedEvent> = load().events
 
     fun isGridstatsStale(nowMs: Long = System.currentTimeMillis()): Boolean =
-        nowMs - load().gridstatsFetchedAtMs > GRIDSTATS_TTL_MS
+        nowMs - load().gridstatsFetchedAtMs > GRIDSTATS_TTL_MS ||
+            load().events.any { it.source == "gridstats" && it.kind == EventKind.Daily && it.laps == null }
 
     fun isPolyphonyStale(
         nowMs: Long = System.currentTimeMillis(),

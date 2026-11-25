@@ -25,6 +25,9 @@ class TrackCatalog(context: Context) {
 
     fun candidates(samples: List<Sample>): List<TrackCandidate> = analyze(samples).candidates
 
+    fun officialName(id: String): String? =
+        signatures.firstOrNull { it.officialId == id }?.name
+
     private fun analyze(samples: List<Sample>): TrackMatch {
         val signature = TrackIdentifier.signature(samples)
         val match = if (signature == null) {

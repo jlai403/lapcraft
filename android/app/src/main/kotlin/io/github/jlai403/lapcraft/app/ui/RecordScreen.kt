@@ -46,6 +46,7 @@ fun RecordScreen(
     onCapture: () -> Unit,
     onCancelCapture: () -> Unit,
     onOpenLap: (LapId) -> Unit,
+    onEditLap: (LapId) -> Unit = {},
     imperial: Boolean = false,
     ps5Ip: String = "",
     onOpenSettings: () -> Unit = {},
@@ -164,6 +165,7 @@ fun RecordScreen(
             onCapture = onCapture,
             onCancelCapture = onCancelCapture,
             onOpenLap = onOpenLap,
+            onEditLap = onEditLap,
         )
         Spacer(Modifier.height(8.dp))
     }
@@ -376,6 +378,7 @@ private fun CaptureCard(
     onCapture: () -> Unit,
     onCancelCapture: () -> Unit,
     onOpenLap: (LapId) -> Unit,
+    onEditLap: (LapId) -> Unit = {},
 ) {
     val canCapture = state.connected && state.lapStartObserved
     val hint = when {
@@ -414,6 +417,11 @@ private fun CaptureCard(
                         modifier = Modifier.weight(1f),
                     )
                 }
+                GhostPill(
+                    text = "Edit lap",
+                    onClick = { onEditLap(capture.lapId) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
 
             CaptureState.Capturing -> {

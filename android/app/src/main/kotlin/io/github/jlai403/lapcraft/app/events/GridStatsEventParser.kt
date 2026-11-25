@@ -37,6 +37,19 @@ object GridStatsEventParser {
                 val track = o["track_name"]?.jsonPrimitive?.content
                 val begin = o["begin_date"]?.jsonPrimitive?.content
                 val carClass = o["car_class"]?.jsonPrimitive?.content
+                val laps = o["laps"]?.jsonPrimitive?.content?.toIntOrNull()
+                val rawPayload = o["raw_payload"]?.jsonObject
+                val regulation = rawPayload?.get("regulation")?.jsonObject
+                val tyreFamily = regulation?.get("tire")?.jsonPrimitive?.content
+                val compounds = regulation?.get("required_compounds")?.jsonArray
+                    ?.mapNotNull { it.jsonPrimitive.content }
+                    ?: regulation?.get("compounds")?.jsonArray?.mapNotNull { it.jsonPrimitive.content }
+                    ?: emptyList()
+                val metaCar = o["meta_car"]?.jsonObject?.get("name")?.jsonPrimitive?.content
+                val otherCars = o["other_cars"]?.jsonArray?.mapNotNull {
+                    it.jsonObject["name"]?.jsonPrimitive?.content
+                }.orEmpty()
+                val cars = listOfNotNull(metaCar) + otherCars
                 val startMs = dailyWeekStart(begin) ?: return@forEach
                 // The feed dates a daily week Monday 00:00 to Sunday 23:59:59; GT7
                 // rolls it at 07:00 UTC, so the raw end is seven hours early.
@@ -57,6 +70,10 @@ object GridStatsEventParser {
                         endMs = endMs,
                         source = "gridstats",
                         fetchedAtMs = now,
+                        laps = laps,
+                        tyreFamily = tyreFamily,
+                        tyreCompounds = compounds,
+                        cars = cars,
                     )
                 )
             }
@@ -81,6 +98,10 @@ object GridStatsEventParser {
             val track = o["track_name"]?.jsonPrimitive?.content ?: o["track"]?.jsonPrimitive?.content
             val begin = o["begin_date"]?.jsonPrimitive?.content
             val end = o["end_date"]?.jsonPrimitive?.content
+            val requiredCar = o["car_name"]?.jsonPrimitive?.content
+            val regulation = o["regulation"]?.jsonObject
+            val tyreFamily = regulation?.get("tire")?.jsonPrimitive?.content
+            val compounds = regulation?.get("compounds")?.jsonArray?.mapNotNull { it.jsonPrimitive.content }.orEmpty()
             val startMs = parseDate(begin) ?: return@forEach
             val endMs = parseDate(end) ?: startMs
             val ownerCar = ownerResults.firstOrNull { it.eventId == eventId }?.carName
@@ -100,6 +121,9 @@ object GridStatsEventParser {
                     endMs = endMs,
                     source = "gridstats",
                     fetchedAtMs = now,
+                    cars = listOfNotNull(requiredCar),
+                    tyreFamily = tyreFamily,
+                    tyreCompounds = compounds,
                 )
             )
         }

@@ -92,6 +92,10 @@ class SettingsStore(context: Context) {
         get() = prefs.getBoolean(KEY_EVENT_TAGS, false)
         set(value) = prefs.edit().putBoolean(KEY_EVENT_TAGS, value).apply()
 
+    var openEditAfterCapture: Boolean
+        get() = prefs.getBoolean(KEY_OPEN_EDIT_AFTER_CAPTURE, true)
+        set(value) = prefs.edit().putBoolean(KEY_OPEN_EDIT_AFTER_CAPTURE, value).apply()
+
     var analyticsEnabled: Boolean
         get() = prefs.getBoolean(KEY_ANALYTICS_ENABLED, false)
         set(value) = prefs.edit().putBoolean(KEY_ANALYTICS_ENABLED, value).apply()
@@ -140,6 +144,7 @@ class SettingsStore(context: Context) {
         const val KEY_TRACK_ID_VERSION = "track_id_version"
         const val KEY_SEED_VERSION = "seed_version"
         const val KEY_EVENT_TAGS = "event_tags"
+    const val KEY_OPEN_EDIT_AFTER_CAPTURE = "open_edit_after_capture"
     const val KEY_ANALYTICS_ENABLED = "analytics_enabled"
     const val KEY_ANALYTICS_PROMPT_SHOWN = "analytics_prompt_shown"
         const val KEY_CURRENT_TYRE = "current_tyre"
