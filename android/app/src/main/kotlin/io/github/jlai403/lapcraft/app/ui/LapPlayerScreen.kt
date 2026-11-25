@@ -439,6 +439,8 @@ fun LapPlayerScreen(
         }
     }
     val subtitle = listOfNotNull(session?.trackLabel, driverLabel).joinToString(" · ").ifBlank { null }
+    val carLabel = session?.let { CarCatalog(context).name(it.carCode) ?: it.carName.takeIf { name -> name.isNotBlank() } }
+    val collapsedSubtitle = listOfNotNull(session?.trackLabel, carLabel, driverLabel).joinToString(" · ").ifBlank { null }
     val currentStats = remember(samples, lap) {
         lap?.let { lapStats(samples.lapWindow(it), it) }
     }
@@ -450,7 +452,7 @@ fun LapPlayerScreen(
         ScreenHeader(
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
             title = lap?.let { lapTimeLabel(it.lapTimeMs) }.orEmpty(),
-            subtitle = null,
+            subtitle = collapsedSubtitle,
             onBack = onBack,
             onTitleClick = { headerExpanded = !headerExpanded },
             titleExpanded = headerExpanded,
