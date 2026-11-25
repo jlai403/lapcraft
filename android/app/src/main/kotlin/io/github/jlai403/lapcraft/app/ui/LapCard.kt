@@ -244,7 +244,7 @@ internal fun LapCard(
                         NumericText(
                             lapTimeLabel(lap.lapTimeMs),
                             style = MaterialTheme.typography.displaySmall,
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.weight(1f).testTag("lap-time"),
                         )
                         when {
                             fastest && showFastestLabel -> Text(
