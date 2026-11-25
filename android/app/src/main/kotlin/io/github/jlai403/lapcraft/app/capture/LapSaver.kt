@@ -22,7 +22,7 @@ class LapSaver(
     private val trackMatch: (List<Sample>) -> TrackMatch? = { null },
     private val driverPsnId: () -> String? = { null },
     private val carName: (Int) -> String? = { null },
-    private val eventTag: (Int, String, Long, Int) -> io.github.jlai403.lapcraft.core.events.EventTag? = { _, _, _, _ -> null },
+    private val eventTag: (Int, String, Long, Int, io.github.jlai403.lapcraft.core.tire.TyreCompound?) -> io.github.jlai403.lapcraft.core.events.EventTag? = { _, _, _, _, _ -> null },
     private val tyre: () -> io.github.jlai403.lapcraft.core.tire.TyreCompound? = { null },
     private val tcs: () -> Int? = { null },
     private val brakeBalance: () -> Int? = { null },
@@ -36,6 +36,7 @@ class LapSaver(
         val match = trackMatch(lapSamples)
         val resolvedTrack = match?.name ?: trackName(lapSamples) ?: "Unknown"
         val resolvedTrackId = match?.officialId ?: ""
+        val lapTyre = tyre()
         val record = LapRecord(
             capturedAt = now.toString(),
             lapTimeMs = boundary.lapTimeMs,
@@ -48,11 +49,12 @@ class LapSaver(
             endTickNanos = boundary.endNanos,
             driverPsnId = driverPsnId()?.trim()?.takeIf { it.isNotEmpty() },
             event = runCatching {
-                eventTag(carCode, resolvedTrack, now.toEpochMilli(), boundary.lapTimeMs)
+                eventTag(carCode, resolvedTrack, now.toEpochMilli(), boundary.lapNumber, lapTyre)
             }.getOrNull(),
-            tyre = tyre(),
+            tyre = lapTyre,
             tcs = tcs()?.coerceIn(TCS_LEVELS),
             brakeBalance = brakeBalance()?.coerceIn(BRAKE_BALANCE_LEVELS),
+            lapCount = boundary.lapNumber,
         )
         store.save(LapId(id), record)
         val stored = samples.filter {

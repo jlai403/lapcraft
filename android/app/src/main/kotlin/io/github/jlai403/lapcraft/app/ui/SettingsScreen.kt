@@ -81,6 +81,7 @@ fun SettingsScreen(
     var previewEmpty by remember { mutableStateOf(settings.previewEmptyLibrary) }
     var developerTools by remember { mutableStateOf(settings.developerTools) }
     var eventTags by remember { mutableStateOf(settings.eventTags) }
+    var openEditAfterCapture by remember { mutableStateOf(settings.openEditAfterCapture) }
     var analyticsEnabled by remember { mutableStateOf(settings.analyticsEnabled) }
     var refreshingEvents by remember { mutableStateOf(false) }
     var eventStatus by remember { mutableStateOf<String?>(null) }
@@ -184,6 +185,18 @@ fun SettingsScreen(
                 onClick = { ipDialog = true },
                 trailing = { ChevronDown() },
             )
+        }
+
+        SectionCard(title = "Capture") {
+            SettingToggleRow(
+                label = "Open lap details after capture",
+                supporting = "Opens the lap's edit sheet when a lap is saved, so you can set the driver and event tag.",
+                checked = openEditAfterCapture,
+                modifier = Modifier.testTag("open-edit-after-capture"),
+            ) {
+                openEditAfterCapture = it
+                settings.openEditAfterCapture = it
+            }
         }
 
         SectionCard(title = "Replay compression") {

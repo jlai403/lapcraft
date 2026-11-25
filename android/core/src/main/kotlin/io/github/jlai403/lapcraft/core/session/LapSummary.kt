@@ -24,6 +24,8 @@ data class LapSummary(
     val videoBytes: Long = 0,
     val telemetryBytes: Long = 0,
     val pendingBytes: Long = 0,
+    val carCode: Int = 0,
+    val lapCount: Int = 0,
 )
 
 enum class LapSort { Newest, Fastest, Track, Event }

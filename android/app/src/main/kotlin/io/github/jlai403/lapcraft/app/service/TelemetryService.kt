@@ -154,7 +154,9 @@ class TelemetryService : Service() {
                             trackMatch = TrackCatalog(this)::match,
                             driverPsnId = { driverProfiles.owner()?.psnId },
                             carName = CarCatalog(this)::name,
-                            eventTag = EventTagger(this)::tag,
+                            eventTag = { carCode, trackLabel, createdAtMs, lapNumber, tyre ->
+                                EventTagger(this).tag(carCode, trackLabel, createdAtMs, lapNumber, tyre)
+                            },
                             tyre = { settings.currentTyre },
                             tcs = { settings.currentTcs },
                             brakeBalance = { settings.currentBrakeBalance },

@@ -166,6 +166,8 @@ open class LapStore(
                 videoBytes = replayFile?.length() ?: 0,
                 telemetryBytes = telemetryFile?.length() ?: 0,
                 pendingBytes = pendingFile?.length() ?: 0,
+                carCode = record.carCode,
+                lapCount = record.lapCount,
             )
         }.sortedByDescending { parseInstant(it.createdAt) }
     }

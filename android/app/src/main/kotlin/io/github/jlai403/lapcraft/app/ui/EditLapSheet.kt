@@ -51,6 +51,8 @@ import io.github.jlai403.lapcraft.app.profile.GridStatsProfileClient
 import io.github.jlai403.lapcraft.app.track.TrackNamer
 import io.github.jlai403.lapcraft.core.events.CachedEvent
 import io.github.jlai403.lapcraft.core.events.EventKind
+import io.github.jlai403.lapcraft.core.events.EventReason
+import io.github.jlai403.lapcraft.core.events.EventSuggestion
 import io.github.jlai403.lapcraft.core.events.EventMatcher
 import io.github.jlai403.lapcraft.core.events.EventTag
 import io.github.jlai403.lapcraft.core.events.eventRangeLabel
@@ -88,6 +90,7 @@ internal fun EditLapSheet(
     onReencode: () -> Unit = {},
     onRemoveReplay: () -> Unit = {},
     events: List<CachedEvent> = emptyList(),
+    eventSuggestions: List<EventSuggestion> = emptyList(),
     onAssignEvent: (EventTag?) -> Unit = {},
     tyre: io.github.jlai403.lapcraft.core.tire.TyreCompound? = null,
     onAssignTyre: (io.github.jlai403.lapcraft.core.tire.TyreCompound?) -> Unit = {},
@@ -335,6 +338,35 @@ internal fun EditLapSheet(
                 label = "Event",
                 value = {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        if (lap.event == null && eventSuggestions.isNotEmpty()) {
+                            Text(
+                                "Suggested",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            eventSuggestions.forEach { suggestion ->
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { pickEvent(suggestion.event) }
+                                        .padding(vertical = 4.dp)
+                                        .testTag("event-suggestion-${suggestion.event.id}"),
+                                    verticalArrangement = Arrangement.spacedBy(0.dp),
+                                ) {
+                                    Text(suggestion.event.label, style = MaterialTheme.typography.bodyMedium)
+                                    Text(
+                                        listOfNotNull(
+                                            suggestion.event.trackName,
+                                            suggestion.event.carClass,
+                                            suggestion.event.laps?.let { "$it laps" },
+                                            suggestion.reasons.map { reasonLabel(it) }.distinct().joinToString(" · ").takeIf { it.isNotBlank() },
+                                        ).distinct().joinToString(" · "),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+                        }
                         OutlinedTextField(
                             value = eventQuery,
                             onValueChange = {
@@ -728,6 +760,13 @@ private fun RemoveDriverDialog(profile: DriverProfile, onConfirm: () -> Unit, on
 }
 
 private const val SUGGESTION_NEAR_MS = 12L * 60 * 60 * 1000
+
+private fun reasonLabel(reason: EventReason): String = when (reason) {
+    EventReason.Track -> "same track"
+    EventReason.CarClass -> "same class"
+    EventReason.Car -> "your car has run it"
+    EventReason.Tyre -> "tyres match"
+}
 
 private fun suggestionRank(event: CachedEvent, lapMs: Long?): Int {
     if (lapMs == null) return 0

@@ -28,6 +28,7 @@ data class LapRecord(
     val tyre: TyreCompound? = null,
     val tcs: Int? = null,
     val brakeBalance: Int? = null,
+    val lapCount: Int = 0,
 )
 
 // toLapView() lives in LapView.kt
