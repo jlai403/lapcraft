@@ -583,14 +583,22 @@ fun LibraryScreen(
                         }.toSet()
                         if (currentFlat.isNotEmpty()) {
                             itemsIndexed(items = currentFlat, key = { _, lap -> lap.lapId.value }) { index, lap ->
+                                val group = currentGroupAt[index]
                                 if (index in newGroupIndices) {
-                                    CurrentEventHeader(group = currentGroupAt[index])
+                                    CurrentEventHeader(group = group, isFirst = index == 0)
                                 }
-                                val fastestLap = fastest[lap.trackKey]
-                                val ranked = (trackCounts[lap.trackKey] ?: 0) >= 2
-                                val isFastest = ranked && fastestLap?.lapId == lap.lapId
-                                val deltaMs = if (ranked && !isFastest && fastestLap != null) {
-                                    lap.lapTimeMs - fastestLap.lapTimeMs
+                                val tagged = group.tag != null
+                                val groupSharedTrack = group.laps.map { it.trackLabel }.distinct().size <= 1
+                                val groupSharedDate = group.laps.map { it.createdAt.take(10) }.distinct().size <= 1
+                                val bestMs = if (tagged) group.bestLapMs else fastest[lap.trackKey]?.lapTimeMs
+                                val ranked = if (tagged) {
+                                    group.laps.size >= 2 && lap.trackLabel != TrackNamer.UNKNOWN
+                                } else {
+                                    (trackCounts[lap.trackKey] ?: 0) >= 2
+                                }
+                                val isFastest = ranked && bestMs != null && lap.lapTimeMs == bestMs
+                                val deltaMs = if (ranked && !isFastest && bestMs != null) {
+                                    lap.lapTimeMs - bestMs
                                 } else {
                                     null
                                 }
@@ -615,12 +623,15 @@ fun LibraryScreen(
                                             picks.getOrNull(1)?.lapId == lap.lapId -> LapPick.Reference
                                             else -> null
                                         },
+                                        showTrack = !tagged || !groupSharedTrack,
+                                        showDate = !tagged || !groupSharedDate,
+                                        showFastestLabel = !tagged,
                                     )
                                     if (index != currentFlat.lastIndex && currentGroupAt[index + 1].key == currentGroupAt[index].key) {
                                         HorizontalDivider(
                                             modifier = Modifier.testTag("lap-divider"),
                                             thickness = 1.dp,
-                                            color = Hairline,
+                                            color = MaterialTheme.colorScheme.outlineVariant,
                                         )
                                     }
                                 }

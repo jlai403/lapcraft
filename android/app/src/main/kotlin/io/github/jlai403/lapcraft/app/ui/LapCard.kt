@@ -72,6 +72,9 @@ internal fun LapCard(
     modifier: Modifier = Modifier,
     compareMode: Boolean = false,
     pick: LapPick? = null,
+    showTrack: Boolean = true,
+    showDate: Boolean = true,
+    showFastestLabel: Boolean = true,
 ) {
     var width by remember { mutableIntStateOf(0) }
     var menuOpen by remember { mutableStateOf(false) }
@@ -213,19 +216,23 @@ internal fun LapCard(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
+                        if (showDate) {
+                            Text(
+                                shortDateLabel(lap.createdAt),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                    if (showTrack) {
                         Text(
-                            shortDateLabel(lap.createdAt),
-                            style = MaterialTheme.typography.bodySmall,
+                            lap.trackLabel,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
-                    Text(
-                        lap.trackLabel,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
                     driver?.ratingLabel()?.let { rating ->
                         Text(
                             rating,
@@ -240,7 +247,7 @@ internal fun LapCard(
                             modifier = Modifier.weight(1f),
                         )
                         when {
-                            fastest -> Text(
+                            fastest && showFastestLabel -> Text(
                                 "Fastest lap",
                                 style = MaterialTheme.typography.labelLarge,
                                 color = MaterialTheme.colorScheme.primary,
