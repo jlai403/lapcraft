@@ -2,14 +2,17 @@ package io.github.jlai403.lapcraft.app.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,7 +25,7 @@ import io.github.jlai403.lapcraft.core.events.LapEventGroup
 import io.github.jlai403.lapcraft.core.events.eventRangeLabel
 
 @Composable
-fun CurrentEventHeader(group: LapEventGroup, modifier: Modifier = Modifier) {
+fun CurrentEventHeader(group: LapEventGroup, isFirst: Boolean = false, modifier: Modifier = Modifier) {
     Column(modifier = modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
         Text(
             group.tag?.label ?: "No event",
@@ -86,6 +89,5 @@ private fun eventDetail(group: LapEventGroup): String {
     val tracks = group.laps.map { it.trackLabel }.distinct()
     if (tracks.size == 1) parts += tracks.first() else parts += "${tracks.size} tracks"
     parts += "${group.laps.size} lap${if (group.laps.size == 1) "" else "s"}"
-    parts += "Best ${lapTimeLabel(group.bestLapMs)}"
     return parts.joinToString(" · ")
 }
