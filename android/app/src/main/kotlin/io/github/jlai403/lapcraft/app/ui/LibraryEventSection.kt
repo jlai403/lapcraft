@@ -3,12 +3,12 @@ package io.github.jlai403.lapcraft.app.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -32,32 +32,29 @@ fun CurrentEventHeader(group: LapEventGroup, isFirst: Boolean = false, modifier:
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceVariant),
     ) {
-        Row(
+        HorizontalDivider(
+            thickness = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant,
+        )
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                .padding(horizontal = 20.dp, vertical = 12.dp)
+                .heightIn(min = 56.dp),
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    group.tag?.label ?: "No event",
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    eventDetail(group),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
             Text(
-                "Best ${lapTimeLabel(group.bestLapMs)}",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
+                group.tag?.label ?: "No event",
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                eventDetail(group),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
@@ -108,5 +105,6 @@ private fun eventDetail(group: LapEventGroup): String {
     val tracks = group.laps.map { it.trackLabel }.distinct()
     if (tracks.size == 1) parts += tracks.first() else parts += "${tracks.size} tracks"
     parts += "${group.laps.size} lap${if (group.laps.size == 1) "" else "s"}"
+    parts += "Best ${lapTimeLabel(group.bestLapMs)}"
     return parts.joinToString(" · ")
 }

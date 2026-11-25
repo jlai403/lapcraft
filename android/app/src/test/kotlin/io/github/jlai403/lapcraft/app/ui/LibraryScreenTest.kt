@@ -486,6 +486,7 @@ class LibraryScreenTest {
     }
 
     @Test
+    @Config(qualifiers = "w411dp-h891dp")
     fun `compare picks the first lap as primary and the second as reference`() {
         SessionFixtures.install(context, SessionFixtures.session(lapTimesMs = listOf(90_000)))
         SessionFixtures.install(
