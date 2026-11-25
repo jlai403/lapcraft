@@ -383,7 +383,7 @@ fun SettingsScreen(
                         singleLine = true,
                         isError = draftError,
                         modifier = Modifier.fillMaxWidth().testTag("settings-ps5-ip"),
-                        shape = RoundedCornerShape(14.dp),
+                        shape = RoundedCornerShape(12.dp),
                     )
                     Text(
                         "The app sends heartbeats to this address.",

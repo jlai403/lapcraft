@@ -211,7 +211,7 @@ internal fun ChartColumn(
         }
         Text(
             chartWindowLabel(windowMs),
-            modifier = Modifier.align(Alignment.End),
+            modifier = Modifier.align(Alignment.End).padding(bottom = 4.dp),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -609,7 +609,6 @@ internal fun SpeedGearRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            primaryTyre?.let { TyreBadge(compound = it, size = 14.dp) }
             setupLabel(primaryTcs, primaryBrakeBalance)?.let {
                 Text(
                     it,
