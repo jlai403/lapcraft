@@ -529,7 +529,7 @@ class LapPlayerScreenTest {
         compose.waitUntil(TIMEOUT) {
             compose.onAllNodesWithText("Speed").fetchSemanticsNodes().isNotEmpty()
         }
-        assertEquals(2, compose.onAllNodesWithTag("tyre-badge", useUnmergedTree = true).fetchSemanticsNodes().size)
+        assertEquals(1, compose.onAllNodesWithTag("tyre-badge", useUnmergedTree = true).fetchSemanticsNodes().size)
         assertEquals(1, compose.onAllNodesWithText("TCS 2 · BB +1").fetchSemanticsNodes().size)
     }
 

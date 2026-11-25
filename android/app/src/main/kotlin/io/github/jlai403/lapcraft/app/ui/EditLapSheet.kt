@@ -15,6 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -291,7 +292,7 @@ internal fun EditLapSheet(
                     onValueChange = { trackDraft = it },
                     singleLine = true,
                     placeholder = { Text("Track name") },
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RoundedCornerShape(12.dp),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(
                         onDone = {
@@ -375,7 +376,7 @@ internal fun EditLapSheet(
                             },
                             singleLine = true,
                             placeholder = { Text("Event name (e.g. Nations Cup · R3)") },
-                            shape = RoundedCornerShape(14.dp),
+                            shape = RoundedCornerShape(12.dp),
                             trailingIcon = if (lap.event != null) {
                                 {
                                     IconButton(
@@ -491,12 +492,13 @@ internal fun EditLapSheet(
                         },
                     )
                     if (lap.hasReplay || lap.replayPending) {
-                        GhostPill(
-                            text = "Remove",
+                        TextButton(
                             onClick = { confirmRemoveReplay = true },
-                            contentColor = MaterialTheme.colorScheme.error,
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error,
+                            ),
                             modifier = Modifier.testTag("edit-replay-remove"),
-                        )
+                        ) { Text("Remove") }
                     }
                 },
             )

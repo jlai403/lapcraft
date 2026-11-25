@@ -31,12 +31,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
@@ -124,6 +126,8 @@ fun ScreenHeader(
                     it,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
@@ -148,8 +152,8 @@ fun PrimaryPill(
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
-            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            disabledContainerColor = MaterialTheme.colorScheme.surface,
+            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
         ),
     ) {
         Text(text, style = MaterialTheme.typography.labelLarge)
@@ -300,7 +304,8 @@ fun SegmentedChoice(
                                 },
                             )
                             .clickable { onSelect(index) }
-                            .padding(vertical = 10.dp, horizontal = 2.dp),
+                            .padding(vertical = 10.dp, horizontal = 2.dp)
+                            .clipToBounds(),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
@@ -314,6 +319,8 @@ fun SegmentedChoice(
                                 },
                             ),
                             maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            softWrap = false,
                         )
                     }
                 }
@@ -341,7 +348,8 @@ fun SegmentedChoice(
                                 },
                             )
                             .clickable { onSelect(index) }
-                            .padding(vertical = 10.dp, horizontal = 14.dp),
+                            .padding(vertical = 10.dp, horizontal = 14.dp)
+                            .clipToBounds(),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
@@ -354,6 +362,8 @@ fun SegmentedChoice(
                                 },
                             ),
                             maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            softWrap = false,
                         )
                     }
                 }
@@ -494,7 +504,16 @@ fun SettingToggleRow(
             onValueChange = onCheckedChange,
         ),
         supporting = supporting,
-        trailing = { Switch(checked = checked, onCheckedChange = null) },
+        trailing = {
+            Switch(
+                checked = checked,
+                onCheckedChange = null,
+                colors = SwitchDefaults.colors(
+                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                    uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                ),
+            )
+        },
     )
 }
 

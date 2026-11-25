@@ -25,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -53,6 +54,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
@@ -421,6 +423,7 @@ fun LapCompareScreen(
                         cursorMs = primaryCursorMs,
                         imperial = settings.imperialUnits,
                         showHud = settings.telemetryHud,
+                        captionColor = MaterialTheme.colorScheme.secondary,
                         onAddClip = { onAddClip(primaryLapId) },
                         modifier = Modifier.weight(1f).fillMaxHeight(),
                     )
@@ -432,6 +435,7 @@ fun LapCompareScreen(
                         cursorMs = referenceCursorMs,
                         imperial = settings.imperialUnits,
                         showHud = settings.telemetryHud,
+                        captionColor = MaterialTheme.colorScheme.tertiary,
                         onAddClip = { onAddClip(referenceLapId) },
                         modifier = Modifier.weight(1f).fillMaxHeight(),
                     )
@@ -522,6 +526,8 @@ fun LapCompareScreen(
                         seekLap((fraction * (primaryLap?.lapSpanMs ?: 0)).roundToLong())
                     },
                     onRewind = { seekBrake(-1) },
+                    rewindEnabled = brakeTimes.any { it < primaryCursorMs - 200 },
+                    forwardEnabled = brakeTimes.any { it > primaryCursorMs + 200 },
                     onPlayPause = {
                         if (primaryPlayer.isPlaying) {
                             primaryPlayer.pause()
@@ -577,7 +583,7 @@ private fun CompareChrome(
         IconButton(
             onClick = onBack,
             modifier = Modifier
-                .size(36.dp)
+                .size(40.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.surfaceVariant)
                 .testTag("compare-back"),
@@ -597,23 +603,37 @@ private fun CompareChrome(
                 selected = tab == 0,
                 onClick = { onTabChange(0) },
                 label = { Text("Video") },
+                modifier = Modifier.width(88.dp),
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                ),
             )
             Spacer(Modifier.width(6.dp))
             FilterChip(
                 selected = tab == 1,
                 onClick = { onTabChange(1) },
                 label = { Text("Telemetry") },
-                modifier = Modifier.testTag("compare-tab-telemetry"),
+                modifier = Modifier.width(88.dp).testTag("compare-tab-telemetry"),
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                ),
             )
         }
         Text(
-            deltaMs?.let(::deltaLabel) ?: "Δ —",
+            deltaMs?.let { d ->
+                if (d == 0) "Δ 0.000 s" else "%s Δ %+.3f s".format(
+                    if (d < 0) "▲" else "▼",
+                    d / 1000.0,
+                )
+            } ?: "Δ —",
             modifier = Modifier.testTag("compare-delta").padding(end = 8.dp),
             style = MaterialTheme.typography.labelLarge,
             color = when {
                 deltaMs == null -> MaterialTheme.colorScheme.onSurfaceVariant
                 deltaMs <= 0 -> MaterialTheme.colorScheme.primary
-                else -> MaterialTheme.colorScheme.error
+                else -> MaterialTheme.colorScheme.tertiary
             },
         )
     }
@@ -628,15 +648,37 @@ private fun ComparePane(
     cursorMs: Int,
     imperial: Boolean,
     showHud: Boolean,
+    captionColor: Color,
     onAddClip: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(
+                title,
+                style = MaterialTheme.typography.labelLarge,
+                color = captionColor,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            lap?.let { loaded ->
+                NumericText(
+                    lapTimeLabel(loaded.lap.lapTimeMs),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = captionColor,
+                )
+            }
+        }
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .clip(RoundedCornerShape(18.dp))
+                .clip(RoundedCornerShape(22.dp))
                 .background(Color.Black)
                 .then(
                     lap?.let { loaded ->

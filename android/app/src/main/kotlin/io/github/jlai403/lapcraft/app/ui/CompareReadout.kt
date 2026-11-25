@@ -84,14 +84,6 @@ internal fun CompareReadoutRow(
             TyreBadge(compound = it, size = 18.dp)
             Spacer(Modifier.width(4.dp))
         }
-        TireHeatmap(
-            fl = sample.tyreTempFL,
-            fr = sample.tyreTempFR,
-            rl = sample.tyreTempRL,
-            rr = sample.tyreTempRR,
-            imperial = imperial,
-            compact = true,
-        )
         if (hasSteering) {
             Box(
                 modifier = Modifier.size(ReadoutHeight),

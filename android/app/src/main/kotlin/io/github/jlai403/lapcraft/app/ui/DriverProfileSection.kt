@@ -156,7 +156,7 @@ internal fun DriverProfileSection(
             placeholder = { Text("Your PlayStation Network ID") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth().testTag("settings-profile-psn"),
-            shape = RoundedCornerShape(14.dp),
+            shape = RoundedCornerShape(12.dp),
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             GhostPill(
@@ -308,7 +308,7 @@ internal fun DriverProfileSection(
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth().testTag("settings-gridstats-key"),
-            shape = RoundedCornerShape(14.dp),
+            shape = RoundedCornerShape(12.dp),
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             GhostPill(

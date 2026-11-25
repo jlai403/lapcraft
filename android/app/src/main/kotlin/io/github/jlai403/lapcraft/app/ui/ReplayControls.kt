@@ -177,6 +177,8 @@ internal fun PlaybackFooter(
     frameTotal: Int? = null,
     markersMs: List<Long> = emptyList(),
     frameSteps: Boolean = true,
+    rewindEnabled: Boolean = true,
+    forwardEnabled: Boolean = true,
 ) {
     val rewind = {
         onRewind()
@@ -238,6 +240,8 @@ internal fun PlaybackFooter(
                     onForward = forward,
                     onStep = step,
                     showSteps = frameSteps,
+                    rewindEnabled = rewindEnabled,
+                    forwardEnabled = forwardEnabled,
                 )
                 FrameRuler(
                     valueMs = cursorMs.toLong(),
@@ -272,12 +276,12 @@ internal fun PlaybackFooter(
                     ) {
                         Text(
                             clockLabel,
-                            style = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         NumericText(
                             "%s / %s".format(formatMillis(cursorMs.toLong()), lapTimeLabel(endMs)),
-                            style = MaterialTheme.typography.labelMedium,
+                            style = MaterialTheme.typography.titleMedium,
                         )
                     }
                     FilterChip(
@@ -294,12 +298,12 @@ internal fun PlaybackFooter(
                     ) {
                         Text(
                             "Lap",
-                            style = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         NumericText(
                             lapTimeLabel(ms),
-                            style = MaterialTheme.typography.labelMedium,
+                            style = MaterialTheme.typography.titleMedium,
                         )
                         if (frameNumber != null && frameTotal != null) {
                             Spacer(Modifier.weight(1f))
@@ -326,6 +330,12 @@ internal fun PlaybackFooter(
                     markersMs = markersMs,
                     hapticsEnabled = hapticsEnabled,
                 )
+                Text(
+                    "Drag to scrub · pinch to zoom",
+                    modifier = Modifier.padding(top = 2.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                )
                 Box(modifier = Modifier.fillMaxWidth()) {
                     TransportControls(
                         modifier = Modifier.align(Alignment.Center),
@@ -337,6 +347,8 @@ internal fun PlaybackFooter(
                         onForward = forward,
                         onStep = step,
                         showSteps = frameSteps,
+                        rewindEnabled = rewindEnabled,
+                        forwardEnabled = forwardEnabled,
                     )
                 }
             }
@@ -355,6 +367,8 @@ private fun TransportControls(
     onStep: (Int) -> Unit,
     modifier: Modifier = Modifier,
     showSteps: Boolean = true,
+    rewindEnabled: Boolean = true,
+    forwardEnabled: Boolean = true,
 ) {
     Row(
         modifier = modifier,
@@ -375,7 +389,7 @@ private fun TransportControls(
         TransportButton(
             icon = TransportIcons.SkipPrevious,
             description = "Previous brake point",
-            enabled = enabled,
+            enabled = enabled && rewindEnabled,
             onClick = onRewind,
             size = 36.dp,
             iconSize = 20.dp,
@@ -392,7 +406,7 @@ private fun TransportControls(
         TransportButton(
             icon = TransportIcons.SkipNext,
             description = "Next brake point",
-            enabled = enabled,
+            enabled = enabled && forwardEnabled,
             onClick = onForward,
             size = 36.dp,
             iconSize = 20.dp,
@@ -433,7 +447,7 @@ private fun LoopButton(looping: Boolean, enabled: Boolean, onToggle: () -> Unit)
             .clip(CircleShape)
             .then(
                 if (looping) {
-                    Modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f))
+                    Modifier.background(MaterialTheme.colorScheme.primaryContainer)
                 } else {
                     Modifier
                 },

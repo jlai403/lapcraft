@@ -239,23 +239,42 @@ private fun StreamCard(
             }
         }
 
+        val hint = when {
+            !state.telemetryRunning && !hasAddress ->
+                "Add the console address in Settings, then connect."
+            !state.telemetryRunning -> "Connect to start listening."
+            !state.connected -> "GT7 sends telemetry only while a race or time trial is on screen."
+            else -> null
+        }
+        hint?.let {
+            Text(
+                it,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             StatChip(
                 label = "packets/s",
                 value = "%.0f".format(state.packetsPerSecond),
                 modifier = Modifier.weight(1f),
+                accent = if (health.healthy) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
             )
             StatChip(
                 label = "GT7 lap",
-                value = state.lapCount.toString(),
+                value = if (state.lapCount < 0) "—" else state.lapCount.toString(),
                 modifier = Modifier.weight(1f),
-                accent = MaterialTheme.colorScheme.secondary,
             )
             StatChip(
                 label = speedUnit(imperial),
                 value = "%.0f".format(speedValue(state.speedMps, imperial)),
                 modifier = Modifier.weight(1f),
-                accent = MaterialTheme.colorScheme.tertiary,
+                accent = MaterialTheme.colorScheme.secondary,
             )
         }
 
@@ -301,21 +320,6 @@ private fun StreamCard(
             onChange = onChangeBrakeBalance,
             changeTag = "record-brake-balance-change",
         )
-
-        val hint = when {
-            !state.telemetryRunning && !hasAddress ->
-                "Add the console address in Settings, then connect."
-            !state.telemetryRunning -> "Connect to start listening."
-            !state.connected -> "GT7 sends telemetry only while a race or time trial is on screen."
-            else -> null
-        }
-        hint?.let {
-            Text(
-                it,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             GhostPill(

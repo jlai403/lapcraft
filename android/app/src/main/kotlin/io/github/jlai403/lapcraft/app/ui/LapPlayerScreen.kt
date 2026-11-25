@@ -24,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
@@ -694,6 +695,8 @@ fun LapPlayerScreen(
         PlaybackFooter(
             cursorMs = cursorLapMs,
             endMs = currentLap.lapTimeMs,
+            rewindEnabled = brakeTimes.any { it < cursorMs - 200 },
+            forwardEnabled = brakeTimes.any { it > cursorMs + 200 },
             frameStepMs = frameStepMs,
             enabled = if (hasClip) durationMs > 0 else true,
             playing = playing,
@@ -913,7 +916,12 @@ fun LapPlayerScreen(
                 }
             },
             confirmButton = {
-                TextButton(onClick = { compareOpen = false }) { Text("Cancel") }
+                TextButton(
+                    onClick = { compareOpen = false },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    ),
+                ) { Text("Cancel") }
             },
         )
     }

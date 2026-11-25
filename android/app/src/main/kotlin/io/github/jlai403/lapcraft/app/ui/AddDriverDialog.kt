@@ -101,7 +101,7 @@ internal fun AddDriverDialog(
                     label = { Text("PSN ID") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth().testTag("driver-add-psn"),
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RoundedCornerShape(12.dp),
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -130,7 +130,7 @@ internal fun AddDriverDialog(
                         label = { Text("Display name") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth().testTag("driver-add-name"),
-                        shape = RoundedCornerShape(14.dp),
+                        shape = RoundedCornerShape(12.dp),
                     )
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -146,7 +146,7 @@ internal fun AddDriverDialog(
                             placeholder = { Text("GB") },
                             singleLine = true,
                             modifier = Modifier.weight(1f).testTag("driver-add-country"),
-                            shape = RoundedCornerShape(14.dp),
+                            shape = RoundedCornerShape(12.dp),
                         )
                         countryFlagEmoji(countryCode)?.let {
                             Text(it, style = MaterialTheme.typography.headlineSmall)

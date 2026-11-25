@@ -81,8 +81,8 @@ class LapCompareScreenTest {
         assertEquals(2, compose.onAllNodesWithTag("compare-readout").fetchSemanticsNodes().size)
         compose.onNodeWithText("\u00b15 s").assertDoesNotExist()
         compose.onNodeWithTag("compare-delta").assertExists()
-        compose.onNodeWithText("1:30.000").assertDoesNotExist()
-        compose.onNodeWithText("1:32.000").assertDoesNotExist()
+        compose.onNodeWithText("1:30.000").assertExists()
+        compose.onNodeWithText("1:32.000").assertExists()
     }
 
     @Test
