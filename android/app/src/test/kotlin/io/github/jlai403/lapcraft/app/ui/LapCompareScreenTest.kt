@@ -8,6 +8,12 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.assertWidthIsEqualTo
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.assertWidthIsAtLeast
+import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
@@ -260,4 +266,26 @@ class LapCompareScreenTest {
     private companion object {
         const val TIMEOUT = 10_000L
     }
+
+    @Test
+    fun `telemetry tab stays single line at large font scale`() {
+        compose.setContent {
+            androidx.compose.runtime.CompositionLocalProvider(
+                LocalDensity provides Density(1f, fontScale = 1.3f),
+            ) {
+                LapCraftTheme {
+                    androidx.compose.foundation.layout.Row(
+                        modifier = androidx.compose.ui.Modifier.fillMaxWidth(),
+                    ) {
+                        CompareChrome(deltaMs = 1234, tab = 1, onTabChange = {}, onBack = {})
+                    }
+                }
+            }
+        }
+        compose.onNodeWithTag("compare-tab-telemetry")
+            .assertExists()
+            .assertWidthIsAtLeast(96.dp)
+            .assertTextEquals("Telemetry")
+    }
+
 }
