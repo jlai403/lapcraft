@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -569,7 +570,7 @@ fun LapCompareScreen(
 }
 
 @Composable
-private fun CompareChrome(
+internal fun CompareChrome(
     deltaMs: Int?,
     tab: Int,
     onTabChange: (Int) -> Unit,
@@ -599,27 +600,31 @@ private fun CompareChrome(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            FilterChip(
-                selected = tab == 0,
-                onClick = { onTabChange(0) },
-                label = { Text("Video") },
-                modifier = Modifier.width(88.dp),
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primary,
-                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                ),
-            )
-            Spacer(Modifier.width(6.dp))
-            FilterChip(
-                selected = tab == 1,
-                onClick = { onTabChange(1) },
-                label = { Text("Telemetry") },
-                modifier = Modifier.width(88.dp).testTag("compare-tab-telemetry"),
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primary,
-                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                ),
-            )
+            Row(
+                modifier = Modifier.widthIn(max = 240.dp).fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                FilterChip(
+                    selected = tab == 0,
+                    onClick = { onTabChange(0) },
+                    label = { Text("Video", maxLines = 1) },
+                    modifier = Modifier.weight(1f),
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                    ),
+                )
+                FilterChip(
+                    selected = tab == 1,
+                    onClick = { onTabChange(1) },
+                    label = { Text("Telemetry", maxLines = 1) },
+                    modifier = Modifier.weight(1f).testTag("compare-tab-telemetry"),
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                    ),
+                )
+            }
         }
         Text(
             deltaMs?.let { d ->
@@ -629,6 +634,8 @@ private fun CompareChrome(
                 )
             } ?: "Δ —",
             modifier = Modifier.testTag("compare-delta").padding(end = 8.dp),
+            maxLines = 1,
+            softWrap = false,
             style = MaterialTheme.typography.labelLarge,
             color = when {
                 deltaMs == null -> MaterialTheme.colorScheme.onSurfaceVariant
