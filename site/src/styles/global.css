@@ -273,7 +273,8 @@ footer p { margin: 0; max-width: 40em; }
     background: linear-gradient(var(--base), transparent);
     pointer-events: none;
   }
-  .device { --frame-w: min(190px, calc((46vh - 28px) * 9 / 20 + 28px), 48vw); }
+  .showcase-stage .device-bar { display: none; }
+  .device { --frame-w: min(190px, calc((46vh - 44px) * 9 / 20 + 28px), 48vw); }
   .device[data-orient="landscape"] { --frame-w: min(calc((100vw - 72px) * 9 / 20 + 28px), 46vh); }
   .showcase-copy .showcase-step { min-height: 46vh; opacity: 1; transition: opacity 280ms var(--ease-out); }
   html.js .showcase-copy .showcase-step { opacity: 0; }

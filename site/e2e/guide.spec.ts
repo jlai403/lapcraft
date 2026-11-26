@@ -49,9 +49,9 @@ test('guide links to the latest stable release', async ({ page }) => {
 
 test('nav links home and guide', async ({ page }) => {
   await page.goto('/')
-  await expect(page.locator('nav a[href="/guide"]')).toBeVisible()
+  await expect(page.locator('nav a[href="/guide/"]')).toBeVisible()
   await page.goto('/guide')
-  await expect(page.locator('nav a[href="/guide"]')).toHaveAttribute('aria-current', 'page')
+  await expect(page.locator('nav a[href="/guide/"]')).toHaveAttribute('aria-current', 'page')
   await page.locator('nav a.brand').click()
   await expect(page).toHaveURL('/')
 })

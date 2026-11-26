@@ -15,7 +15,7 @@
   const captions = [
     'The replay shows the lap.',
     'The telemetry shows the numbers.',
-    'One frame anchor puts them on one clock.'
+    'Line up the start frame and the charts follow the video.'
   ]
 
   function captionIndex(p: number): number {
@@ -112,7 +112,7 @@
           controls
           playsinline
           muted
-          preload="auto"
+          preload="metadata"
           aria-label="LapCraft replay scrub demo"
         ></video>
       {:else}
@@ -122,7 +122,7 @@
           poster="/media/scrub-portrait-poster.jpg"
           playsinline
           muted
-          preload="auto"
+          preload="metadata"
           aria-hidden="true"
           tabindex="-1"
         ></video>

@@ -5,7 +5,7 @@ import sitemap from '@astrojs/sitemap'
 export default defineConfig({
   site: 'https://lapcraft.jlai.ca',
   output: 'static',
-  integrations: [svelte(), sitemap()],
+  integrations: [svelte(), sitemap({ filter: (page) => !page.includes('/prototypes/') })],
   image: {
     service: { entrypoint: 'astro/assets/services/sharp' }
   },
