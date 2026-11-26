@@ -576,99 +576,30 @@ fun LibraryScreen(
                     else -> {
                         val lapsedGroups = groups.filter { it.status == EventStatus.Lapsed }
                         val currentGroups = groups.filter { it.status != EventStatus.Lapsed }
-                        val currentFlat = currentGroups.flatMap { it.laps }
-                        val pastFlat = lapsedGroups.flatMap { it.laps }
-                        val currentGroupByLap = currentGroups.flatMap { g -> g.laps.map { it.lapId to g } }.toMap()
-                        val currentGroupAt = currentFlat.map { currentGroupByLap.getValue(it.lapId) }
-                        val newGroupIndices = currentFlat.indices.filter { i ->
-                            i == 0 || currentGroupAt[i - 1].key != currentGroupAt[i].key
-                        }.toSet()
-                        if (currentFlat.isNotEmpty()) {
-                            itemsIndexed(items = currentFlat, key = { _, lap -> lap.lapId.value }) { index, lap ->
-                                val group = currentGroupAt[index]
-                                if (index in newGroupIndices) {
-                                    CurrentEventHeader(group = group, isFirst = index == 0)
+                        if (currentGroups.isNotEmpty()) {
+                            currentGroups.forEach { group ->
+                                stickyHeader(key = "event-${group.key}") {
+                                    CurrentEventHeader(group = group)
                                 }
-                                val tagged = group.tag != null
-                                val groupSharedTrack = group.laps.map { it.trackLabel }.distinct().size <= 1
-                                val groupSharedDate = group.laps.map { it.createdAt.take(10) }.distinct().size <= 1
-                                val bestMs = if (tagged) group.bestLapMs else fastest[lap.trackKey]?.lapTimeMs
-                                val ranked = if (tagged) {
-                                    group.laps.size >= 2 && lap.trackLabel != TrackNamer.UNKNOWN
-                                } else {
-                                    (trackCounts[lap.trackKey] ?: 0) >= 2
-                                }
-                                val isFastest = ranked && bestMs != null && lap.lapTimeMs == bestMs
-                                val deltaMs = if (ranked && !isFastest && bestMs != null) {
-                                    lap.lapTimeMs - bestMs
-                                } else {
-                                    null
-                                }
-                                val driverPsn = lap.driverPsnId
-                                val driver = driverPsn?.let { psn ->
-                                    profiles[psn.lowercase()] ?: owner?.takeIf { it.psnId.equals(psn, true) }
-                                }
-                                Column() {
-                                    LapCard(
-                                        lap = lap,
-                                        driver = driver,
-                                        fastest = isFastest,
-                                        deltaMs = deltaMs,
-                                        onOpen = { target ->
-                                            if (compareMode) togglePick(target) else onOpenLap(target.lapId)
-                                        },
-                                        onEdit = ::edit,
-                                        onDelete = { deleting = it },
-                                        compareMode = compareMode,
-                                        pick = when {
-                                            picks.getOrNull(0)?.lapId == lap.lapId -> LapPick.Primary
-                                            picks.getOrNull(1)?.lapId == lap.lapId -> LapPick.Reference
-                                            else -> null
-                                        },
-                                        showTrack = !tagged || !groupSharedTrack,
-                                        showDate = !tagged || !groupSharedDate,
-                                        showFastestLabel = !tagged,
-                                    )
-                                    if (index != currentFlat.lastIndex && currentGroupAt[index + 1].key == currentGroupAt[index].key) {
-                                        HorizontalDivider(
-                                            modifier = Modifier.testTag("lap-divider"),
-                                            thickness = 1.dp,
-                                            color = MaterialTheme.colorScheme.outlineVariant,
-                                        )
+                                itemsIndexed(group.laps, key = { _, lap -> lap.lapId.value }) { i, lap ->
+                                    val tagged = group.tag != null
+                                    val groupSharedTrack = group.laps.map { it.trackLabel }.distinct().size <= 1
+                                    val groupSharedDate = group.laps.map { it.createdAt.take(10) }.distinct().size <= 1
+                                    val bestMs = if (tagged) group.bestLapMs else fastest[lap.trackKey]?.lapTimeMs
+                                    val ranked = if (tagged) {
+                                        group.laps.size >= 2 && lap.trackLabel != TrackNamer.UNKNOWN
+                                    } else {
+                                        (trackCounts[lap.trackKey] ?: 0) >= 2
                                     }
-                                }
-                            }
-                        }
-                        if (lapsedGroups.isNotEmpty()) {
-                            item(key = "past-header") {
-                                PastEventsHeader(
-                                    lapCount = lapsedGroups.sumOf { it.laps.size },
-                                    eventCount = lapsedGroups.count { it.tag != null },
-                                    expanded = pastExpanded,
-                                    onToggle = { pastExpanded = !pastExpanded },
-                                )
-                            }
-                            val pastGroupByLap = lapsedGroups.flatMap { g -> g.laps.map { it.lapId to g } }.toMap()
-                            val pastGroupAt = pastFlat.map { pastGroupByLap.getValue(it.lapId) }
-                            val pastNewGroupIndices = pastFlat.indices.filter { i ->
-                                i == 0 || pastGroupAt[i - 1].key != pastGroupAt[i].key
-                            }.toSet()
-                            if (pastExpanded) {
-                                itemsIndexed(items = pastFlat, key = { _, lap -> lap.lapId.value }) { index, lap ->
-                                    val fastestLap = fastest[lap.trackKey]
-                                    val ranked = (trackCounts[lap.trackKey] ?: 0) >= 2
-                                    val isFastest = ranked && fastestLap?.lapId == lap.lapId
-                                    val deltaMs = if (ranked && !isFastest && fastestLap != null) {
-                                        lap.lapTimeMs - fastestLap.lapTimeMs
+                                    val isFastest = ranked && bestMs != null && lap.lapTimeMs == bestMs
+                                    val deltaMs = if (ranked && !isFastest && bestMs != null) {
+                                        lap.lapTimeMs - bestMs
                                     } else {
                                         null
                                     }
                                     val driverPsn = lap.driverPsnId
                                     val driver = driverPsn?.let { psn ->
                                         profiles[psn.lowercase()] ?: owner?.takeIf { it.psnId.equals(psn, true) }
-                                    }
-                                    if (index in pastNewGroupIndices) {
-                                        CurrentEventHeader(group = pastGroupAt[index])
                                     }
                                     Column() {
                                         LapCard(
@@ -687,13 +618,73 @@ fun LibraryScreen(
                                                 picks.getOrNull(1)?.lapId == lap.lapId -> LapPick.Reference
                                                 else -> null
                                             },
+                                            showTrack = !tagged || !groupSharedTrack,
+                                            showDate = !tagged || !groupSharedDate,
+                                            showFastestLabel = !tagged,
                                         )
-                                        if (index != pastFlat.lastIndex && pastGroupAt[index + 1].key == pastGroupAt[index].key) {
+                                        if (i != group.laps.lastIndex) {
                                             HorizontalDivider(
                                                 modifier = Modifier.testTag("lap-divider"),
                                                 thickness = 1.dp,
-                                                color = Hairline,
+                                                color = MaterialTheme.colorScheme.outlineVariant,
                                             )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (lapsedGroups.isNotEmpty()) {
+                            item(key = "past-header") {
+                                PastEventsHeader(
+                                    lapCount = lapsedGroups.sumOf { it.laps.size },
+                                    eventCount = lapsedGroups.count { it.tag != null },
+                                    expanded = pastExpanded,
+                                    onToggle = { pastExpanded = !pastExpanded },
+                                )
+                            }
+                            if (pastExpanded) {
+                                lapsedGroups.forEach { group ->
+                                    stickyHeader(key = "past-event-${group.key}") {
+                                        CurrentEventHeader(group = group)
+                                    }
+                                    itemsIndexed(group.laps, key = { _, lap -> lap.lapId.value }) { i, lap ->
+                                        val fastestLap = fastest[lap.trackKey]
+                                        val ranked = (trackCounts[lap.trackKey] ?: 0) >= 2
+                                        val isFastest = ranked && fastestLap?.lapId == lap.lapId
+                                        val deltaMs = if (ranked && !isFastest && fastestLap != null) {
+                                            lap.lapTimeMs - fastestLap.lapTimeMs
+                                        } else {
+                                            null
+                                        }
+                                        val driverPsn = lap.driverPsnId
+                                        val driver = driverPsn?.let { psn ->
+                                            profiles[psn.lowercase()] ?: owner?.takeIf { it.psnId.equals(psn, true) }
+                                        }
+                                        Column() {
+                                            LapCard(
+                                                lap = lap,
+                                                driver = driver,
+                                                fastest = isFastest,
+                                                deltaMs = deltaMs,
+                                                onOpen = { target ->
+                                                    if (compareMode) togglePick(target) else onOpenLap(target.lapId)
+                                                },
+                                                onEdit = ::edit,
+                                                onDelete = { deleting = it },
+                                                compareMode = compareMode,
+                                                pick = when {
+                                                    picks.getOrNull(0)?.lapId == lap.lapId -> LapPick.Primary
+                                                    picks.getOrNull(1)?.lapId == lap.lapId -> LapPick.Reference
+                                                    else -> null
+                                                },
+                                            )
+                                            if (i != group.laps.lastIndex) {
+                                                HorizontalDivider(
+                                                    modifier = Modifier.testTag("lap-divider"),
+                                                    thickness = 1.dp,
+                                                    color = Hairline,
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -897,13 +888,11 @@ private fun summaryLine(
     tracks: List<String>,
     previewEmpty: Boolean,
 ): String? {    if (laps.isNullOrEmpty() || previewEmpty) return null
-    val best = laps.minOfOrNull { it.lapTimeMs }
     return buildString {
         append(laps.size)
         append(if (laps.size == 1) " lap · " else " laps · ")
         append(tracks.size)
         append(if (tracks.size == 1) " track" else " tracks")
-        best?.let { append(" · Best ${lapTimeLabel(it)}") }
     }
 }
 

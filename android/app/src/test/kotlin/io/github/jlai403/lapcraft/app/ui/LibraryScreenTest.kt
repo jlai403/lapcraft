@@ -67,7 +67,7 @@ class LibraryScreenTest {
             compose.onAllNodesWithText("1:30.000").fetchSemanticsNodes().isNotEmpty()
         }
         compose.onNodeWithText("Library").assertExists()
-        compose.onNodeWithText("2 laps · 1 track · Best 1:30.000").assertExists()
+        compose.onNodeWithText("2 laps · 1 track").assertExists()
     }
 
     @Test
@@ -288,12 +288,12 @@ class LibraryScreenTest {
         compose.waitUntil(TIMEOUT) {
             compose.onAllNodesWithTag("lap-card").fetchSemanticsNodes().isNotEmpty()
         }
-        compose.onNodeWithTag("lap-list").performScrollToIndex(0)
-        compose.onNodeWithText("Driver not set").assertExists()
         compose.onNodeWithTag("lap-list").performScrollToIndex(1)
+        compose.onNodeWithText("Driver not set").assertExists()
+        compose.onNodeWithTag("lap-list").performScrollToIndex(2)
         compose.onNodeWithText("Friend").assertExists()
         compose.onNodeWithText("🇺🇸").assertExists()
-        compose.onNodeWithTag("lap-list").performScrollToIndex(2)
+        compose.onNodeWithTag("lap-list").performScrollToIndex(3)
         compose.onNodeWithText("Skino").assertExists()
         compose.onNodeWithText("🇬🇧").assertExists()
     }
@@ -510,7 +510,7 @@ class LibraryScreenTest {
         compose.onNodeWithTag("library-compare").performClick()
         compose.onNodeWithText("1:30.000").performClick()
         compose.onNodeWithText("Primary").assertExists()
-        compose.onNodeWithTag("lap-list").performScrollToIndex(1)
+        compose.onNodeWithTag("lap-list").performScrollToIndex(2)
         compose.onNodeWithText("1:31.000").performClick()
         compose.onNodeWithTag("library-compare-go").performClick()
 

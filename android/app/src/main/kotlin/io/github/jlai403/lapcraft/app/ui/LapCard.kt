@@ -223,6 +223,14 @@ internal fun LapCard(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
+                        } else {
+                            driver?.ratingLabel()?.let { rating ->
+                                Text(
+                                    rating,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                         }
                     }
                     if (showTrack) {
@@ -234,14 +242,16 @@ internal fun LapCard(
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
-                    driver?.ratingLabel()?.let { rating ->
-                        Text(
-                            rating,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                    if (showDate) {
+                        driver?.ratingLabel()?.let { rating ->
+                            Text(
+                                rating,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(verticalAlignment = Alignment.Bottom) {
                         NumericText(
                             lapTimeLabel(lap.lapTimeMs),
                             style = MaterialTheme.typography.displaySmall,
@@ -255,7 +265,7 @@ internal fun LapCard(
                             )
                             deltaMs != null -> NumericText(
                                 "+%.3f".format(deltaMs / 1000.0),
-                                style = MaterialTheme.typography.bodyMedium,
+                                style = MaterialTheme.typography.labelLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
