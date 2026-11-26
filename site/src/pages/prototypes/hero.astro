@@ -1,0 +1,389 @@
+---
+import Base from '../../layouts/Base.astro'
+import { Image } from 'astro:assets'
+import compareVideo from '../../assets/compare-video.png'
+import { speedPath, speedAreaPath } from '../../lib/telemetry-art'
+
+const title = 'Hero prototype · LapCraft'
+const description = 'Three hero directions for the LapCraft marketing site.'
+const speedLine = speedPath(960, 120)
+const speedArea = speedAreaPath(960, 120)
+---
+<Base title={title} description={description} path="/prototypes/hero" noindex={true}>
+  <meta name="robots" content="noindex, nofollow" />
+
+  <div class="proto-stage">
+    <!-- Variant 1: Live -->
+    <section class="proto-variant" data-variant="live" data-active>
+      <div class="wrap hero-grid">
+        <div>
+          <p class="eyebrow reveal" style="--i:0">GT7 telemetry in your pocket</p>
+          <h1 class="display reveal" style="--i:1">Find the <span class="accent">tenth.</span></h1>
+          <p class="lead reveal" style="--i:2">LapCraft records a lap of Gran Turismo 7 telemetry at 60 Hz, syncs it to your PS5 replay, and keeps the charts on the same frame as the video.</p>
+          <div class="cta reveal" style="--i:3">
+            <a class="btn primary" href="#download">Download APK</a>
+            <a class="btn" href="#" data-demo-open>Watch the 26 s demo</a>
+          </div>
+          <p class="hint reveal" style="--i:4">Free · Android 10+ · No account · 12 MB</p>
+        </div>
+        <div class="stage-live reveal" style="--i:2">
+          <div class="phone live-phone">
+            <div class="live-chip live-chip-tl">
+              <span class="eyebrow">lap time</span>
+              <p class="display live-val">1:36.131</p>
+            </div>
+            <video
+              src="/media/scrub-portrait.mp4"
+              poster="/media/scrub-portrait-poster.jpg"
+              autoplay
+              muted
+              loop
+              playsinline
+              aria-label="LapCraft lap player scrubbing through a Suzuka lap"
+            ></video>
+            <div class="live-chip live-chip-br">
+              <span class="eyebrow">speed</span>
+              <p class="display live-val live-val-sm">184 km/h</p>
+            </div>
+          </div>
+          <p class="live-caption">Scrubbed by your finger. Frame exact.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Variant 2: One clock -->
+    <section class="proto-variant" data-variant="oneclock" hidden>
+      <div class="wrap">
+        <div class="oc-grid">
+          <div>
+            <p class="eyebrow">Compare</p>
+            <h1 class="display">Two laps, <span class="accent">one clock.</span></h1>
+            <p class="lead">Only the primary lap plays. The reference stays muted and moves to the same place on track, frame exact, so you can see where the gap opens and what you did differently.</p>
+            <div class="cta">
+              <a class="btn primary" href="#download">Download APK</a>
+              <a class="btn" href="#" data-demo-open>Watch the 26 s demo</a>
+            </div>
+            <p class="hint">Free · Android 10+ · No account · 12 MB</p>
+          </div>
+          <div class="window oc-window">
+            <div class="window-bar">
+              <span class="dots"><i></i><i></i><i></i></span>
+              compare
+              <div class="compare-tabs" role="tablist" style="margin-left:auto;display:flex;gap:6px">
+                <button role="tab" aria-selected="true" class="compare-tab active">Video</button>
+                <button role="tab" aria-selected="false" class="compare-tab">Telemetry</button>
+              </div>
+            </div>
+            <div class="oc-panel">
+              <Image src={compareVideo} alt="Compare screen, Video tab: two replay panes with telemetry HUDs" width={1440} />
+              <p class="oc-delta"><span class="oc-delta-num">+0.226 s</span><span class="oc-delta-label">reference ahead at the hairpin</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Variant 3: Editorial -->
+    <section class="proto-variant" data-variant="editorial" hidden>
+      <div class="wrap ed-wrap">
+        <svg class="ed-trace" viewBox="0 0 960 120" preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="ed-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="var(--cyan)" stop-opacity="0.18" />
+              <stop offset="100%" stop-color="var(--cyan)" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+          <path d={speedArea} fill="url(#ed-fill)" />
+          <path d={speedLine} fill="none" stroke="var(--cyan)" stroke-width="1.5" stroke-opacity="0.5" />
+        </svg>
+        <p class="eyebrow ed-eyebrow">GT7 telemetry · 60 Hz · frame exact</p>
+        <h1 class="display ed-h1">Find the <span class="accent">tenth.</span></h1>
+        <div class="ed-row">
+          <div class="ed-stat">
+            <p class="display ed-num">1:36.131</p>
+            <p class="ed-label">your lap</p>
+          </div>
+          <div class="ed-stat">
+            <p class="display ed-num ed-num-amber">+0.226 s</p>
+            <p class="ed-label">to the reference</p>
+          </div>
+          <div class="ed-stat">
+            <p class="display ed-num">60</p>
+            <p class="ed-label">samples / second</p>
+          </div>
+        </div>
+        <p class="lead ed-lead">LapCraft records a lap of Gran Turismo 7 telemetry at 60 Hz, syncs it to your PS5 replay, and keeps the charts on the same frame as the video. Local only. No account.</p>
+        <div class="cta ed-cta">
+          <a class="btn primary" href="#download">Download APK</a>
+          <a class="btn" href="#" data-demo-open>Watch the 26 s demo</a>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Context: the section that follows the hero on the real page -->
+  <section class="alt" id="one-clock">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">Sync</p>
+        <h2 class="display">The replay shows the lap. The telemetry shows the numbers.</h2>
+        <p>LapCraft anchors the clip to the frame where the car crosses the line, so the video, the charts, and the track map move together.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Picker (verbatim from PICKER.md) -->
+  <nav class="proto-picker" aria-label="Prototype variants">
+    <span class="proto-picker-highlight" aria-hidden="true"></span>
+    <button class="proto-picker-item" data-variant="live" data-active aria-current="true">Live</button>
+    <button class="proto-picker-item" data-variant="oneclock" aria-current="false">One clock</button>
+    <button class="proto-picker-item" data-variant="editorial" aria-current="false">Editorial</button>
+  </nav>
+
+  <script is:inline>
+    (function () {
+      var picker = document.querySelector('.proto-picker');
+      if (!picker) return;
+      var highlight = picker.querySelector('.proto-picker-highlight');
+      var items = Array.prototype.slice.call(picker.querySelectorAll('.proto-picker-item'));
+      var variants = Array.prototype.slice.call(document.querySelectorAll('.proto-variant'));
+      var order = ['live', 'oneclock', 'editorial'];
+
+      function moveHighlight(btn) {
+        var pr = picker.getBoundingClientRect();
+        var br = btn.getBoundingClientRect();
+        highlight.style.transform = 'translateX(' + (br.left - pr.left) + 'px)';
+        highlight.style.width = br.width + 'px';
+      }
+
+      function setMediaState(name) {
+        variants.forEach(function (v) {
+          var on = v.getAttribute('data-variant') === name;
+          var videos = v.querySelectorAll('video');
+          videos.forEach(function (vid) {
+            if (on) { vid.play().catch(function () {}); }
+            else { vid.pause(); }
+          });
+        });
+      }
+
+      function activate(name) {
+        variants.forEach(function (v) {
+          var on = v.getAttribute('data-variant') === name;
+          v.hidden = !on;
+          if (on) v.setAttribute('data-active', '');
+          else v.removeAttribute('data-active');
+        });
+        items.forEach(function (b) {
+          var on = b.getAttribute('data-variant') === name;
+          if (on) b.setAttribute('data-active', '');
+          else b.removeAttribute('data-active');
+          b.setAttribute('aria-current', on ? 'true' : 'false');
+          if (on) moveHighlight(b);
+        });
+        setMediaState(name);
+      }
+
+      items.forEach(function (b) {
+        b.addEventListener('click', function () {
+          activate(b.getAttribute('data-variant'));
+        });
+      });
+
+      document.addEventListener('keydown', function (e) {
+        var activeIdx = order.indexOf(
+          (items.find(function (b) { return b.hasAttribute('data-active'); }) || {}).getAttribute('data-variant')
+        );
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          var n = order[(activeIdx + 1) % order.length];
+          activate(n);
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          var p = order[(activeIdx - 1 + order.length) % order.length];
+          activate(p);
+        } else if (e.key === '1' || e.key === '2' || e.key === '3') {
+          activate(order[parseInt(e.key, 10) - 1]);
+        }
+      });
+
+      // first paint
+      requestAnimationFrame(function () {
+        activate('live');
+        requestAnimationFrame(function () {
+          picker.setAttribute('data-ready', '');
+        });
+      });
+    })();
+  </script>
+
+  <style>
+    /* Prototype page chrome */
+    .proto-stage { position: relative; }
+
+    /* Variant 1: Live */
+    .stage-live { display: grid; place-items: center; gap: 16px; }
+    .live-phone {
+      position: relative;
+      width: min(320px, 80vw);
+      background: var(--crust);
+      border: 2px solid var(--surface1);
+      border-radius: 32px;
+      padding: 12px;
+      box-shadow: var(--shadow);
+    }
+    .live-phone video {
+      width: 100%;
+      display: block;
+      border-radius: 22px;
+      aspect-ratio: 1080 / 2424;
+      object-fit: cover;
+      background: var(--base);
+    }
+    .live-chip {
+      position: absolute;
+      z-index: 2;
+      background: color-mix(in srgb, var(--crust) 82%, transparent);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--surface0);
+      border-radius: 12px;
+      padding: 8px 12px;
+      box-shadow: var(--shadow);
+    }
+    .live-chip-tl { top: 28px; left: 24px; }
+    .live-chip-br { bottom: 28px; right: 24px; }
+    .live-chip .eyebrow { margin: 0; }
+    .live-val { font-size: 1.6rem; margin: 4px 0 0; line-height: 1; }
+    .live-val-sm { font-size: 1.2rem; }
+    .live-caption { color: var(--subtext); font-size: 0.9rem; margin: 0; }
+
+    /* Variant 2: One clock */
+    .oc-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 48px; align-items: center; }
+    .oc-window { margin-top: 0; }
+    .oc-panel { position: relative; padding: 16px; }
+    .oc-panel img { width: 100%; height: auto; border-radius: 8px; display: block; }
+    .oc-delta {
+      position: absolute;
+      bottom: 24px;
+      left: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      background: color-mix(in srgb, var(--crust) 86%, transparent);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--surface0);
+      border-radius: 12px;
+      padding: 10px 14px;
+    }
+    .oc-delta-num { font: 900 1.4rem/1 var(--mono); color: var(--amber); }
+    .oc-delta-label { font-size: 0.78rem; color: var(--subtext); }
+    @media (max-width: 900px) {
+      .oc-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Variant 3: Editorial */
+    .ed-wrap { position: relative; padding-top: 40px; padding-bottom: 40px; overflow: hidden; }
+    .ed-trace {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.9;
+    }
+    .ed-eyebrow, .ed-h1, .ed-row, .ed-lead, .ed-cta { position: relative; z-index: 1; }
+    .ed-eyebrow { margin: 0 0 24px; }
+    .ed-h1 { font-size: clamp(3.2rem, 9vw, 7rem); margin: 0 0 40px; }
+    .ed-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 32px;
+      padding-top: 24px;
+      border-top: 1px solid var(--surface0);
+    }
+    .ed-num { font-size: clamp(2rem, 5vw, 3.6rem); margin: 0; line-height: 1; }
+    .ed-num-amber { color: var(--amber); }
+    .ed-label { color: var(--subtext); font-size: 0.85rem; margin: 8px 0 0; }
+    .ed-lead { max-width: 40em; }
+    .ed-cta { margin-top: 28px; }
+    @media (max-width: 700px) {
+      .ed-row { grid-template-columns: 1fr; gap: 16px; }
+    }
+
+    /* Picker (verbatim from PICKER.md) */
+    .proto-picker {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2147483647;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      padding: 4px;
+      border-radius: 999px;
+      background: rgba(10, 10, 10, 0.82);
+      -webkit-backdrop-filter: blur(12px) saturate(1.4);
+      backdrop-filter: blur(12px) saturate(1.4);
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+        0 8px 24px rgba(0, 0, 0, 0.24),
+        0 2px 6px rgba(0, 0, 0, 0.12);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 13px;
+      line-height: 1;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .proto-picker-highlight {
+      position: absolute;
+      top: 4px;
+      left: 0;
+      height: 28px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+    }
+    .proto-picker[data-ready] .proto-picker-highlight {
+      transition:
+        transform 250ms cubic-bezier(0.23, 1, 0.32, 1),
+        width 250ms cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .proto-picker[data-ready] .proto-picker-highlight { transition: none; }
+    }
+    .proto-picker-item {
+      position: relative;
+      display: flex;
+      align-items: center;
+      height: 28px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.55);
+      font: inherit;
+      cursor: pointer;
+      transition:
+        color 150ms ease-out,
+        transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .proto-picker-item:hover { color: rgba(255, 255, 255, 0.85); }
+    }
+    .proto-picker-item:active { transform: scale(0.97); }
+    .proto-picker-item:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.4);
+      outline-offset: 2px;
+    }
+    .proto-picker-item[data-active] { color: #fff; }
+    .proto-picker-divider {
+      width: 1px;
+      height: 16px;
+      margin: 0 4px;
+      background: rgba(255, 255, 255, 0.12);
+    }
+  </style>
+</Base>

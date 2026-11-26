@@ -4,6 +4,7 @@ interface Props {
 }
 
 const { path = '/' } = Astro.props
+const here = path.replace(/\/$/, '') || '/'
 ---
 <nav>
   <div class="wrap">
@@ -12,8 +13,8 @@ const { path = '/' } = Astro.props
       LapCraft
     </a>
     <div class="links">
-      <a href="/" aria-current={path === '/' ? 'page' : undefined}>Home</a>
-      <a href="/guide" aria-current={path === '/guide' ? 'page' : undefined}>Guide</a>
+      <a href="/" aria-current={here === '/' ? 'page' : undefined}>Home</a>
+      <a href="/guide/" aria-current={here === '/guide' ? 'page' : undefined}>Guide</a>
     </div>
     <a class="btn small primary" href="https://github.com/jlai403/lapcraft/releases/latest" rel="noopener">Download</a>
   </div>

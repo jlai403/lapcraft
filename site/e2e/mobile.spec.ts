@@ -11,7 +11,7 @@ test('mobile: no horizontal overflow and scrub is live', async ({ page }) => {
 
 test('mobile: guide link stays in the header', async ({ page }) => {
   await page.goto('/')
-  await expect(page.locator('nav a[href="/guide"]')).toBeVisible()
+  await expect(page.locator('nav a[href="/guide/"]')).toBeVisible()
   await expect(page.locator('nav .btn')).toBeVisible()
 })
 
