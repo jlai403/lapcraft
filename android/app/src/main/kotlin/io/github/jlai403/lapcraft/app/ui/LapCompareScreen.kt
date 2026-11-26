@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -600,31 +599,26 @@ internal fun CompareChrome(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(
-                modifier = Modifier.widthIn(max = 240.dp).fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                FilterChip(
-                    selected = tab == 0,
-                    onClick = { onTabChange(0) },
-                    label = { Text("Video", maxLines = 1) },
-                    modifier = Modifier.weight(1f),
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primary,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                    ),
-                )
-                FilterChip(
-                    selected = tab == 1,
-                    onClick = { onTabChange(1) },
-                    label = { Text("Telemetry", maxLines = 1) },
-                    modifier = Modifier.weight(1f).testTag("compare-tab-telemetry"),
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primary,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                    ),
-                )
-            }
+            FilterChip(
+                selected = tab == 0,
+                onClick = { onTabChange(0) },
+                label = { Text("Video", maxLines = 1) },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                ),
+            )
+            Spacer(Modifier.width(6.dp))
+            FilterChip(
+                selected = tab == 1,
+                onClick = { onTabChange(1) },
+                label = { Text("Telemetry", maxLines = 1) },
+                modifier = Modifier.testTag("compare-tab-telemetry"),
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                ),
+            )
         }
         Text(
             deltaMs?.let { d ->
