@@ -4,6 +4,9 @@ import io.github.jlai403.lapcraft.app.service.TelemetryUiState
 import io.github.jlai403.lapcraft.core.capture.CaptureState
 
 object StreamNotificationText {
+
+    fun canCapture(telemetry: TelemetryUiState, capture: CaptureState): Boolean =
+        capture !is CaptureState.Capturing && telemetry.connected && telemetry.lapStartObserved
     fun streamSummary(state: TelemetryUiState, capture: CaptureState): String = when (capture) {
         is CaptureState.Saved -> "GT7 stream · saved ${lapTime(capture.lapTimeMs)}"
         CaptureState.Capturing -> "GT7 stream · capturing lap"
