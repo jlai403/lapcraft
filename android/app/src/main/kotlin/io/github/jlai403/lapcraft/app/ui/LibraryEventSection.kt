@@ -20,10 +20,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.jlai403.lapcraft.core.events.LapEventGroup
 import io.github.jlai403.lapcraft.core.events.eventRangeLabel
+import io.github.jlai403.lapcraft.core.session.LapTrackGroup
 
 @Composable
 fun CurrentEventHeader(group: LapEventGroup, modifier: Modifier = Modifier) {
@@ -112,4 +114,49 @@ private fun eventDetail(group: LapEventGroup): String {
     val tracks = group.laps.map { it.trackLabel }.distinct()
     if (tracks.size == 1) parts += tracks.first() else parts += "${tracks.size} tracks"
     return parts.joinToString(" · ")
+}
+
+@Composable
+fun TrackHeader(group: LapTrackGroup, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .testTag("track-header"),
+    ) {
+        HorizontalDivider(
+            thickness = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant,
+        )
+        Column(modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 6.dp)) {
+            Text(
+                group.label,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Spacer(Modifier.height(2.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    "${group.laps.size} lap${if (group.laps.size == 1) "" else "s"} · last ${shortDateLabel(group.laps.maxOf { it.createdAt })}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                group.bestLapMs?.let { best ->
+                    NumericText(
+                        text = "Best ${lapTimeLabel(best)}",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+        }
+    }
 }

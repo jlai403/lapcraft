@@ -210,7 +210,7 @@ class LibraryScreenTest {
         compose.onNode(hasText("GR Supra Racing Concept '18") and hasAnyAncestor(isPopup())).performClick()
 
         val root = compose.onRoot().fetchSemanticsNode().boundsInRoot
-        val sort = compose.onNodeWithTag("library-sort").fetchSemanticsNode().boundsInRoot
+        val sort = compose.onNodeWithTag("library-view").fetchSemanticsNode().boundsInRoot
         assertTrue(sort.left >= root.left)
         assertTrue(sort.right <= root.right)
     }
@@ -652,6 +652,43 @@ class LibraryScreenTest {
         assertTrue(
             "an untagged lap is not an event and cannot lapse",
             compose.onAllNodesWithText("Past events", substring = true).fetchSemanticsNodes().isEmpty(),
+        )
+    }
+
+    @Test
+    fun `grouping by track shows track headers`() {
+        SessionFixtures.install(context, SessionFixtures.session(lapTimesMs = listOf(90_000)))
+        io.github.jlai403.lapcraft.app.settings.SettingsStore(context).libraryGrouping =
+            io.github.jlai403.lapcraft.app.settings.LibraryGrouping.Track
+
+        compose.setContent {
+            LapCraftTheme { LibraryScreen(onOpenLap = { _ -> }) }
+        }
+
+        compose.waitUntil(TIMEOUT) {
+            compose.onAllNodesWithTag("track-header").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithTag("track-header").assertExists()
+        assertTrue(
+            "event headers are gone in track mode",
+            compose.onAllNodesWithText("No event").fetchSemanticsNodes().isEmpty(),
+        )
+    }
+
+    @Test
+    fun `grouping by event is the default`() {
+        SessionFixtures.install(context, SessionFixtures.session(lapTimesMs = listOf(90_000)))
+
+        compose.setContent {
+            LapCraftTheme { LibraryScreen(onOpenLap = { _ -> }) }
+        }
+
+        compose.waitUntil(TIMEOUT) {
+            compose.onAllNodesWithText("1:30.000").fetchSemanticsNodes().isNotEmpty()
+        }
+        assertTrue(
+            "no track header in event mode",
+            compose.onAllNodesWithTag("track-header").fetchSemanticsNodes().isEmpty(),
         )
     }
 

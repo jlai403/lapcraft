@@ -55,7 +55,10 @@ cd android && ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --t
   offset (`0.019` = 19 ms) that pulls the trim start onto the line when the HUD timer is counting.
   `LapClock.forLapStart` and `core/clip/SyncOffset`. The sync footer reads `Clip current / end`
   plus a second `Lap` row.
-- Library is a flat feed: no cards/radii, `Hairline` dividers, `RowPressed` for pressed rows.
+- Library is a flat feed: no cards/radii, `Hairline` dividers, `RowPressed` for pressed rows. The feed
+  groups by event by default; a pinned view button (`library-view`) toggles grouping by track, persisted
+  in `SettingsStore.libraryGrouping`. Track mode has no past-events fold and shows the event label on
+  each row.
 - The library's primary nav is the kind tab row (`All · Daily · Time Trial · World Series`,
   `SegmentedChoice` with equal-width segments; the tab font shrinks 14→11 sp to fit and the row
   falls back to scrollable wrap-content when even 11 sp doesn't); it sets `EventFilter.Kind`.
