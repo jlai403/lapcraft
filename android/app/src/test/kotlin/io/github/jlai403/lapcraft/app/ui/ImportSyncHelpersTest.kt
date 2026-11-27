@@ -37,4 +37,29 @@ class ImportSyncHelpersTest {
         assertEquals("frame 1 / 10", framePositionLabel(1, 10))
         assertEquals("frame 10 / 10", framePositionLabel(10, 10))
     }
+
+    @Test
+    fun `suggested lap start snaps to a real frame when one is available`() {
+        val t = io.github.jlai403.lapcraft.core.clip.FrameTimeline.of(longArrayOf(0, 20_000, 40_000))!!
+        assertEquals(0L, suggestedLapStartMs(30, 96, t, 33))
+        assertEquals(20L, suggestedLapStartMs(60, 40, t, 33))
+    }
+
+    @Test
+    fun `suggested lap start falls back to the frame grid without a timeline`() {
+        assertEquals(4L, suggestedLapStartMs(100, 96, null, 4))
+    }
+
+    @Test
+    fun `suggested lap start clamps when the clip is shorter than the lap`() {
+        assertEquals(0L, suggestedLapStartMs(30, 96, null, 4))
+    }
+
+    @Test
+    fun `coarse scrub target is proportional and clamped`() {
+        assertEquals(50L, coarseScrubTargetMs(0, 200f, 400, 100))
+        assertEquals(100L, coarseScrubTargetMs(90, 100f, 400, 100))
+        assertEquals(0L, coarseScrubTargetMs(5, -1000f, 400, 100))
+        assertEquals(5L, coarseScrubTargetMs(5, 0f, 0, 100))
+    }
 }

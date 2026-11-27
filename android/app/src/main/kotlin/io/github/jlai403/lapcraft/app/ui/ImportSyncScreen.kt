@@ -11,10 +11,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -30,6 +33,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +46,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
@@ -57,7 +63,10 @@ import io.github.jlai403.lapcraft.app.replay.TrimOutcome
 import io.github.jlai403.lapcraft.app.replay.trimFailureMessage
 import io.github.jlai403.lapcraft.app.replay.PlayStationApp
 import io.github.jlai403.lapcraft.app.replay.ReplayStore
+import io.github.jlai403.lapcraft.app.replay.ClipFrame
 import io.github.jlai403.lapcraft.app.replay.VideoTranscoder
+import io.github.jlai403.lapcraft.app.replay.filmstripTimes
+import io.github.jlai403.lapcraft.app.replay.readThumbnails
 import io.github.jlai403.lapcraft.app.replay.probeClip
 import io.github.jlai403.lapcraft.app.replay.readFrameTimes
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
@@ -139,6 +148,9 @@ fun ImportSyncScreen(
     var frameStepMs by remember { mutableLongStateOf(33L) }
     var frameDurationUs by remember { mutableLongStateOf(33_000L) }
     var frameTimeline by remember { mutableStateOf<FrameTimeline?>(null) }
+    var filmFrames by remember { mutableStateOf<List<ClipFrame>>(emptyList()) }
+    var loupe by remember { mutableStateOf(false) }
+    var loupeCenterMs by remember { mutableLongStateOf(0L) }
     var scrubBaseUs by remember { mutableLongStateOf(0L) }
     var positionMs by remember { mutableLongStateOf(0L) }
     var renderedUs by remember { mutableLongStateOf(-1L) }
@@ -252,6 +264,10 @@ fun ImportSyncScreen(
         frameStepMs = probe.frameMs
         frameDurationUs = probe.frameDurationUs
         frameTimeline = withContext(Dispatchers.IO) { readFrameTimes(file) }
+        val wholeTimes = filmstripTimes(0, durationMs.coerceAtLeast(0), 16)
+        filmFrames = withContext(Dispatchers.IO) {
+            sourceFile?.let { readThumbnails(it, wholeTimes, 96, 60) } ?: emptyList()
+        }
         withContext(Dispatchers.Main) {
             player.setMediaItem(MediaItem.fromUri(Uri.fromFile(file)))
             player.prepare()
@@ -271,9 +287,7 @@ fun ImportSyncScreen(
             if (durationMs <= 0L) durationMs = maxOf(durationMs, l.lapTimeMs + l.leadInMs.toLong())
         }
         val lapSpan = (lap?.lapSpanMs ?: 0).toLong()
-        val suggested = (durationMs - lapSpan).coerceIn(0L, durationMs.coerceAtLeast(0L))
-        val step = frameStepMs.coerceAtLeast(1L)
-        val snapped = (suggested / step) * step
+        val snapped = suggestedLapStartMs(durationMs, lapSpan.toInt(), frameTimeline, frameStepMs)
         lapStartMs = snapped
         lapStartSuggested = true
         withContext(Dispatchers.Main) { seekTo(snapped) }
@@ -316,6 +330,20 @@ fun ImportSyncScreen(
         ?: if (renderedUs >= 0) renderedUs else positionMs * 1_000
     val displayedMs = scrubTargetMs
         ?: if (renderedUs >= 0) renderedUs / 1_000 else positionMs
+
+    LaunchedEffect(loupe, displayedMs / 2_000) {
+        if (!loupe || sourceFile == null) return@LaunchedEffect
+        val center = displayedMs
+        val times = filmstripTimes(
+            (center - 4_000).coerceAtLeast(0),
+            (center + 4_000).coerceAtMost(durationMs),
+            9,
+        )
+        val frames = withContext(Dispatchers.IO) {
+            sourceFile?.let { readThumbnails(it, times, 96, 60) } ?: emptyList()
+        }
+        withContext(Dispatchers.Main) { filmFrames = frames }
+    }
 
     LaunchedEffect(scrubbing, renderedUs) {
         val target = scrubTargetMs ?: return@LaunchedEffect
@@ -401,19 +429,77 @@ fun ImportSyncScreen(
             onBack = { confirmCancel = true },
         )
         val outerPlayer = player
-        AndroidView(
-            factory = { viewContext ->
-                PlayerView(viewContext).apply {
-                    setPlayer(outerPlayer)
-                    useController = false
-                }
-            },
+        var videoWidthPx by remember { mutableIntStateOf(0) }
+        var dragBaseMs by remember { mutableLongStateOf(0L) }
+        var dragTotalPx by remember { mutableFloatStateOf(0f) }
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(16f / 9f)
                 .clip(RoundedCornerShape(22.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant),
-        )
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .onSizeChanged { videoWidthPx = it.width },
+        ) {
+            AndroidView(
+                factory = { viewContext ->
+                    PlayerView(viewContext).apply {
+                        setPlayer(outerPlayer)
+                        useController = false
+                    }
+                },
+                modifier = Modifier.fillMaxSize(),
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(durationMs) {
+                        detectHorizontalDragGestures(
+                            onDragStart = {
+                                dragBaseMs = positionMs
+                                dragTotalPx = 0f
+                                player.pause()
+                                previewing = false
+                            },
+                            onHorizontalDrag = { change, dragAmount ->
+                                change.consume()
+                                dragTotalPx += dragAmount
+                                val target = coarseScrubTargetMs(dragBaseMs, dragTotalPx, videoWidthPx, durationMs)
+                                scrubTargetMs = target
+                                scrubSeeker.submit(target)
+                            },
+                            onDragEnd = {
+                                scrubTargetMs = null
+                                scrubSeeker.clearPending()
+                            },
+                        )
+                    },
+            )
+        }
+        if (filmFrames.isNotEmpty() || loupe) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                GhostPill(if (loupe) "Whole clip" else "Frames here", {
+                    val turningOff = loupe
+                    loupe = !loupe
+                    if (turningOff) {
+                        scope.launch {
+                            val times = filmstripTimes(0, durationMs.coerceAtLeast(0), 16)
+                            val frames = withContext(Dispatchers.IO) {
+                                sourceFile?.let { readThumbnails(it, times, 96, 60) } ?: emptyList()
+                            }
+                            filmFrames = frames
+                        }
+                    }
+                }, Modifier)
+            }
+        }
+        if (filmFrames.isNotEmpty()) {
+            ClipFilmstrip(
+                frames = filmFrames,
+                currentMs = displayedMs,
+                onPick = { seekTo(it) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
         Text(
             buildString {
                 if (trackPercent != null) append("%.1f%% lap".format(trackPercent))
@@ -595,6 +681,13 @@ fun ImportSyncScreen(
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         GhostPill(flipLabel(displayedMs, sync.trimInMs, sync.trimOutMs), {
                             seekTo(flipTargetMs(displayedMs, sync.trimInMs, sync.trimOutMs))
+                        }, Modifier.weight(1f))
+                        GhostPill("Use this frame as finish", {
+                            val span = (currentLap?.lapSpanMs ?: currentLap?.lapTimeMs ?: 0).toLong()
+                            val rawStart = (displayedMs - span).coerceAtLeast(0L)
+                            lapStartMs = frameTimeline?.snapMs(rawStart)
+                                ?: ((rawStart / frameStepMs.coerceAtLeast(1)) * frameStepMs)
+                            lapStartSuggested = false
                         }, Modifier.weight(1f))
                     }
                     Text(
