@@ -4,18 +4,21 @@ import io.github.jlai403.lapcraft.app.service.TelemetryUiState
 import io.github.jlai403.lapcraft.core.capture.CaptureState
 import io.github.jlai403.lapcraft.core.session.LapId
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class StreamNotificationTextTest {
     private fun state(
         connected: Boolean = true,
+        lapStartObserved: Boolean = false,
         packetsPerSecond: Double = 59.8,
         decodeErrors: Long = 0,
         lastPacketAgeMs: Long = 12,
         lastDecodeFailure: String = "",
     ) = TelemetryUiState(
         connected = connected,
+        lapStartObserved = lapStartObserved,
         packetsPerSecond = packetsPerSecond,
         decodeErrors = decodeErrors,
         lastDecodeFailure = lastDecodeFailure,
@@ -85,5 +88,31 @@ class StreamNotificationTextTest {
         assertTrue(details.contains("Last packet: none yet"))
         assertTrue(details.contains("Lap 3 · last 1:30.456"))
         assertEquals("-", StreamNotificationText.lapTime(0))
+    }
+
+    @Test
+    fun `capture action is offered only when it can succeed`() {
+        val notConnected = StreamNotificationText.canCapture(
+            state(connected = false, lapStartObserved = true),
+            CaptureState.Idle,
+        )
+        val midLap = StreamNotificationText.canCapture(state(), CaptureState.Idle)
+        val ready = StreamNotificationText.canCapture(
+            state(lapStartObserved = true),
+            CaptureState.Idle,
+        )
+        val capturing = StreamNotificationText.canCapture(
+            state(lapStartObserved = true),
+            CaptureState.Capturing,
+        )
+        val saved = StreamNotificationText.canCapture(
+            state(lapStartObserved = true),
+            CaptureState.Saved(lapId = LapId("s1"), lapTimeMs = 159_831),
+        )
+        assertFalse(notConnected)
+        assertFalse(midLap)
+        assertTrue(ready)
+        assertFalse(capturing)
+        assertTrue(saved)
     }
 }

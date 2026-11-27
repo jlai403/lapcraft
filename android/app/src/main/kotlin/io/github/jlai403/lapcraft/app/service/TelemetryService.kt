@@ -104,6 +104,7 @@ class TelemetryService : Service() {
                 } else {
                     capture.value = CaptureState.Rejected("Cross the start line first")
                 }
+                updateNotification(force = true)
                 return START_NOT_STICKY
             }
             ACTION_CANCEL_CAPTURE -> {
@@ -125,7 +126,7 @@ class TelemetryService : Service() {
                     state.value = TelemetryUiState()
                     startForeground(
                         NOTIFICATION_ID,
-                        notification("GT7 stream · waiting"),
+                        notification("GT7 stream · waiting", canCapture = false),
                         ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC,
                     )
                     stopForeground(STOP_FOREGROUND_REMOVE)
@@ -134,7 +135,7 @@ class TelemetryService : Service() {
                 }
                 startForeground(
                     NOTIFICATION_ID,
-                    notification("GT7 stream · waiting"),
+                    notification("GT7 stream · waiting", canCapture = false),
                     ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC,
                 )
                 source?.stop()
@@ -163,7 +164,10 @@ class TelemetryService : Service() {
                         ),
                     )
                     serviceScope.launch {
-                        coordinator.state.collect { capture.value = it }
+                        coordinator.state.collect {
+                            capture.value = it
+                            updateNotification(force = true)
+                        }
                     }
                     serviceScope.launch { EventRefresh.refresh(this@TelemetryService) }
                 } else {
@@ -241,7 +245,8 @@ class TelemetryService : Service() {
             recordEvent(if (onTrack) "Car on track" else "Car off track")
         }
         syncWakeLock()
-        updateNotification()
+        val lapStartChanged = next.lapStartObserved != previous.lapStartObserved
+        updateNotification(force = lapStartChanged)
         if (next.connected && !previous.connected) {
             streamToast("GT7 stream OK · %.0f pps".format(next.packetsPerSecond))
         }
@@ -264,11 +269,12 @@ class TelemetryService : Service() {
             telemetry,
             events.value.firstOrNull()?.message,
         )
-        val key = summary + "|" + details
+        val canCapture = StreamNotificationText.canCapture(telemetry, capture.value)
+        val key = summary + "|" + details + "|" + canCapture
         if (key == lastNotificationKey) return
         lastNotificationKey = key
         getSystemService(NotificationManager::class.java)
-            .notify(NOTIFICATION_ID, notification(summary, details))
+            .notify(NOTIFICATION_ID, notification(summary, details, canCapture))
     }
 
     private fun syncWakeLock() {
@@ -298,11 +304,21 @@ class TelemetryService : Service() {
     private fun formatLapTime(ms: Int): String =
         "%d:%02d.%03d".format(ms / 60_000, (ms % 60_000) / 1_000, ms % 1_000)
 
-    private fun notification(summary: String, details: String? = null): Notification {
+    private fun notification(
+        summary: String,
+        details: String? = null,
+        canCapture: Boolean = false,
+    ): Notification {
         val open = PendingIntent.getActivity(
             this,
             0,
             Intent(this, MainActivity::class.java),
+            PendingIntent.FLAG_IMMUTABLE,
+        )
+        val captureLap = PendingIntent.getService(
+            this,
+            3,
+            Intent(this, TelemetryService::class.java).setAction(ACTION_CAPTURE),
             PendingIntent.FLAG_IMMUTABLE,
         )
         val disconnect = PendingIntent.getService(
@@ -333,6 +349,8 @@ class TelemetryService : Service() {
             .apply { details?.let { setStyle(NotificationCompat.BigTextStyle().bigText(it)) } }
         if (capture.value is CaptureState.Capturing) {
             builder.addAction(android.R.drawable.ic_menu_close_clear_cancel, "Cancel capture", cancelCapture)
+        } else if (canCapture) {
+            builder.addAction(R.drawable.ic_action_capture, "Capture lap", captureLap)
         }
         builder.addAction(android.R.drawable.ic_menu_close_clear_cancel, "Disconnect", disconnect)
         return builder.build()
