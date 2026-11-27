@@ -78,6 +78,26 @@ class ImportPickScreenTest {
         assertEquals("session-1" to 1, picked)
     }
 
+    @Test
+    fun `lap row shows the driver when one is assigned`() {
+        SessionFixtures.install(
+            context,
+            SessionFixtures.session(id = "with-driver", lapTimesMs = listOf(90_000), driverPsnId = "alice"),
+        )
+
+        compose.setContent {
+            LapCraftTheme {
+                ImportPickScreen(uri = "content://replay", onPick = { _ -> }, onClose = {})
+            }
+        }
+
+        compose.waitUntil(TIMEOUT) {
+            compose.onAllNodesWithText("1:30.000").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithText("Suzuka", substring = true).assertExists()
+        compose.onNodeWithText("alice", substring = true).assertExists()
+    }
+
     private companion object {
         const val TIMEOUT = 10_000L
     }

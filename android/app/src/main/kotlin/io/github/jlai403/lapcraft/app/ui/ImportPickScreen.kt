@@ -30,6 +30,9 @@ import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LapSummary
 import io.github.jlai403.lapcraft.core.session.LapStore
 import io.github.jlai403.lapcraft.app.catalog.lapStore
+import io.github.jlai403.lapcraft.core.profile.DriverProfile
+import io.github.jlai403.lapcraft.app.profile.DriverProfileStore
+import io.github.jlai403.lapcraft.app.profile.countryFlagEmoji
 import io.github.jlai403.lapcraft.core.session.applySort
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -42,11 +45,21 @@ fun ImportPickScreen(
 ) {
     val context = LocalContext.current
     val store = remember { lapStore(context) }
+    val profileStore = remember { DriverProfileStore(context) }
     var laps by remember { mutableStateOf<List<LapSummary>?>(null) }
+    var profiles by remember { mutableStateOf<Map<String, DriverProfile>>(emptyMap()) }
 
     LaunchedEffect(uri) {
-        laps = withContext(Dispatchers.IO) {
+        val loaded = withContext(Dispatchers.IO) {
             store.summaries().applySort(LapSort.Newest)
+        }
+        laps = loaded
+        val psns = loaded.mapNotNull { it.driverPsnId }.distinct()
+        if (psns.isNotEmpty()) {
+            val map = withContext(Dispatchers.IO) {
+                psns.mapNotNull { psn -> profileStore.profile(psn)?.let { psn to it } }.toMap()
+            }
+            profiles = map
         }
     }
 
@@ -100,7 +113,19 @@ fun ImportPickScreen(
                                 style = MaterialTheme.typography.titleLarge,
                             )
                             Text(
-                                "${lap.trackLabel} · ${lap.carName}",
+                                listOfNotNull(
+                                    lap.trackLabel,
+                                    lap.carName,
+                                    lap.driverPsnId?.let { psn ->
+                                        val profile = profiles[psn]
+                                        if (profile != null) {
+                                            listOfNotNull(countryFlagEmoji(profile.countryCode), profile.nickname)
+                                                .joinToString(" ").ifBlank { psn }
+                                        } else {
+                                            psn
+                                        }
+                                    },
+                                ).joinToString(" · "),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
