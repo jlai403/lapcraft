@@ -6,6 +6,8 @@ import android.content.Context
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -53,6 +55,7 @@ import io.github.jlai403.lapcraft.app.replay.ClipTrimmer
 import io.github.jlai403.lapcraft.app.replay.TrimFailureReason
 import io.github.jlai403.lapcraft.app.replay.TrimOutcome
 import io.github.jlai403.lapcraft.app.replay.trimFailureMessage
+import io.github.jlai403.lapcraft.app.replay.PlayStationApp
 import io.github.jlai403.lapcraft.app.replay.ReplayStore
 import io.github.jlai403.lapcraft.app.replay.VideoTranscoder
 import io.github.jlai403.lapcraft.app.replay.probeClip
@@ -120,6 +123,18 @@ fun ImportSyncScreen(
     var lap by remember { mutableStateOf<LapView?>(null) }
     var samples by remember { mutableStateOf<List<Sample>>(emptyList()) }
     var sourceFile by remember { mutableStateOf<File?>(null) }
+    var attachedUri by remember { mutableStateOf(sourceUri) }
+    val importLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        if (uri != null) attachedUri = uri.toString()
+    }
+    fun openPlayStationApp() {
+        if (!PlayStationApp.open(context)) {
+            Toast.makeText(context, "PlayStation App is not available.", Toast.LENGTH_SHORT).show()
+        }
+    }
+    var resolvingSource by remember { mutableStateOf(true) }
     var durationMs by remember { mutableLongStateOf(0L) }
     var frameStepMs by remember { mutableLongStateOf(33L) }
     var frameDurationUs by remember { mutableLongStateOf(33_000L) }
@@ -128,7 +143,7 @@ fun ImportSyncScreen(
     var positionMs by remember { mutableLongStateOf(0L) }
     var renderedUs by remember { mutableLongStateOf(-1L) }
     var lapStartMs by remember { mutableStateOf<Long?>(null) }
-    var offsetText by remember(sourceUri) { mutableStateOf("") }
+    var offsetText by remember(attachedUri) { mutableStateOf("") }
     var playing by remember { mutableStateOf(false) }
     var previewing by remember { mutableStateOf(false) }
     var playbackSpeed by remember { mutableStateOf(1f) }
@@ -182,11 +197,20 @@ fun ImportSyncScreen(
         }
     }
 
-    LaunchedEffect(lapId, sourceUri) {
+    LaunchedEffect(lapId, attachedUri) {
+        resolvingSource = true
         error = null
+        sourceFile = null
+        durationMs = 0L
+        frameTimeline = null
+        lapStartMs = null
+        positionMs = 0L
+        renderedUs = -1L
+        started = false
         val record = withContext(Dispatchers.IO) { store.load(lapId) }
         if (record == null) {
             error = "Lap not found."
+            resolvingSource = false
             return@LaunchedEffect
         }
         val loaded = record.toLapView()
@@ -197,13 +221,14 @@ fun ImportSyncScreen(
             runCatching { store.readSamples(lapId) }.getOrDefault(emptyList())
         }
 
-        val file = if (sourceUri != null) {
+        val file = if (attachedUri != null) {
             val destination = ReplayStore.sourceFile(dir, 1)
             val copied = withContext(Dispatchers.IO) {
-                ReplayStore.copy(context, Uri.parse(sourceUri), destination)
+                ReplayStore.copy(context, Uri.parse(attachedUri), destination)
             }
             if (!copied) {
                 error = "Could not read the replay. Download it in the PS App and pick the file instead."
+                resolvingSource = false
                 return@LaunchedEffect
             }
             withContext(Dispatchers.IO) { store.setSource(lapId, "source.mp4") }
@@ -214,7 +239,10 @@ fun ImportSyncScreen(
         }
 
         if (file == null || !file.isFile) {
-            error = "No replay file attached."
+            resolvingSource = false
+            if (attachedUri != null) {
+                error = "Could not read the replay. Download it in the PS App and pick the file instead."
+            }
             return@LaunchedEffect
         }
         sourceFile = file
@@ -228,10 +256,11 @@ fun ImportSyncScreen(
             player.setMediaItem(MediaItem.fromUri(Uri.fromFile(file)))
             player.prepare()
         }
+        resolvingSource = false
     }
 
-    LaunchedEffect(player, lap) {
-        if (lap == null || started) return@LaunchedEffect
+    LaunchedEffect(player, lap, sourceFile) {
+        if (sourceFile == null || lap == null || started) return@LaunchedEffect
         var reported = 0L
         while (reported <= 0) {
             reported = withContext(Dispatchers.Main) { player.duration }
@@ -457,6 +486,28 @@ fun ImportSyncScreen(
                 .padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            if (sourceFile == null && !resolvingSource) {
+                SectionCard(title = "Replay") {
+                    Text("No replay attached", style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        "Telemetry plays without one. Record the single-lap replay on the " +
+                            "PS5, upload it to the PS App, then add it here.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    ReplaySourcePill(
+                        text = "Add replay",
+                        primary = true,
+                        onFiles = { importLauncher.launch(arrayOf("video/*")) },
+                        onPlayStation = { openPlayStationApp() },
+                        modifier = Modifier.fillMaxWidth().testTag("sync-attach-replay"),
+                    )
+                    error?.let { msg ->
+                        Text(msg, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
+            if (sourceFile != null) {
             currentLap?.let { activeLap ->
                 SectionCard(title = "1 · Lap start") {
                     Text(
@@ -738,6 +789,7 @@ fun ImportSyncScreen(
                         enabled = check == SyncCheck.Ok && offsetValid && !saving,
                     )
                 }
+            }
             }
         }
     }

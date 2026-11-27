@@ -51,9 +51,32 @@ class ImportSyncScreenTest {
         }
 
         compose.waitUntil(10_000L) {
-            compose.onAllNodesWithText("No replay file attached.").fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithTag("sync-attach-replay").fetchSemanticsNodes().isNotEmpty()
         }
+        compose.onNodeWithText("No replay attached").assertExists()
         compose.onNodeWithText("Sync clip").assertExists()
+    }
+
+    @Test
+    fun `attached replay hides the attach card`() {
+        SessionFixtures.install(context, SessionFixtures.session(lapTimesMs = listOf(90_000), pendingSource = true))
+
+        compose.setContent {
+            LapCraftTheme {
+                ImportSyncScreen(
+                    lapId = LapId("session-1"),
+                    sourceUri = null,
+                    onDone = {},
+                    onCancel = {},
+                )
+            }
+        }
+
+        compose.waitUntil(TIMEOUT) {
+            compose.onAllNodesWithText("Saving replaces the current replay. Discard keeps it.")
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onAllNodesWithTag("sync-attach-replay").fetchSemanticsNodes().isEmpty()
     }
 
     @Test
