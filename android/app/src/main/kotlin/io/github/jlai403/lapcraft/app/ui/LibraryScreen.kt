@@ -21,7 +21,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material3.Icon
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -56,6 +58,7 @@ import io.github.jlai403.lapcraft.app.replay.LapReencoder
 import io.github.jlai403.lapcraft.app.replay.PlayStationApp
 import io.github.jlai403.lapcraft.app.replay.VideoTranscoder
 import io.github.jlai403.lapcraft.app.seed.SeedLaps
+import io.github.jlai403.lapcraft.app.settings.LibraryGrouping
 import io.github.jlai403.lapcraft.app.settings.SettingsStore
 import io.github.jlai403.lapcraft.app.share.LibraryTransfer
 import io.github.jlai403.lapcraft.app.track.TrackCatalog
@@ -67,6 +70,7 @@ import io.github.jlai403.lapcraft.core.events.eventGroups
 import io.github.jlai403.lapcraft.core.session.LapFilter
 import io.github.jlai403.lapcraft.core.session.LapSort
 import io.github.jlai403.lapcraft.core.session.LapSummary
+import io.github.jlai403.lapcraft.core.session.trackGroups
 import io.github.jlai403.lapcraft.core.session.LapId
 import io.github.jlai403.lapcraft.core.session.LapStore
 import io.github.jlai403.lapcraft.app.catalog.lapStore
@@ -120,6 +124,8 @@ fun LibraryScreen(
     var message by remember { mutableStateOf<String?>(null) }
     var trackMenu by remember { mutableStateOf(false) }
     var sortMenu by remember { mutableStateOf(false) }
+    var viewMenu by remember { mutableStateOf(false) }
+    var grouping by remember { mutableStateOf(settings.libraryGrouping) }
     var profileMenu by remember { mutableStateOf(false) }
     var compareMode by remember { mutableStateOf(false) }
     var picks by remember { mutableStateOf<List<LapSummary>>(emptyList()) }
@@ -286,6 +292,7 @@ fun LibraryScreen(
     }
     val referenceCount = visible.orEmpty().count { it.lapId != primaryPick?.lapId }
     val groups = visible?.eventGroups(cachedEvents, System.currentTimeMillis()).orEmpty()
+    val trackGroups = visible?.trackGroups { it.trackLabel == TrackNamer.UNKNOWN }.orEmpty()
     val tracks = all?.distinctBy { it.trackKey }?.map { it.trackKey to it.trackLabel }?.sortedBy { it.second }.orEmpty()
     val cars = all.orEmpty().map { it.carName }.filter { it.isNotBlank() }.distinct().sorted()
     val rankable = all?.filter { it.trackLabel != TrackNamer.UNKNOWN }
@@ -427,18 +434,51 @@ fun LibraryScreen(
                 }
                 Box {
                     GhostIconPill(
-                        icon = FilterIcons.Sort,
-                        contentDescription = "Sort: ${sort.label}",
-                        onClick = { sortMenu = true },
-                        modifier = Modifier.testTag("library-sort"),
+                        icon = FilterIcons.View,
+                        contentDescription = "Group and sort: ${grouping.name.lowercase()}, ${sort.label.lowercase()}",
+                        onClick = { viewMenu = true },
+                        modifier = Modifier.testTag("library-view"),
                     )
-                    DropdownMenu(expanded = sortMenu, onDismissRequest = { sortMenu = false }) {
-                        LapSort.entries.forEach { option ->
+                    DropdownMenu(expanded = viewMenu, onDismissRequest = { viewMenu = false }) {
+                        Text(
+                            "Group by",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                        )
+                        LibraryGrouping.entries.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option.name) },
+                                onClick = {
+                                    grouping = option
+                                    settings.libraryGrouping = option
+                                    viewMenu = false
+                                },
+                                trailingIcon = {
+                                    if (grouping == option) {
+                                        Icon(Icons.Filled.Check, contentDescription = null)
+                                    }
+                                },
+                            )
+                        }
+                        HorizontalDivider()
+                        Text(
+                            "Sort by",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                        )
+                        (if (grouping == LibraryGrouping.Track) LapSort.entries.filter { it != LapSort.Track } else LapSort.entries).forEach { option ->
                             DropdownMenuItem(
                                 text = { Text(option.label) },
                                 onClick = {
                                     sort = option
-                                    sortMenu = false
+                                    viewMenu = false
+                                },
+                                trailingIcon = {
+                                    if (sort == option) {
+                                        Icon(Icons.Filled.Check, contentDescription = null)
+                                    }
                                 },
                             )
                         }
@@ -541,7 +581,7 @@ fun LibraryScreen(
                                     "No ${kind.label} laps yet",
                                     style = MaterialTheme.typography.titleLarge,
                                 )
-                                if (!settings.eventTags) {
+                                if (!settings.eventTags && grouping == LibraryGrouping.Event) {
                                     Text(
                                         "Event tags are off. Turn them on in Settings to group " +
                                             "laps by event.",
@@ -573,7 +613,57 @@ fun LibraryScreen(
                         }
                     }
 
-                    else -> {
+                    else -> if (grouping == LibraryGrouping.Track) {
+                        trackGroups.forEach { group ->
+                            stickyHeader(key = "track-${group.key}") {
+                                TrackHeader(group)
+                            }
+                            itemsIndexed(group.laps, key = { _, lap -> lap.lapId.value }) { i, lap ->
+                                val best = group.bestLapMs
+                                val ranked = group.laps.size >= 2 && lap.trackLabel != TrackNamer.UNKNOWN
+                                val isFastest = ranked && best != null && lap.lapTimeMs == best
+                                val deltaMs = if (ranked && !isFastest && best != null) {
+                                    lap.lapTimeMs - best
+                                } else {
+                                    null
+                                }
+                                val driverPsn = lap.driverPsnId
+                                val driver = driverPsn?.let { psn ->
+                                    profiles[psn.lowercase()] ?: owner?.takeIf { it.psnId.equals(psn, true) }
+                                }
+                                Column() {
+                                    LapCard(
+                                        lap = lap,
+                                        driver = driver,
+                                        fastest = isFastest,
+                                        deltaMs = deltaMs,
+                                        onOpen = { target ->
+                                            if (compareMode) togglePick(target) else onOpenLap(target.lapId)
+                                        },
+                                        onEdit = ::edit,
+                                        onDelete = { deleting = it },
+                                        compareMode = compareMode,
+                                        pick = when {
+                                            picks.getOrNull(0)?.lapId == lap.lapId -> LapPick.Primary
+                                            picks.getOrNull(1)?.lapId == lap.lapId -> LapPick.Reference
+                                            else -> null
+                                        },
+                                        showTrack = false,
+                                        showDate = true,
+                                        showFastestLabel = true,
+                                        eventLabel = lap.event?.label,
+                                    )
+                                    if (i != group.laps.lastIndex) {
+                                        HorizontalDivider(
+                                            modifier = Modifier.testTag("lap-divider"),
+                                            thickness = 1.dp,
+                                            color = Hairline,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    } else {
                         val lapsedGroups = groups.filter { it.status == EventStatus.Lapsed }
                         val currentGroups = groups.filter { it.status != EventStatus.Lapsed }
                         if (currentGroups.isNotEmpty()) {
@@ -689,7 +779,7 @@ fun LibraryScreen(
                                     }
                                 }
                             }
-                        }
+                    }
                     }
                 }
             }

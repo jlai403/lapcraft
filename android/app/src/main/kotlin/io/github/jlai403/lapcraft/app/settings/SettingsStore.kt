@@ -4,6 +4,8 @@ import android.content.Context
 import io.github.jlai403.lapcraft.core.network.Ipv4
 import io.github.jlai403.lapcraft.core.tire.TyreCompound
 
+enum class LibraryGrouping { Event, Track }
+
 class SettingsStore(context: Context) {
     private val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
@@ -92,6 +94,10 @@ class SettingsStore(context: Context) {
         get() = prefs.getBoolean(KEY_EVENT_TAGS, false)
         set(value) = prefs.edit().putBoolean(KEY_EVENT_TAGS, value).apply()
 
+    var libraryGrouping: LibraryGrouping
+        get() = enumPref(KEY_LIBRARY_GROUPING, LibraryGrouping.Event)
+        set(value) = prefs.edit().putString(KEY_LIBRARY_GROUPING, value.name).apply()
+
     var openEditAfterCapture: Boolean
         get() = prefs.getBoolean(KEY_OPEN_EDIT_AFTER_CAPTURE, true)
         set(value) = prefs.edit().putBoolean(KEY_OPEN_EDIT_AFTER_CAPTURE, value).apply()
@@ -144,6 +150,7 @@ class SettingsStore(context: Context) {
         const val KEY_TRACK_ID_VERSION = "track_id_version"
         const val KEY_SEED_VERSION = "seed_version"
         const val KEY_EVENT_TAGS = "event_tags"
+        const val KEY_LIBRARY_GROUPING = "library_grouping"
     const val KEY_OPEN_EDIT_AFTER_CAPTURE = "open_edit_after_capture"
     const val KEY_ANALYTICS_ENABLED = "analytics_enabled"
     const val KEY_ANALYTICS_PROMPT_SHOWN = "analytics_prompt_shown"

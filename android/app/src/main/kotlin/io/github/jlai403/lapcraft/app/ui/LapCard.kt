@@ -75,6 +75,7 @@ internal fun LapCard(
     showTrack: Boolean = true,
     showDate: Boolean = true,
     showFastestLabel: Boolean = true,
+    eventLabel: String? = null,
 ) {
     var width by remember { mutableIntStateOf(0) }
     var menuOpen by remember { mutableStateOf(false) }
@@ -237,6 +238,15 @@ internal fun LapCard(
                         Text(
                             lap.trackLabel,
                             style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    eventLabel?.let { label ->
+                        Text(
+                            label,
+                            style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
