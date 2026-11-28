@@ -52,10 +52,6 @@ cd android && ANDROID_HOME=/opt/android-sdk ./gradlew :app:testDebugUnitTest --t
 - Replay clips live under `laps/<id>/replay.mp4` (new layout) or `sessions/<id>/laps/lap-NNN.mp4` (legacy, migrated on first launch); telemetry is `lap.gt7lap` (new) or `lap-NNN.gt7lap` (legacy).
 - The frame ruler only scrubs: a tap does nothing (no seek, no pause), and a horizontal drag past
   the touch slop steps frames from the playhead the drag started on. There is no jump-to-place.
-- The sync screen adds a filmstrip (20 thumbnails cropped to the GT7 lap-timer pill, tap to seek),
-  proportional drag-to-scrub on the video surface, real-frame snapping of the suggested lap start,
-  and a `Use this frame as finish` anchor. The footer's Clip row is compacted (speed pinned right,
-  no loop toggle). The ruler convention is unchanged.
 - Sync sets the **lap start**: the frame where the car crosses the line, plus an optional typed
   offset (`0.019` = 19 ms) that pulls the trim start onto the line when the HUD timer is counting.
   `LapClock.forLapStart` and `core/clip/SyncOffset`. The sync footer reads `Clip current / end`
