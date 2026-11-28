@@ -171,6 +171,7 @@ internal fun PlaybackFooter(
     onSpeedChange: (Float) -> Unit,
     onStep: (Int) -> Unit = {},
     compact: Boolean = false,
+    compactChrome: Boolean = false,
     clockLabel: String = "Lap",
     lapMs: Int? = null,
     frameNumber: Int? = null,
@@ -268,28 +269,30 @@ internal fun PlaybackFooter(
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Row(
-                        modifier = Modifier.weight(1f),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        Text(
-                            clockLabel,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                if (!compactChrome) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Text(
+                                clockLabel,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            NumericText(
+                                "%s / %s".format(formatMillis(cursorMs.toLong()), lapTimeLabel(endMs)),
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                        }
+                        FilterChip(
+                            selected = looping,
+                            onClick = toggleLoop,
+                            label = { Text("Loop") },
                         )
-                        NumericText(
-                            "%s / %s".format(formatMillis(cursorMs.toLong()), lapTimeLabel(endMs)),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
+                        SpeedStepper(speed = speed, onSpeedChange = speedChange)
                     }
-                    FilterChip(
-                        selected = looping,
-                        onClick = toggleLoop,
-                        label = { Text("Loop") },
-                    )
-                    SpeedStepper(speed = speed, onSpeedChange = speedChange)
                 }
                 lapMs?.let { ms ->
                     Row(
@@ -350,6 +353,11 @@ internal fun PlaybackFooter(
                         rewindEnabled = rewindEnabled,
                         forwardEnabled = forwardEnabled,
                     )
+                    if (compactChrome) {
+                        Box(modifier = Modifier.align(Alignment.CenterEnd)) {
+                            SpeedCycle(speed = speed, enabled = enabled, onSpeedChange = speedChange)
+                        }
+                    }
                 }
             }
         }

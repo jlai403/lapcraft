@@ -149,8 +149,6 @@ fun ImportSyncScreen(
     var frameDurationUs by remember { mutableLongStateOf(33_000L) }
     var frameTimeline by remember { mutableStateOf<FrameTimeline?>(null) }
     var filmFrames by remember { mutableStateOf<List<ClipFrame>>(emptyList()) }
-    var loupe by remember { mutableStateOf(false) }
-    var loupeCenterMs by remember { mutableLongStateOf(0L) }
     var scrubBaseUs by remember { mutableLongStateOf(0L) }
     var positionMs by remember { mutableLongStateOf(0L) }
     var renderedUs by remember { mutableLongStateOf(-1L) }
@@ -264,7 +262,7 @@ fun ImportSyncScreen(
         frameStepMs = probe.frameMs
         frameDurationUs = probe.frameDurationUs
         frameTimeline = withContext(Dispatchers.IO) { readFrameTimes(file) }
-        val wholeTimes = filmstripTimes(0, durationMs.coerceAtLeast(0), 16)
+        val wholeTimes = filmstripTimes(0, durationMs.coerceAtLeast(0), 20)
         filmFrames = withContext(Dispatchers.IO) {
             sourceFile?.let { readThumbnails(it, wholeTimes, 96, 60) } ?: emptyList()
         }
@@ -330,20 +328,6 @@ fun ImportSyncScreen(
         ?: if (renderedUs >= 0) renderedUs else positionMs * 1_000
     val displayedMs = scrubTargetMs
         ?: if (renderedUs >= 0) renderedUs / 1_000 else positionMs
-
-    LaunchedEffect(loupe, displayedMs / 2_000) {
-        if (!loupe || sourceFile == null) return@LaunchedEffect
-        val center = displayedMs
-        val times = filmstripTimes(
-            (center - 4_000).coerceAtLeast(0),
-            (center + 4_000).coerceAtMost(durationMs),
-            9,
-        )
-        val frames = withContext(Dispatchers.IO) {
-            sourceFile?.let { readThumbnails(it, times, 96, 60) } ?: emptyList()
-        }
-        withContext(Dispatchers.Main) { filmFrames = frames }
-    }
 
     LaunchedEffect(scrubbing, renderedUs) {
         val target = scrubTargetMs ?: return@LaunchedEffect
@@ -475,23 +459,6 @@ fun ImportSyncScreen(
                     },
             )
         }
-        if (filmFrames.isNotEmpty() || loupe) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                GhostPill(if (loupe) "Whole clip" else "Frames here", {
-                    val turningOff = loupe
-                    loupe = !loupe
-                    if (turningOff) {
-                        scope.launch {
-                            val times = filmstripTimes(0, durationMs.coerceAtLeast(0), 16)
-                            val frames = withContext(Dispatchers.IO) {
-                                sourceFile?.let { readThumbnails(it, times, 96, 60) } ?: emptyList()
-                            }
-                            filmFrames = frames
-                        }
-                    }
-                }, Modifier)
-            }
-        }
         if (filmFrames.isNotEmpty()) {
             ClipFilmstrip(
                 frames = filmFrames,
@@ -522,6 +489,7 @@ fun ImportSyncScreen(
                 endMs = durationMs.toInt(),
                 frameStepMs = frameStepMs,
                 enabled = durationMs > 0,
+                compactChrome = true,
                 playing = playing,
                 looping = previewing,
                 speed = playbackSpeed,
