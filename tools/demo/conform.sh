@@ -9,7 +9,6 @@ PY="$TOOLS/demo.py"
 FONTDIR="$ROOT/android/app/src/main/res/font"
 ICON="$ROOT/android/app/src/main/res/drawable-xxxhdpi/splash_icon.webp"
 PRE_ROLL=0.5
-TURN1_TRIM=4.5
 DURATION=26
 
 CAPTIONS="$TOOLS/captions.srt"
@@ -17,7 +16,7 @@ LAYOUT=wide
 DRY_RUN=0
 MUSIC=""
 
-log() { printf '%s\n' "$*"; }
+log() { printf '%s\n' "$*" >&2; }
 die() { printf 'error: %s\n' "$*" >&2; exit 1; }
 
 run() {
@@ -76,6 +75,7 @@ segment() {
   local trim="${7:-$PRE_ROLL}"
   if [[ ! -f "$take" && -f "$TOOLS/legacy/capture-$take_name.mp4" ]]; then
     # Archived take: already framed on the device, no scrcpy pre-roll to drop.
+    log "WARNING: $take_name.mkv missing; using archived Nov 18 take (Record screen will be stale)"
     take="$TOOLS/legacy/capture-$take_name.mp4"
     [[ -n "${7:-}" ]] || trim=0
   fi
@@ -137,10 +137,11 @@ compare_trim() {
     return
   fi
   cut="$(ffmpeg -v info -i "$take" -vf "select='gt(scene,0.25)',showinfo" -an -f null - 2>&1 |
-    grep -oE 'pts_time:[0-9.]+' | head -1 | cut -d: -f2)"
+    grep -oE 'pts_time:[0-9.]+' | sed 's/pts_time://' |
+    awk '$1 >= 3.0 { print; exit }')"
   if [[ -z "$cut" ]]; then
-    log "no tab switch found in 04, using $PRE_ROLL"
-    printf '%s' "$PRE_ROLL"
+    log "no tab switch found in 04 after 3s, using 2.0"
+    printf '%s' "2.0"
     return
   fi
   # Four seconds of replay before the cut to the telemetry tab.
@@ -207,7 +208,7 @@ mkdir -p "$WORK"
 hero
 segment 01 01 2 5 portrait "01 CAPTURE"
 segment 02 02 7 4 portrait "02 REPLAY"
-segment 02 03 11 6 portrait "03 ANALYZE" "$TURN1_TRIM"
+segment 03 03 11 6 portrait "03 ANALYZE"
 segment 04 04 17 9 landscape "04 COMPARE" "$(compare_trim)"
 
 run ffmpeg -y -f concat -safe 0 -i "$WORK/list.txt" -c copy "$WORK/joined.mp4"
