@@ -27,6 +27,15 @@ class FrameTimelineTest {
     }
 
     @Test
+    fun `snapMs rounds to the nearest real frame start, ties to the earlier frame`() {
+        val t = FrameTimeline.of(longArrayOf(0, 20_000, 40_000))!!
+        assertEquals(0L, t.snapMs(0))
+        assertEquals(0L, t.snapMs(9))
+        assertEquals(20L, t.snapMs(11))
+        assertEquals(40L, t.snapMs(1_000))
+    }
+
+    @Test
     fun `frameAt returns the containing frame start`() {
         val t = FrameTimeline.of(longArrayOf(0, 16_683, 33_366))!!
         assertEquals(0L, t.frameAt(100))

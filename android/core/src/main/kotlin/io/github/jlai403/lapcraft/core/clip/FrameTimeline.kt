@@ -22,6 +22,15 @@ class FrameTimeline private constructor(private val pts: LongArray) {
 
     fun frameAt(us: Long): Long = if (size == 0) us else frameStartUs(indexAt(us))
 
+    /** Milliseconds of the real frame start nearest to [ms]; ties go to the earlier frame. */
+    fun snapMs(ms: Long): Long {
+        val us = ms * 1_000
+        val i = indexAt(us)
+        val next = if (i + 1 < size) pts[i + 1] else Long.MAX_VALUE
+        val best = if (us - pts[i] <= next - us) pts[i] else next
+        return (best + 500) / 1_000
+    }
+
     fun midUs(index: Int): Long {
         val i = index.coerceIn(0, size - 1)
         val span = if (i < size - 1) pts[i + 1] - pts[i]
