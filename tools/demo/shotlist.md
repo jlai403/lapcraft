@@ -22,7 +22,7 @@ Caption `Replay your laps on your phone.` runs from 7.3 to 11.0. Touches off.
 
 ## 03 Analyze, 11 to 17
 
-Pause on the corner and drag the ruler back through it twice. Avoid the figure-8 crossing: `TrackProgress.align` searches 10 m behind to 30 m ahead, and its full path search can pick the wrong branch at the crossing.
+Pause on the corner and drag the ruler back through it twice. The ruler now steps one frame per 6 dp, so each drag is a full-width sweep (two of them rewind about two seconds); a short `−200 px` drag no longer moves the picture. Avoid the figure-8 crossing: `TrackProgress.align` searches 10 m behind to 30 m ahead, and its full path search can pick the wrong branch at the crossing.
 
 Caption `Analyze each lap with telemetry on the replay.` runs from 11.3 to 16.5. Touches off.
 

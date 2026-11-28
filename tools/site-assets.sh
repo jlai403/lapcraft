@@ -46,35 +46,47 @@ if [ "$CHECK" -eq 0 ]; then
     ffmpeg -y -hide_banner -loglevel error -ss 2 -i "$MASTER" -frames:v 1 -q:v 3 "$MEDIA/demo-poster.jpg"
   fi
 
+  STILLS="$ROOT/../tools/demo/stills"
+
   # stills
-  for spec in "lap-player:02:3.5" "charts:02:8.0"; do
-    IFS=: read -r name beat ts <<< "$spec"
+  for name in lap-player charts; do
     out="$ASSETS/$name.png"
     if [ "$FORCE" -eq 1 ] || [ ! -f "$out" ]; then
       echo "$name.png"
-      case "$beat" in
-        02) ffmpeg -y -hide_banner -loglevel error -ss "$ts" -i "$BEAT02" -frames:v 1 -vf "scale=720:-2" "$out" ;;
-        04) ffmpeg -y -hide_banner -loglevel error -ss "$ts" -i "$BEAT04" -frames:v 1 -vf "scale=720:-2" "$out" ;;
-      esac
+      if [ -f "$STILLS/$name.png" ]; then
+        ffmpeg -y -hide_banner -loglevel error -i "$STILLS/$name.png" -frames:v 1 -vf "scale=720:-2" "$out"
+      else
+        case "$name" in
+          lap-player) ffmpeg -y -hide_banner -loglevel error -ss 3.5 -i "$BEAT02" -frames:v 1 -vf "scale=720:-2" "$out" ;;
+          charts) ffmpeg -y -hide_banner -loglevel error -ss 8.0 -i "$BEAT02" -frames:v 1 -vf "scale=720:-2" "$out" ;;
+        esac
+      fi
     fi
   done
 
   # compare stills at 1440 wide
-  for spec in "compare-video:04:2.0" "compare-telemetry:04:8.0"; do
-    IFS=: read -r name beat ts <<< "$spec"
+  for name in compare-video compare-telemetry; do
     out="$ASSETS/$name.png"
     if [ "$FORCE" -eq 1 ] || [ ! -f "$out" ]; then
       echo "$name.png"
-      ffmpeg -y -hide_banner -loglevel error -ss "$ts" -i "$BEAT04" -frames:v 1 -vf "scale=1440:-2" "$out"
+      if [ -f "$STILLS/$name.png" ]; then
+        ffmpeg -y -hide_banner -loglevel error -i "$STILLS/$name.png" -frames:v 1 -vf "scale=1440:-2" "$out"
+      else
+        ffmpeg -y -hide_banner -loglevel error -ss 2 -i "$BEAT04" -frames:v 1 -vf "scale=1440:-2" "$out"
+      fi
     fi
   done
 
-  # capture still from archived take
+  # capture still from the Record screen
   if [ "$FORCE" -eq 1 ] || [ ! -f "$ASSETS/capture.png" ]; then
     echo "capture.png"
-    CAPTURE="$ROOT/../tools/demo/legacy/capture-01.mp4"
-    if [ -f "$CAPTURE" ]; then
-      ffmpeg -y -hide_banner -loglevel error -ss 2 -i "$CAPTURE" -frames:v 1 -vf "scale=540:-2" "$ASSETS/capture.png"
+    if [ -f "$STILLS/capture.png" ]; then
+      ffmpeg -y -hide_banner -loglevel error -i "$STILLS/capture.png" -frames:v 1 -vf "scale=540:-2" "$ASSETS/capture.png"
+    else
+      CAPTURE="$ROOT/../tools/demo/legacy/capture-01.mp4"
+      if [ -f "$CAPTURE" ]; then
+        ffmpeg -y -hide_banner -loglevel error -ss 2 -i "$CAPTURE" -frames:v 1 -vf "scale=540:-2" "$ASSETS/capture.png"
+      fi
     fi
   fi
 

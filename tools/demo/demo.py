@@ -91,16 +91,38 @@ def coords(pattern: str, min_y: int = 0, row: bool = False) -> None:
     print(f"{(x1 + x2) // 2} {(y1 + y2) // 2}")
 
 
-def swipe(pattern: str, dx: int, duration: int, min_y: int = 0) -> None:
+def swipe(pattern: str, dx: int, duration: int, min_y: int = 0, repeat: int = 1, gap: int = 500) -> None:
     x1, y1, x2, y2 = bounds(target(pattern, min_y))
     y = (y1 + y2) // 2
-    middle = (x1 + x2) // 2
-    start = middle + dx // 2 if dx < 0 else middle - dx // 2
-    end = start + dx
-    start = max(x1 + 8, min(x2 - 8, start))
-    end = max(x1 + 8, min(x2 - 8, end))
-    adb("shell", "input", "swipe", str(start), str(y), str(end), str(y), str(duration))
-    print(f"swipe {start},{y} to {end},{y} in {duration} ms")
+    span = x2 - x1
+    for i in range(max(1, repeat)):
+        if abs(dx) >= span // 2:
+            if dx < 0:
+                start, end = x2 - 8, x1 + 8
+            else:
+                start, end = x1 + 8, x2 - 8
+        else:
+            middle = (x1 + x2) // 2
+            start = middle + dx // 2 if dx < 0 else middle - dx // 2
+            end = start + dx
+            start = max(x1 + 8, min(x2 - 8, start))
+            end = max(x1 + 8, min(x2 - 8, end))
+        adb("shell", "input", "swipe", str(start), str(y), str(end), str(y), str(duration))
+        print(f"swipe {start},{y} to {end},{y} in {duration} ms ({i + 1}/{repeat})")
+        if i + 1 < repeat:
+            time.sleep(gap / 1000.0)
+
+
+def screenshot(out: str) -> None:
+    binary = os.environ.get("ADB", "adb")
+    serial = os.environ.get("ADB_SERIAL", "")
+    command = [binary] + (["-s", serial] if serial else []) + ["exec-out", "screencap", "-p"]
+    result = subprocess.run(command, capture_output=True, timeout=30)
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr.decode("utf-8", "replace").strip() or "screencap failed")
+    Path(out).parent.mkdir(parents=True, exist_ok=True)
+    Path(out).write_bytes(result.stdout)
+    print(f"screenshot {out} ({len(result.stdout)} bytes)")
 
 
 def to_ms(match: re.Match[str], offset: int) -> int:
@@ -258,8 +280,13 @@ def main() -> None:
     swipe_cmd.add_argument("--min-y", type=int, default=0)
     swipe_cmd.add_argument("--dx", type=int, required=True)
     swipe_cmd.add_argument("--duration", type=int, default=800)
+    swipe_cmd.add_argument("--repeat", type=int, default=1, help="number of identical drags")
+    swipe_cmd.add_argument("--gap", type=int, default=500, help="pause between drags in ms")
 
     commands.add_parser("dump", help="print the current uiautomator tree")
+
+    shot_cmd = commands.add_parser("screenshot", help="save a PNG of the device screen")
+    shot_cmd.add_argument("out")
 
     cut = commands.add_parser("slice-srt", help="cut one beat out of the master subtitles")
     cut.add_argument("source", type=Path)
@@ -283,7 +310,9 @@ def main() -> None:
     elif args.command == "coords":
         coords(args.pattern, args.min_y, args.row)
     elif args.command == "swipe":
-        swipe(args.pattern, args.dx, args.duration, args.min_y)
+        swipe(args.pattern, args.dx, args.duration, args.min_y, args.repeat, args.gap)
+    elif args.command == "screenshot":
+        screenshot(args.out)
     elif args.command == "dump":
         adb("shell", "uiautomator", "dump", DUMP_PATH)
         print(adb("exec-out", "cat", DUMP_PATH))

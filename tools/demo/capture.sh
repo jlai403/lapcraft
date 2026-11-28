@@ -4,14 +4,17 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 TOOLS="$ROOT/tools/demo"
 BEATS="$TOOLS/beats"
+STILLS="$TOOLS/stills"
 PY="$TOOLS/demo.py"
 
 BEAT=""
 DRY_RUN=0
+STILLS_ONLY=0
 TOUCHES_REQUESTED=""
 LAP="1:36.131"
 REFERENCE="1:34.208"
 ADB_SERIAL=""
+CONNECT=""
 
 log() { printf '%s\n' "$*"; }
 die() { printf 'error: %s\n' "$*" >&2; exit 1; }
@@ -61,7 +64,7 @@ ensure_chrome() {
     sleep 0.5
     if chrome_visible; then return; fi
   done
-  run adb shell am start -n io.github.jlai403.lapcraft/.app.MainActivity
+  run adb shell am start -n ${APP_PKG:-io.github.jlai403.lapcraft}/io.github.jlai403.lapcraft.app.MainActivity
   sleep 1.0
   if chrome_visible; then return; fi
   die "Lapcraft is not in the foreground"
@@ -76,23 +79,28 @@ set_touches() {
 preflight() {
   if [[ -z "${ADB:-}" ]]; then
     ADB="$(command -v adb || true)"
+    [[ -z "$ADB" && -x /opt/android-sdk/platform-tools/adb ]] && ADB=/opt/android-sdk/platform-tools/adb
     [[ -n "$ADB" ]] && export ADB
+  fi
+  if [[ -n "${CONNECT:-}" ]]; then
+    run adb connect "$CONNECT"
+    [[ -z "${ADB_SERIAL:-}" ]] && export ADB_SERIAL="$CONNECT"
   fi
   export SDL_VIDEODRIVER=dummy
   run adb shell input keyevent 224
   run adb shell wm dismiss-keyguard
-  run adb shell am start -n io.github.jlai403.lapcraft/.app.MainActivity
+  run adb shell am start -n ${APP_PKG:-io.github.jlai403.lapcraft}/io.github.jlai403.lapcraft.app.MainActivity
   ensure_chrome
   run adb shell settings put system pointer_location 0
   run adb shell settings put global stay_awake 1
   run adb shell settings put system screen_off_timeout 600000
   run adb shell cmd notification set_dnd on || true
-  run mkdir -p "$BEATS"
+  run mkdir -p "$BEATS" "$STILLS"
 }
 
 beat_limit() {
   case "$1" in
-    02|04) echo 14 ;;
+    02|03|04) echo 14 ;;
     *) echo 12 ;;
   esac
 }
@@ -267,9 +275,9 @@ restart_app() {
     printf 'DRY restart app\n'
     return
   fi
-  run adb shell am force-stop io.github.jlai403.lapcraft
+  run adb shell am force-stop ${APP_PKG:-io.github.jlai403.lapcraft}
   sleep 0.6
-  run adb shell am start -n io.github.jlai403.lapcraft/.app.MainActivity
+  run adb shell am start -n ${APP_PKG:-io.github.jlai403.lapcraft}/io.github.jlai403.lapcraft.app.MainActivity
   sleep 2.0
   ensure_chrome
 }
@@ -291,7 +299,7 @@ set_speed() {
     printf 'DRY set speed %s\n' "$target"
     return
   fi
-  for attempt in 1 2 3; do
+  for attempt in 1 2 3 4 5 6; do
     if python3 "$PY" wait "^$target$" --timeout 1 >/dev/null 2>&1; then return; fi
     tap "^\\+$"
     sleep 0.4
@@ -313,17 +321,14 @@ ensure_streaming() {
 beat_01() {
   if (( ! DRY_RUN )); then
     set_rotation 0
-    ensure_library
-    wait_ui "packets/s" --timeout 5 || {
-      tap "^Record$" --min-y 2000
-      wait_ui "packets/s" --timeout 20
-    }
+    tap "^Record$" --min-y 2000
+    wait_ui "packets/s" --timeout 10
     ensure_streaming
   fi
   record_start 01
   pause 1.2
   tap "^Record$" --min-y 2000
-  if (( ! DRY_RUN )); then wait_ui "packets/s" --timeout 20; fi
+  if (( ! DRY_RUN )); then wait_ui "^Streaming$" --timeout 20; fi
   pause 2.0
   tap "^Library$" --min-y 2000
   if (( ! DRY_RUN )); then wait_ui "^All$" --timeout 5; fi
@@ -344,9 +349,29 @@ beat_02() {
   pause 4.0
   tap_xy $play_xy
   pause 0.3
-  swipe "Frame ruler" -200 900
+  swipe "Frame ruler" -900 700 --repeat 2 --gap 600
   pause 2.0
-  swipe "Frame ruler" -140 700
+  record_stop
+}
+
+beat_03() {
+  restart_app
+  set_rotation 0
+  ensure_player
+  set_speed "1×"
+  local play_xy
+  play_xy="$(control_xy "^Play$")"
+  tap_xy $play_xy
+  ensure_playing
+  pause 2.0
+  tap_xy $play_xy
+  pause 0.5
+  local before after
+  before="$(screen_hash)"
+  record_start 03
+  ui swipe "Frame ruler" --dx -900 --duration 700 --repeat 2 --gap 600
+  after="$(screen_hash)"
+  [[ "$before" != "$after" ]] || die "ruler did not move in beat 03"
   pause 2.0
   record_stop
 }
@@ -379,16 +404,84 @@ beat_04() {
   pause 0.5
   tap_xy $play_xy
   ensure_playing
-  pause 3.8
+  pause 2.5
   tap_xy $telemetry_xy
-  pause 5.0
+  pause 2.0
   record_stop
   set_rotation 0
 }
 
+take_health() {
+  local file="$1"
+  if (( DRY_RUN )); then return 0; fi
+  [[ -f "$file" ]] || { log "take missing: $file"; return 1; }
+  local frames maxgap
+  frames=$(ffprobe -v error -select_streams v:0 -count_frames -show_entries stream=nb_read_frames -of csv=p=0 "$file" 2>/dev/null || echo 0)
+  if (( frames < 30 )); then
+    log "take unhealthy: only $frames frames in $file"
+    return 1
+  fi
+  maxgap=$(ffprobe -v error -select_streams v:0 -show_entries frame=pts_time -of csv=p=0 "$file" 2>/dev/null | awk 'NR>1{g=$1-p; if(g>max) max=g} {p=$1} END{printf "%.3f", max+0}')
+  if awk "BEGIN{exit !($maxgap > 0.5)}"; then
+    log "take unhealthy: max frame gap ${maxgap}s in $file"
+    return 1
+  fi
+  return 0
+}
+
+capture_stills() {
+  # Capture all five site stills in a separate pass (no recording competing).
+  mkdir -p "$STILLS"
+  # 01: Record screen while streaming (best-effort)
+  set_rotation 0
+  tap "^Record$" --min-y 2000
+  if wait_ui "packets/s" --timeout 10 2>/dev/null; then
+    ensure_streaming 2>/dev/null || true
+    pause 2.0
+    run python3 "$PY" screenshot "$STILLS/capture.png" || true
+  fi
+  # 02: lap player + charts
+  restart_app
+  set_rotation 0
+  ensure_player
+  set_speed "2×"
+  local play_xy
+  play_xy="$(control_xy "^Play$")"
+  tap_xy $play_xy
+  ensure_playing
+  pause 1.5
+  run python3 "$PY" screenshot "$STILLS/lap-player.png"
+  tap_xy $play_xy
+  pause 0.3
+  swipe "Frame ruler" -900 700 --repeat 2 --gap 600
+  pause 2.0
+  run python3 "$PY" screenshot "$STILLS/charts.png"
+  # 04: compare video + telemetry
+  restart_app
+  ensure_player
+  tap "^Compare$"
+  wait_ui "Compare with"
+  set_rotation 1
+  tap_row "$(time_pattern "$REFERENCE")"
+  wait_ui "^Video$"
+  pause 2.0
+  local brake_xy telemetry_xy video_xy
+  brake_xy="$(control_xy "Next brake point")"
+  telemetry_xy="$(control_xy "^Telemetry$")"
+  video_xy="$(control_xy "^Video$")"
+  tap_xy $brake_xy
+  pause 0.5
+  run python3 "$PY" screenshot "$STILLS/compare-video.png"
+  tap_xy $telemetry_xy
+  pause 2.0
+  run python3 "$PY" screenshot "$STILLS/compare-telemetry.png"
+  set_rotation 0
+  log "stills captured in $STILLS"
+}
+
 usage() {
-  log "usage: capture.sh --beat 01|02|04|all [--touches on|off] [--lap '1:36.131'] [--reference '1:34.208'] [--serial ip:port] [--dry-run]"
-  log "beats: 01 Library and Record, 02 2x replay then ruler scrubs, 04 compare playback then Telemetry tab"
+  log "usage: capture.sh --beat 01|02|03|04|all [--touches on|off] [--lap '1:36.131'] [--reference '1:34.208'] [--serial ip:port] [--connect host:port] [--dry-run]"
+  log "beats: 01 Library and Record, 02 2x replay, 03 ruler scrubs, 04 compare playback then Telemetry tab"
 }
 
 while (( $# > 0 )); do
@@ -398,13 +491,15 @@ while (( $# > 0 )); do
     --lap) LAP="${2:-}"; shift 2 ;;
     --reference) REFERENCE="${2:-}"; shift 2 ;;
     --serial) ADB_SERIAL="${2:-}"; shift 2 ;;
+    --connect) CONNECT="${2:-}"; shift 2 ;;
+    --stills) STILLS_ONLY=1; shift ;;
     --dry-run) DRY_RUN=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) die "unknown option $1" ;;
   esac
 done
 
-[[ -n "$BEAT" ]] || { usage; die "missing --beat"; }
+if (( ! STILLS_ONLY )) && [[ -z "$BEAT" ]]; then usage; die "missing --beat"; fi
 if [[ "$BEAT" == all ]]; then BEAT="01 02 04"; fi
 export ADB_SERIAL
 
@@ -414,20 +509,31 @@ if (( ! DRY_RUN )); then
   [[ -f "$PY" ]] || die "missing $PY"
 fi
 
-for beat in $BEAT; do
-  [[ "$beat" == 01 || "$beat" == 02 || "$beat" == 04 ]] ||
-    die "unknown beat $beat"
-done
+if (( ! STILLS_ONLY )); then
+  for beat in $BEAT; do
+    [[ "$beat" == 01 || "$beat" == 02 || "$beat" == 03 || "$beat" == 04 ]] ||
+      die "unknown beat $beat"
+  done
+fi
 
 preflight
 
+if (( STILLS_ONLY )); then
+  capture_stills
+  exit 0
+fi
+
 for beat in $BEAT; do
-  TOUCHES="${TOUCHES_REQUESTED:-$(default_touches "$beat")}"
-  log "beat $beat, touches $TOUCHES"
-  set_touches
-  run adb shell input keyevent 224
-  run adb shell wm dismiss-keyguard
-  run adb shell am start -n io.github.jlai403.lapcraft/.app.MainActivity
-  ensure_chrome
-  "beat_$beat"
+  for attempt in 1 2 3; do
+    TOUCHES="${TOUCHES_REQUESTED:-$(default_touches "$beat")}"
+    log "beat $beat (attempt $attempt), touches $TOUCHES"
+    set_touches
+    run adb shell input keyevent 224
+    run adb shell wm dismiss-keyguard
+    run adb shell am start -n ${APP_PKG:-io.github.jlai403.lapcraft}/io.github.jlai403.lapcraft.app.MainActivity
+    ensure_chrome
+    "beat_$beat"
+    if take_health "$BEATS/$beat.mkv"; then break; fi
+    log "retrying beat $beat after unhealthy take"
+  done
 done
