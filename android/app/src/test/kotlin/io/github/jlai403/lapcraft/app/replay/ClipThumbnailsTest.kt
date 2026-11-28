@@ -23,4 +23,13 @@ class ClipThumbnailsTest {
     fun `readThumbnails returns empty for a missing file`() {
         assertTrue(readThumbnails(File("/no/such/file.mp4"), listOf(0L, 10L), 64, 40).isEmpty())
     }
+
+    @Test
+    fun `hudCropRect lands inside the frame and matches the timer aspect`() {
+        val r = hudCropRect(864, 486)
+        assertTrue(r[0] >= 0 && r[1] >= 0)
+        assertTrue(r[0] + r[2] <= 864 && r[1] + r[3] <= 486)
+        val aspect = r[2].toDouble() / r[3].toDouble()
+        assertTrue(aspect in 4.0..4.6)
+    }
 }
